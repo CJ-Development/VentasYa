@@ -1,9 +1,8 @@
+import AppRouter from "./routes/AppRouter"
 
 function App() {
 
-  return (
-    <h1>Ventas Ya</h1>
-  )
+  return <AppRouter />;
 }
 
-export default App
+export default App;
