@@ -1,0 +1,207 @@
+.modal-overlay{
+
+    position:fixed;
+
+    inset:0;
+
+    background:rgba(0,0,0,.45);
+
+    display:flex;
+
+    justify-content:center;
+
+    align-items:center;
+
+    z-index:9999;
+
+}
+
+.product-form{
+
+    width:900px;
+
+    max-width:95%;
+
+    background:#E2E2E2;
+
+    border-radius:22px;
+
+    padding:35px;
+
+    animation:modal .25s ease;
+
+}
+
+@keyframes modal{
+
+from{
+
+opacity:0;
+
+transform:translateY(-20px);
+
+}
+
+to{
+
+opacity:1;
+
+transform:translateY(0);
+
+}
+
+}
+
+.modal-header{
+
+display:flex;
+
+justify-content:space-between;
+
+align-items:flex-start;
+
+margin-bottom:30px;
+
+}
+
+.modal-header h2{
+
+color:#384D48;
+
+margin-bottom:6px;
+
+}
+
+.modal-header p{
+
+color:#6E7271;
+
+}
+
+.close-button{
+
+width:45px;
+
+height:45px;
+
+border:none;
+
+border-radius:12px;
+
+background:#D8D4D5;
+
+cursor:pointer;
+
+}
+
+.form-grid{
+
+display:grid;
+
+grid-template-columns:repeat(2,1fr);
+
+gap:22px;
+
+}
+
+.form-group{
+
+display:flex;
+
+flex-direction:column;
+
+margin-bottom:22px;
+
+}
+
+.form-group label{
+
+margin-bottom:10px;
+
+font-weight:600;
+
+color:#384D48;
+
+}
+
+.form-group input,
+
+.form-group select,
+
+.form-group textarea{
+
+padding:14px;
+
+border-radius:12px;
+
+border:1px solid #ccc;
+
+background:white;
+
+outline:none;
+
+font-size:15px;
+
+}
+
+textarea{
+
+resize:none;
+
+}
+
+.form-buttons{
+
+display:flex;
+
+justify-content:flex-end;
+
+gap:15px;
+
+margin-top:25px;
+
+}
+
+.cancel-button{
+
+background:#D8D4D5;
+
+color:#384D48;
+
+border:none;
+
+padding:14px 28px;
+
+border-radius:12px;
+
+cursor:pointer;
+
+font-weight:600;
+
+}
+
+.save-button{
+
+background:#384D48;
+
+color:white;
+
+border:none;
+
+padding:14px 28px;
+
+border-radius:12px;
+
+cursor:pointer;
+
+font-weight:700;
+
+}
+
+.save-button:hover{
+
+background:#ACAD94;
+
+color:#384D48;
+
+}

@@ -1,0 +1,287 @@
+.product-table{
+
+    background:#D8D4D5;
+
+    border-radius:22px;
+
+    padding:30px;
+
+    border:1px solid rgba(56,77,72,.08);
+
+}
+
+/*======================
+        Toolbar
+=======================*/
+
+.table-toolbar{
+
+    display:flex;
+
+    justify-content:space-between;
+
+    align-items:center;
+
+    margin-bottom:25px;
+
+    gap:20px;
+
+    flex-wrap:wrap;
+
+}
+
+.table-search{
+
+    display:flex;
+
+    align-items:center;
+
+    gap:12px;
+
+    background:#E2E2E2;
+
+    padding:12px 18px;
+
+    border-radius:14px;
+
+    width:340px;
+
+}
+
+.table-search input{
+
+    border:none;
+
+    outline:none;
+
+    background:none;
+
+    width:100%;
+
+    font-size:.95rem;
+
+}
+
+.table-filters{
+
+    display:flex;
+
+    gap:15px;
+
+}
+
+.table-filters select{
+
+    padding:12px 16px;
+
+    border-radius:12px;
+
+    border:1px solid #c9c9c9;
+
+    background:white;
+
+    cursor:pointer;
+
+}
+
+/*======================
+        Tabla
+=======================*/
+
+table{
+
+    width:100%;
+
+    border-collapse:collapse;
+
+}
+
+thead{
+
+    background:#384D48;
+
+}
+
+thead th{
+
+    color:white;
+
+    padding:16px;
+
+    font-weight:600;
+
+}
+
+tbody td{
+
+    padding:18px 16px;
+
+    border-bottom:1px solid rgba(56,77,72,.08);
+
+}
+
+tbody tr{
+
+    transition:.25s;
+
+}
+
+tbody tr:hover{
+
+    background:#ECEAEA;
+
+}
+
+/*======================
+    Producto
+=======================*/
+
+.product-info{
+
+    display:flex;
+
+    align-items:center;
+
+    gap:15px;
+
+}
+
+.product-image{
+
+    width:58px;
+
+    height:58px;
+
+    border-radius:14px;
+
+    background:#E2E2E2;
+
+    display:flex;
+
+    justify-content:center;
+
+    align-items:center;
+
+    font-size:1.3rem;
+
+}
+
+.product-info strong{
+
+    display:block;
+
+    color:#384D48;
+
+}
+
+.product-info span{
+
+    color:#6E7271;
+
+    font-size:.85rem;
+
+}
+
+/*======================
+        Stock
+=======================*/
+
+.stock{
+
+    background:#ECEAEA;
+
+    padding:8px 14px;
+
+    border-radius:30px;
+
+    font-size:.85rem;
+
+}
+
+/*======================
+        Estado
+=======================*/
+
+.status{
+
+    padding:8px 14px;
+
+    border-radius:30px;
+
+    font-size:.82rem;
+
+    font-weight:600;
+
+}
+
+.status.active{
+
+    background:#cfe8d2;
+
+    color:#24613c;
+
+}
+
+/*======================
+        Acciones
+=======================*/
+
+.actions{
+
+    display:flex;
+
+    gap:10px;
+
+}
+
+.actions button{
+
+    width:40px;
+
+    height:40px;
+
+    border:none;
+
+    border-radius:12px;
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:center;
+
+    cursor:pointer;
+
+    transition:.25s;
+
+}
+
+.view{
+
+    background:#dce9e5;
+
+    color:#384D48;
+
+}
+
+.edit{
+
+    background:#ACAD94;
+
+    color:white;
+
+}
+
+.delete{
+
+    background:#b84b4b;
+
+    color:white;
+
+}
+
+.actions button:hover{
+
+    transform:translateY(-2px);
+
+}

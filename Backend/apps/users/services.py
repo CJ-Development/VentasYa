@@ -1,6 +1,6 @@
 from django.contrib.auth.hashers import make_password, check_password
 
-from .models import Usuario
+from .models import Usuario, Rol
 
 
 class UserService:
@@ -8,9 +8,11 @@ class UserService:
     @staticmethod
     def crear_usuario(data):
 
+        rol = Rol.objects.get(nombre_rol="Cliente")
+
         usuario = Usuario.objects.create(
 
-            rol_id=1,
+            rol=rol,
 
             nombres=data["nombres"],
 
@@ -39,7 +41,7 @@ class UserService:
 
             usuario = Usuario.objects.get(email=email)
 
-        except Usuario.DoesNotExist:
+        except Usuario.DoesNotExist():
 
             return None
 
@@ -48,3 +50,7 @@ class UserService:
             return usuario
 
         return None
+
+    @staticmethod
+    def obtener_usuarios():
+        return Usuario.objects.select_related("rol").all()

@@ -1,0 +1,89 @@
+.recent-activity{
+
+    background:#fff;
+
+    border-radius:20px;
+
+    padding:30px;
+
+    box-shadow:0 8px 25px rgba(0,0,0,.05);
+
+}
+
+.recent-activity h2{
+
+    color:#031927;
+
+    margin-bottom:25px;
+
+}
+
+.activity-list{
+
+    display:flex;
+
+    flex-direction:column;
+
+    gap:18px;
+
+}
+
+.activity-item{
+
+    display:flex;
+
+    align-items:center;
+
+    gap:15px;
+
+    padding-bottom:15px;
+
+    border-bottom:1px solid #ECECEC;
+
+}
+
+.activity-item:last-child{
+
+    border:none;
+
+    padding-bottom:0;
+
+}
+
+.activity-icon{
+
+    width:45px;
+
+    height:45px;
+
+    border-radius:12px;
+
+    background:#EAF4F2;
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:center;
+
+    color:#336769;
+
+}
+
+.activity-item h4{
+
+    color:#031927;
+
+    margin-bottom:4px;
+
+    font-size:.95rem;
+
+}
+
+.activity-item span{
+
+    color:#8A8A8A;
+
+    font-size:.85rem;
+
+}

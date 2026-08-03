@@ -61,3 +61,16 @@ class LoginView(APIView):
             UsuarioSerializer(usuario).data
 
         )
+
+class UserListView(APIView):
+
+    def get(self, request):
+
+        usuarios = UserService.obtener_usuarios()
+
+        serializer = UsuarioSerializer(
+            usuarios,
+            many=True
+        )
+
+        return Response(serializer.data)

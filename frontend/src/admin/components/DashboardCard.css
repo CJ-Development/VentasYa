@@ -1,0 +1,187 @@
+/*=========================================
+        DASHBOARD CARD
+=========================================*/
+
+.dashboard-card{
+
+    background:#D8D4D5;
+
+    border-radius:22px;
+
+    padding:28px;
+
+    border:1px solid rgba(56,77,72,.08);
+
+    display:flex;
+
+    flex-direction:column;
+
+    justify-content:space-between;
+
+    transition:.30s ease;
+
+    cursor:pointer;
+
+    position:relative;
+
+    overflow:hidden;
+
+}
+
+.dashboard-card::before{
+
+    content:"";
+
+    position:absolute;
+
+    top:0;
+
+    left:0;
+
+    width:6px;
+
+    height:100%;
+
+    background:#384D48;
+
+    transition:.30s;
+
+}
+
+.dashboard-card:hover{
+
+    transform:translateY(-6px);
+
+    border-color:#384D48;
+
+    background:#ECEAEA;
+
+}
+
+.dashboard-card:hover::before{
+
+    width:10px;
+
+}
+
+/*=========================================
+            PARTE SUPERIOR
+=========================================*/
+
+.card-top{
+
+    display:flex;
+
+    align-items:center;
+
+    gap:18px;
+
+    margin-bottom:25px;
+
+}
+
+.card-icon{
+
+    width:62px;
+
+    height:62px;
+
+    border-radius:18px;
+
+    background:#384D48;
+
+    color:white;
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:center;
+
+    flex-shrink:0;
+
+}
+
+.card-icon svg{
+
+    width:28px;
+
+    height:28px;
+
+}
+
+.card-title{
+
+    font-size:1rem;
+
+    font-weight:600;
+
+    color:#6E7271;
+
+}
+
+/*=========================================
+            PARTE INFERIOR
+=========================================*/
+
+.card-body{
+
+    display:flex;
+
+    flex-direction:column;
+
+    gap:8px;
+
+}
+
+.card-body h2{
+
+    font-size:2.4rem;
+
+    color:#384D48;
+
+    margin:0;
+
+    font-weight:700;
+
+    line-height:1;
+
+}
+
+.card-body p{
+
+    margin:0;
+
+    color:#6E7271;
+
+    font-size:.95rem;
+
+}
+
+/*=========================================
+            RESPONSIVE
+=========================================*/
+
+@media(max-width:768px){
+
+.dashboard-card{
+
+    padding:22px;
+
+}
+
+.card-icon{
+
+    width:55px;
+
+    height:55px;
+
+}
+
+.card-body h2{
+
+    font-size:2rem;
+
+}
+
+}

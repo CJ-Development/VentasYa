@@ -97,12 +97,6 @@ class Producto(models.Model):
         db_column="id_categoria"
     )
 
-    marca = models.ForeignKey(
-        Marca,
-        on_delete=models.PROTECT,
-        db_column="id_marca"
-    )
-
     nombre = models.CharField(max_length=150)
 
     slug = models.SlugField(

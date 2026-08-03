@@ -1,0 +1,67 @@
+.quick-actions{
+
+    background:white;
+
+    border-radius:20px;
+
+    padding:30px;
+
+    box-shadow:0 8px 25px rgba(0,0,0,.05);
+
+}
+
+.quick-actions h2{
+
+    color:#031927;
+
+    margin-bottom:25px;
+
+}
+
+.quick-grid{
+
+    display:grid;
+
+    grid-template-columns:repeat(2,1fr);
+
+    gap:18px;
+
+}
+
+.quick-grid button{
+
+    height:90px;
+
+    border:none;
+
+    border-radius:16px;
+
+    background:#F8FAFB;
+
+    display:flex;
+
+    flex-direction:column;
+
+    justify-content:center;
+
+    align-items:center;
+
+    gap:12px;
+
+    cursor:pointer;
+
+    transition:.25s;
+
+    color:#336769;
+
+    font-weight:600;
+
+}
+
+.quick-grid button:hover{
+
+    background:#336769;
+
+    color:white;
+
+}

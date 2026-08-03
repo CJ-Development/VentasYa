@@ -1,0 +1,23 @@
+.offers-page{
+
+    display:flex;
+
+    flex-direction:column;
+
+    gap:30px;
+
+}
+
+.page-header h1{
+
+    color:var(--secondary);
+
+    margin-bottom:8px;
+
+}
+
+.page-header p{
+
+    color:var(--text-light);
+
+}
