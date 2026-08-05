@@ -1,6 +1,36 @@
+import { useEffect, useState } from "react";
+
+import { getCategories } from "../../../services/adminService";
+
 import "./CategoryTable.css";
 
 function CategoryTable() {
+
+    const [categorias, setCategorias] = useState([]);
+
+    const cargarCategorias = async () => {
+
+        try {
+
+            const { data } = await getCategories();
+
+            setCategorias(data);
+
+        }
+
+        catch(error){
+
+            console.error(error);
+
+        }
+
+    };
+
+    useEffect(() => {
+
+        cargarCategorias();
+
+    }, []);
 
     return (
 
@@ -20,9 +50,9 @@ function CategoryTable() {
 
                         <th>ID</th>
 
-                        <th>Imagen</th>
-
                         <th>Nombre</th>
+
+                        <th>Descripción</th>
 
                         <th>Estado</th>
 
@@ -34,41 +64,94 @@ function CategoryTable() {
 
                 <tbody>
 
-                    <tr>
+                    {
 
-                        <td>1</td>
+                        categorias.length === 0 ?
 
-                        <td>🖼️</td>
+                        (
 
-                        <td>Hombre</td>
+                            <tr>
 
-                        <td>
+                                <td
+                                    colSpan="5"
+                                    style={{textAlign:"center"}}
+                                >
 
-                            <span className="active">
+                                    No existen categorías.
 
-                                Activo
+                                </td>
 
-                            </span>
+                            </tr>
 
-                        </td>
+                        )
 
-                        <td>
+                        :
 
-                            <button>
+                        categorias.map((categoria)=>(
 
-                                Editar
+                            <tr
+                                key={categoria.id_categoria}
+                            >
 
-                            </button>
+                                <td>
 
-                            <button className="delete">
+                                    {categoria.id_categoria}
 
-                                Eliminar
+                                </td>
 
-                            </button>
+                                <td>
 
-                        </td>
+                                    {categoria.nombre}
 
-                    </tr>
+                                </td>
+
+                                <td>
+
+                                    {categoria.descripcion}
+
+                                </td>
+
+                                <td>
+
+                                    <span
+                                        className={
+                                            categoria.estado === "activo"
+
+                                            ? "active"
+
+                                            : "inactive"
+                                        }
+                                    >
+
+                                        {categoria.estado}
+
+                                    </span>
+
+                                </td>
+
+                                <td>
+
+                                    <button>
+
+                                        Editar
+
+                                    </button>
+
+                                    <button
+                                        className="delete"
+                                    >
+
+                                        Quitar
+
+                                    </button>
+
+                                </td>
+
+                            </tr>
+
+                        ))
+
+                    }
 
                 </tbody>
 

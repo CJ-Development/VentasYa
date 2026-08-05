@@ -1,16 +1,103 @@
+import { useState } from "react";
+import { X } from "lucide-react";
+import { createCategory } from "../../../services/adminService";
 import "./CategoryForm.css";
 
-function CategoryForm() {
+function CategoryForm({ onClose }) {
 
+    const [formData, setFormData] = useState({
+
+        nombre: "",
+        descripcion: "",
+        estado: "activo"
+
+    });
+
+    const handleChange = (e) => {
+
+        const { name, value } = e.target;
+
+        setFormData({
+
+            ...formData,
+
+            [name]: value
+
+        });
+
+    };
+
+    const handleSubmit = async (e) => {
+
+        e.preventDefault();
+
+        try {
+
+            console.log(formData);
+
+            const respuesta = await createCategory(formData);
+
+            console.log(respuesta.data);
+
+            alert("Categoría creada correctamente.");
+
+            onClose();
+
+        }
+
+        catch(error){
+
+            console.error(error);
+
+            alert("Error al crear la categoría.");
+
+        }
+
+    };
     return (
 
-        <div className="category-form-card">
+        <div className="modal-overlay">
 
-            <h2>Nueva categoría</h2>
+            <form
+                className="category-form"
+                onSubmit={handleSubmit}
+            >
 
-            <form>
+                <div className="modal-header">
 
-                <div className="grid">
+                    <div>
+
+                        <h2>
+
+                            Nueva categoría
+
+                        </h2>
+
+                        <p>
+
+                            Organiza tus productos fácilmente.
+
+                        </p>
+
+                    </div>
+
+                    <button
+
+                        type="button"
+
+                        className="close-button"
+
+                        onClick={onClose}
+
+                    >
+
+                        <X size={20}/>
+
+                    </button>
+
+                </div>
+
+                <div className="form-grid">
 
                     <div className="form-group">
 
@@ -21,8 +108,19 @@ function CategoryForm() {
                         </label>
 
                         <input
+
                             type="text"
+
+                            name="nombre"
+
+                            value={formData.nombre}
+
+                            onChange={handleChange}
+
                             placeholder="Ej: Hombre"
+
+                            required
+
                         />
 
                     </div>
@@ -35,15 +133,23 @@ function CategoryForm() {
 
                         </label>
 
-                        <select>
+                        <select
 
-                            <option>
+                            name="estado"
+
+                            value={formData.estado}
+
+                            onChange={handleChange}
+
+                        >
+
+                            <option value="activo">
 
                                 Activo
 
                             </option>
 
-                            <option>
+                            <option value="inactivo">
 
                                 Inactivo
 
@@ -64,8 +170,17 @@ function CategoryForm() {
                     </label>
 
                     <textarea
-                        rows="4"
-                        placeholder="Descripción..."
+
+                        rows="5"
+
+                        name="descripcion"
+
+                        value={formData.descripcion}
+
+                        onChange={handleChange}
+
+                        placeholder="Descripción de la categoría"
+
                     />
 
                 </div>
@@ -79,16 +194,42 @@ function CategoryForm() {
                     </label>
 
                     <input
+
                         type="file"
+
                     />
 
                 </div>
 
-                <button>
+                <div className="form-buttons">
 
-                    Guardar categoría
+                    <button
 
-                </button>
+                        type="button"
+
+                        className="cancel-button"
+
+                        onClick={onClose}
+
+                    >
+
+                        Cancelar
+
+                    </button>
+
+                    <button
+
+                        type="submit"
+
+                        className="save-button"
+
+                    >
+
+                        Guardar categoría
+
+                    </button>
+
+                </div>
 
             </form>
 

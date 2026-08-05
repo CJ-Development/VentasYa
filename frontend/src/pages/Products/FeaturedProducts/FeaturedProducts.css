@@ -1,0 +1,535 @@
+@import "../../../styles/base/variables.css";
+
+/*==================================================
+PRODUCTOS DESTACADOS
+==================================================*/
+
+.featured-products{
+
+    max-width:1450px;
+
+    margin:90px auto;
+
+    padding:0 30px;
+
+}
+
+.featured-header{
+
+    display:flex;
+
+    justify-content:space-between;
+
+    align-items:flex-end;
+
+    margin-bottom:50px;
+
+}
+
+.featured-subtitle{
+
+    display:inline-block;
+
+    color:var(--primary);
+
+    font-size:13px;
+
+    font-weight:700;
+
+    letter-spacing:3px;
+
+    text-transform:uppercase;
+
+    margin-bottom:12px;
+
+}
+
+.featured-header h2{
+
+    font-size:52px;
+
+    color:var(--secondary);
+
+    font-weight:800;
+
+    line-height:1.1;
+
+    margin-bottom:12px;
+
+}
+
+.featured-header p{
+
+    max-width:600px;
+
+    font-size:17px;
+
+    line-height:1.8;
+
+    color:#6B7280;
+
+}
+
+.featured-header a{
+
+    color:var(--primary);
+
+    font-size:17px;
+
+    font-weight:700;
+
+    transition:.3s;
+
+}
+
+.featured-header a:hover{
+
+    color:var(--secondary);
+
+}
+
+.products-grid{
+
+    display:grid;
+
+    grid-template-columns:repeat(auto-fill,minmax(300px,1fr));
+
+    gap:30px;
+
+}
+
+.products-message{
+
+    padding:80px;
+
+    background:white;
+
+    border-radius:20px;
+
+    text-align:center;
+
+    color:#777;
+
+    box-shadow:0 15px 35px rgba(0,0,0,.08);
+
+}
+
+/*==================================================
+MODAL
+==================================================*/
+
+.product-modal-overlay{
+
+    position:fixed;
+
+    inset:0;
+
+    background:rgba(3,25,39,.60);
+
+    backdrop-filter:blur(8px);
+
+    display:flex;
+
+    justify-content:center;
+
+    align-items:center;
+
+    padding:40px;
+
+    z-index:9999;
+
+}
+
+.product-modal{
+
+    width:min(1300px,96vw);
+
+    min-height:760px;
+
+    background:#fff;
+
+    border-radius:26px;
+
+    overflow:hidden;
+
+    display:grid;
+
+    grid-template-columns:58% 42%;
+
+    position:relative;
+
+    box-shadow:0 30px 80px rgba(0,0,0,.25);
+
+    animation:modalShow .35s ease;
+
+}
+
+@keyframes modalShow{
+
+    from{
+
+        opacity:0;
+
+        transform:translateY(40px) scale(.95);
+
+    }
+
+    to{
+
+        opacity:1;
+
+        transform:none;
+
+    }
+
+}
+
+/*==================================================
+BOTON CERRAR
+==================================================*/
+
+.close-modal{
+
+    position:absolute;
+
+    top:22px;
+
+    right:22px;
+
+    width:48px;
+
+    height:48px;
+
+    border:none;
+
+    border-radius:50%;
+
+    background:#f4f4f4;
+
+    cursor:pointer;
+
+    font-size:20px;
+
+    transition:.3s;
+
+    z-index:10;
+
+}
+
+.close-modal:hover{
+
+    background:var(--primary);
+
+    color:white;
+
+}
+
+/*==================================================
+IMAGEN
+==================================================*/
+
+.modal-left{
+
+    background:#fafafa;
+
+    display:flex;
+
+    justify-content:center;
+
+    align-items:center;
+
+    padding:60px;
+
+}
+
+.modal-left img{
+
+    width:100%;
+
+    max-width:620px;
+
+    max-height:680px;
+
+    object-fit:contain;
+
+}
+
+/*==================================================
+INFO
+==================================================*/
+
+.modal-right{
+
+    padding:60px;
+
+    display:flex;
+
+    flex-direction:column;
+
+}
+
+.modal-category{
+
+    text-transform:uppercase;
+
+    letter-spacing:3px;
+
+    color:var(--accent);
+
+    font-size:13px;
+
+    font-weight:700;
+
+    margin-bottom:14px;
+
+}
+
+.modal-right h2{
+
+    font-size:42px;
+
+    font-weight:800;
+
+    color:var(--secondary);
+
+    line-height:1.2;
+
+    margin-bottom:18px;
+
+}
+
+.modal-right h3{
+
+    font-size:38px;
+
+    color:var(--primary);
+
+    font-weight:800;
+
+    margin-bottom:28px;
+
+}
+
+.modal-right p{
+
+    color:#6B7280;
+
+    font-size:16px;
+
+    line-height:1.8;
+
+    margin-bottom:35px;
+
+}
+
+/*==================================================
+TITULOS
+==================================================*/
+
+.modal-right h4{
+
+    font-size:15px;
+
+    color:var(--secondary);
+
+    margin-bottom:16px;
+
+}
+
+/*==================================================
+COLORES
+==================================================*/
+
+.colors{
+
+    display:flex;
+
+    gap:15px;
+
+    margin-bottom:35px;
+
+}
+
+.color{
+
+    width:40px;
+
+    height:40px;
+
+    border-radius:50%;
+
+    border:2px solid #ddd;
+
+    cursor:pointer;
+
+    transition:.3s;
+
+}
+
+.color:hover{
+
+    transform:scale(1.12);
+
+    border-color:var(--primary);
+
+}
+
+.black{
+
+    background:#000;
+
+}
+
+.gray{
+
+    background:#A6ADB5;
+
+}
+
+.green{
+
+    background:#77966D;
+
+}
+
+.white{
+
+    background:#fff;
+
+}
+
+/*==================================================
+TALLAS
+==================================================*/
+
+.sizes{
+
+    display:flex;
+
+    gap:14px;
+
+    margin-bottom:45px;
+
+}
+
+.sizes button{
+
+    width:55px;
+
+    height:55px;
+
+    border-radius:12px;
+
+    border:1px solid #ddd;
+
+    background:white;
+
+    cursor:pointer;
+
+    font-weight:700;
+
+    transition:.3s;
+
+}
+
+.sizes button:hover{
+
+    border-color:var(--primary);
+
+    color:var(--primary);
+
+}
+
+.sizes .active{
+
+    background:var(--primary);
+
+    color:white;
+
+    border-color:var(--primary);
+
+}
+
+/*==================================================
+BOTON
+==================================================*/
+
+.add-cart-modal{
+
+    width:100%;
+
+    height:60px;
+
+    border:none;
+
+    border-radius:14px;
+
+    background:var(--primary);
+
+    color:white;
+
+    font-size:17px;
+
+    font-weight:700;
+
+    cursor:pointer;
+
+    transition:.3s;
+
+    margin-top:auto;
+
+}
+
+.add-cart-modal:hover{
+
+    background:var(--secondary);
+
+    transform:translateY(-2px);
+
+}
+
+/*==================================================
+RESPONSIVE
+==================================================*/
+
+@media(max-width:1000px){
+
+.product-modal{
+
+grid-template-columns:1fr;
+
+overflow-y:auto;
+
+max-height:95vh;
+
+}
+
+.modal-left{
+
+padding:30px;
+
+}
+
+.modal-right{
+
+padding:35px;
+
+}
+
+.featured-header{
+
+flex-direction:column;
+
+align-items:flex-start;
+
+gap:20px;
+
+}
+
+.featured-header h2{
+
+font-size:40px;
+
+}
+
+}

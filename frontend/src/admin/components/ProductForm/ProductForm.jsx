@@ -1,10 +1,6 @@
 import { useState, useEffect } from "react";
 
-import {
-    createProduct,
-    getCategories
-} from "../../services/adminService";
-
+import { createProduct, getCategories } from "../../../services/adminService";
 import "./ProductForm.css";
 
 import { X } from "lucide-react";
@@ -75,14 +71,21 @@ function ProductForm({ onClose }) {
 
             const data = {
 
-                ...formData,
+                nombre: formData.nombre,
+
+                categoria_id: Number(formData.categoria),
+
+                descripcion: formData.descripcion,
+
+                precio: Number(formData.precio),
+
+                estado: formData.estado,
 
                 slug: formData.nombre
                     .toLowerCase()
                     .replace(/\s+/g, "-")
 
             };
-
             await createProduct(data);
 
             alert("Producto creado correctamente.");

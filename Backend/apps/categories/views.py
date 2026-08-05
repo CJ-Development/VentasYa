@@ -22,23 +22,33 @@ class CategoriaView(APIView):
 
     def post(self, request):
 
-        serializer = CategoriaSerializer(
-            data=request.data
-        )
+        print("=" * 50)
+        print("REQUEST:")
+        print(request.data)
 
-        serializer.is_valid(
-            raise_exception=True
-        )
+        serializer = CategoriaSerializer(data=request.data)
 
-        categoria = CategoriaService.crear(
-            serializer.validated_data
-        )
+        if serializer.is_valid():
+
+            print("VALIDADO:")
+            print(serializer.validated_data)
+
+            categoria = serializer.save()
+
+            print("GUARDADO:")
+            print(categoria.id_categoria)
+
+            return Response(
+                CategoriaSerializer(categoria).data,
+                status=status.HTTP_201_CREATED
+            )
+
+        print(serializer.errors)
 
         return Response(
-            CategoriaSerializer(categoria).data,
-            status=status.HTTP_201_CREATED
+            serializer.errors,
+            status=status.HTTP_400_BAD_REQUEST
         )
-
 
 class CategoriaDetalleView(APIView):
 

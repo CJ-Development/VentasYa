@@ -4,20 +4,31 @@
        COLORES
     =========================== */
 
-    --primary: #336769;
-    --secondary: #031927;
-    --accent: #77966D;
+    /* Principal: Verde oscuro */
+    --primary: #384D48;
 
+    /* Secundario: Gris oscuro */
+    --secondary: #6E7271;
+
+    /* Acento: Verde oliva */
+    --accent: #ACAD94;
+
+    /* Fondos */
     --white: #FFFFFF;
-    --background: #FFFFFF;
+    --background: #E2E2E2;
+    --surface: #D8D4D5;
 
-    --text: #1F2937;
-    --text-light: #6B7280;
-    --border: #E5E7EB;
+    /* Texto */
+    --text: #384D48;
+    --text-light: #6E7271;
 
-    --success: #16A34A;
-    --warning: #F59E0B;
-    --error: #DC2626;
+    /* Bordes */
+    --border: #C9C6C7;
+
+    /* Estados */
+    --success: #4E7A5A;
+    --warning: #B18A3D;
+    --error: #B14A4A;
 
     /* ===========================
        TIPOGRAFÍA
@@ -69,9 +80,9 @@
        SOMBRAS
     =========================== */
 
-    --shadow-sm: 0 2px 8px rgba(0, 0, 0, .08);
-    --shadow-md: 0 8px 20px rgba(0, 0, 0, .12);
-    --shadow-lg: 0 12px 30px rgba(0, 0, 0, .18);
+    --shadow-sm: 0 2px 8px rgba(56, 77, 72, .08);
+    --shadow-md: 0 8px 20px rgba(56, 77, 72, .12);
+    --shadow-lg: 0 12px 30px rgba(56, 77, 72, .18);
 
     /* ===========================
        TRANSICIONES

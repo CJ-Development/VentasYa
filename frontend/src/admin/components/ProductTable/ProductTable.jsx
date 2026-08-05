@@ -1,3 +1,5 @@
+import { useEffect, useState } from "react";
+
 import "./ProductTable.css";
 
 import {
@@ -7,7 +9,35 @@ import {
     Trash2
 } from "lucide-react";
 
+import { getProducts } from "../../../services/adminService";
+
 function ProductTable() {
+
+    const [productos, setProductos] = useState([]);
+
+    const cargarProductos = async () => {
+
+        try {
+
+            const { data } = await getProducts();
+
+            setProductos(data);
+
+        }
+
+        catch(error){
+
+            console.error(error);
+
+        }
+
+    };
+
+    useEffect(() => {
+
+        cargarProductos();
+
+    }, []);
 
     return (
 
@@ -17,7 +47,7 @@ function ProductTable() {
 
                 <div className="table-search">
 
-                    <Search size={18} />
+                    <Search size={18}/>
 
                     <input
                         type="text"
@@ -30,13 +60,21 @@ function ProductTable() {
 
                     <select>
 
-                        <option>Todas las categorías</option>
+                        <option>
+
+                            Todas las categorías
+
+                        </option>
 
                     </select>
 
                     <select>
 
-                        <option>Todos los estados</option>
+                        <option>
+
+                            Todos los estados
+
+                        </option>
 
                     </select>
 
@@ -50,17 +88,35 @@ function ProductTable() {
 
                     <tr>
 
-                        <th>Producto</th>
+                        <th>
 
-                        <th>Categoría</th>
+                            Producto
 
-                        <th>Precio</th>
+                        </th>
 
-                        <th>Stock</th>
+                        <th>
 
-                        <th>Estado</th>
+                            Categoría
 
-                        <th>Acciones</th>
+                        </th>
+
+                        <th>
+
+                            Precio
+
+                        </th>
+
+                        <th>
+
+                            Estado
+
+                        </th>
+
+                        <th>
+
+                            Acciones
+
+                        </th>
 
                     </tr>
 
@@ -68,97 +124,131 @@ function ProductTable() {
 
                 <tbody>
 
-                    <tr>
+                    {
 
-                        <td>
+                        productos.length === 0 ?
 
-                            <div className="product-info">
+                        (
 
-                                <div className="product-image">
+                            <tr>
 
-                                    🖼
+                                <td
+                                    colSpan="5"
+                                    style={{
+                                        textAlign:"center",
+                                        padding:"40px"
+                                    }}
+                                >
 
-                                </div>
+                                    No existen productos registrados.
 
-                                <div>
+                                </td>
 
-                                    <strong>
+                            </tr>
 
-                                        Camiseta Oversize
+                        )
 
-                                    </strong>
+                        :
 
-                                    <span>
+                        productos.map((producto)=>(
 
-                                        REF-001
+                            <tr
+                                key={producto.id_producto}
+                            >
+
+                                <td>
+
+                                    <div className="product-info">
+
+                                        <div className="product-image">
+
+                                            📦
+
+                                        </div>
+
+                                        <div>
+
+                                            <strong>
+
+                                                {producto.nombre}
+
+                                            </strong>
+
+                                            <span>
+
+                                                {producto.slug}
+
+                                            </span>
+
+                                        </div>
+
+                                    </div>
+
+                                </td>
+
+                                <td>
+                                    {producto.categoria?.nombre}
+                                </td>
+
+                                <td>
+
+                                    $
+
+                                    {Number(producto.precio).toLocaleString()}
+
+                                </td>
+
+                                <td>
+
+                                    <span
+
+                                        className={
+                                            producto.estado === "activo"
+
+                                            ? "status active"
+
+                                            : "status inactive"
+                                        }
+
+                                    >
+
+                                        {producto.estado}
 
                                     </span>
 
-                                </div>
+                                </td>
 
-                            </div>
+                                <td>
 
-                        </td>
+                                    <div className="actions">
 
-                        <td>
+                                        <button className="view">
 
-                            Hombre
+                                            <Eye size={18}/>
 
-                        </td>
+                                        </button>
 
-                        <td>
+                                        <button className="edit">
 
-                            $120.000
+                                            <Pencil size={18}/>
 
-                        </td>
+                                        </button>
 
-                        <td>
+                                        <button className="delete">
 
-                            <span className="stock">
+                                            <Trash2 size={18}/>
 
-                                18 unidades
+                                        </button>
 
-                            </span>
+                                    </div>
 
-                        </td>
+                                </td>
 
-                        <td>
+                            </tr>
 
-                            <span className="status active">
+                        ))
 
-                                Activo
-
-                            </span>
-
-                        </td>
-
-                        <td>
-
-                            <div className="actions">
-
-                                <button className="view">
-
-                                    <Eye size={18}/>
-
-                                </button>
-
-                                <button className="edit">
-
-                                    <Pencil size={18}/>
-
-                                </button>
-
-                                <button className="delete">
-
-                                    <Trash2 size={18}/>
-
-                                </button>
-
-                            </div>
-
-                        </td>
-
-                    </tr>
+                    }
 
                 </tbody>
 

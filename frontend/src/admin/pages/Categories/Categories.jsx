@@ -1,9 +1,13 @@
+import { useState } from "react";
+
 import "./Categories.css";
 
 import CategoryForm from "../../components/CategoryForm/CategoryForm";
 import CategoryTable from "../../components/CategoryTable/CategoryTable";
 
 function Categories() {
+
+    const [showModal, setShowModal] = useState(false);
 
     return (
 
@@ -13,19 +17,49 @@ function Categories() {
 
                 <div>
 
-                    <h1>Categorías</h1>
+                    <h1>
+
+                        Categorías
+
+                    </h1>
 
                     <p>
-                        Administra las categorías de la tienda.
+
+                        Organiza los productos de la tienda.
+
                     </p>
 
                 </div>
 
+                <button
+
+                    className="new-category"
+
+                    onClick={() => setShowModal(true)}
+
+                >
+
+                    + Nueva categoría
+
+                </button>
+
             </div>
 
-            <CategoryForm />
-
             <CategoryTable />
+
+            {
+
+                showModal && (
+
+                    <CategoryForm
+
+                        onClose={() => setShowModal(false)}
+
+                    />
+
+                )
+
+            }
 
         </div>
 

@@ -5,11 +5,11 @@ import MainLayout from "../layouts/MainLayout";
 import Home from "../pages/Home/Home";
 import Login from "../pages/Login/Login";
 import Register from "../pages/Register/Register";
+import ProductDetail from "../pages/Products/ProductDetail/ProductDetail";
 
 // Usuario
 import Profile from "../pages/Profile/Profile";
 import Favorites from "../pages/Favorites/Favorites";
-
 import Settings from "../pages/Settings/Settings";
 
 // Admin
@@ -40,6 +40,7 @@ function AppRouter() {
                 <Route path="/favorites" element={<Favorites />} />
                 <Route path="/orders" element={<Orders />} />
                 <Route path="/settings" element={<Settings />} />
+                <Route path="/producto/:id" element={<ProductDetail />} />
 
             </Route>
 

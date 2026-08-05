@@ -1,32 +1,134 @@
-.category-form-card{
+/* ===========================
+   Overlay
+=========================== */
 
-    background:white;
+.modal-overlay{
+
+    position:fixed;
+
+    inset:0;
+
+    background:rgba(3,25,39,.45);
+
+    backdrop-filter:blur(5px);
+
+    display:flex;
+
+    justify-content:center;
+
+    align-items:center;
+
+    z-index:999;
 
     padding:30px;
 
-    border-radius:18px;
+}
 
-    box-shadow:var(--shadow-md);
+/* ===========================
+   Modal
+=========================== */
+
+.category-form{
+
+    width:100%;
+
+    max-width:760px;
+
+    background:#fff;
+
+    border-radius:22px;
+
+    padding:35px;
+
+    box-shadow:0 25px 70px rgba(0,0,0,.18);
+
+    animation:fadeUp .25s ease;
 
 }
 
-.category-form-card h2{
+/* ===========================
+   Header
+=========================== */
 
-    margin-bottom:25px;
+.modal-header{
+
+    display:flex;
+
+    justify-content:space-between;
+
+    align-items:flex-start;
+
+    margin-bottom:30px;
+
+}
+
+.modal-header h2{
 
     color:var(--secondary);
 
+    font-size:1.8rem;
+
+    margin-bottom:6px;
+
 }
 
-.grid{
+.modal-header p{
+
+    color:var(--text-light);
+
+    font-size:.95rem;
+
+}
+
+.close-button{
+
+    width:42px;
+
+    height:42px;
+
+    border:none;
+
+    border-radius:12px;
+
+    background:#f4f6f8;
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:center;
+
+    cursor:pointer;
+
+    transition:.25s;
+
+}
+
+.close-button:hover{
+
+    background:#eceff1;
+
+}
+
+/* ===========================
+   Grid
+=========================== */
+
+.form-grid{
 
     display:grid;
 
-    grid-template-columns:2fr 1fr;
+    grid-template-columns:repeat(2,1fr);
 
-    gap:20px;
+    gap:22px;
+
+    margin-bottom:22px;
 
 }
+
+/* ===========================
+   Inputs
+=========================== */
 
 .form-group{
 
@@ -34,29 +136,43 @@
 
     flex-direction:column;
 
-    margin-bottom:20px;
+    gap:8px;
+
+    margin-bottom:22px;
 
 }
 
 .form-group label{
 
-    margin-bottom:8px;
+    font-size:.92rem;
 
     font-weight:600;
+
+    color:var(--secondary);
 
 }
 
 .form-group input,
+
 .form-group select,
+
 .form-group textarea{
 
-    padding:14px;
+    width:100%;
 
-    border:1px solid #ddd;
+    padding:14px 18px;
 
-    border-radius:12px;
+    border:1px solid #d9dde3;
 
-    font-size:15px;
+    border-radius:14px;
+
+    font-size:.95rem;
+
+    background:#fff;
+
+    transition:.25s;
+
+    outline:none;
 
 }
 
@@ -64,30 +180,158 @@
 
     resize:none;
 
+    min-height:130px;
+
 }
 
-.category-form-card button{
+.form-group input:focus,
 
-    margin-top:15px;
+.form-group select:focus,
 
-    background:var(--primary);
+.form-group textarea:focus{
 
-    color:white;
+    border-color:var(--primary);
+
+    box-shadow:0 0 0 4px rgba(51,103,105,.12);
+
+}
+
+/* ===========================
+   File
+=========================== */
+
+input[type="file"]{
+
+    padding:12px;
+
+    cursor:pointer;
+
+}
+
+/* ===========================
+   Buttons
+=========================== */
+
+.form-buttons{
+
+    display:flex;
+
+    justify-content:flex-end;
+
+    gap:15px;
+
+    margin-top:30px;
+
+}
+
+.cancel-button{
+
+    background:#eceff1;
+
+    color:#455a64;
 
     border:none;
 
-    padding:14px 26px;
+    padding:14px 28px;
 
-    border-radius:12px;
+    border-radius:14px;
+
+    cursor:pointer;
+
+    font-weight:600;
+
+    transition:.25s;
+
+}
+
+.cancel-button:hover{
+
+    background:#dde4e8;
+
+}
+
+.save-button{
+
+    background:var(--primary);
+
+    color:#fff;
+
+    border:none;
+
+    padding:14px 28px;
+
+    border-radius:14px;
 
     cursor:pointer;
 
     font-weight:700;
 
+    transition:.25s;
+
 }
 
-.category-form-card button:hover{
+.save-button:hover{
 
     background:var(--secondary);
+
+}
+
+/* ===========================
+   Animación
+=========================== */
+
+@keyframes fadeUp{
+
+    from{
+
+        opacity:0;
+
+        transform:translateY(20px);
+
+    }
+
+    to{
+
+        opacity:1;
+
+        transform:translateY(0);
+
+    }
+
+}
+
+/* ===========================
+   Responsive
+=========================== */
+
+@media(max-width:768px){
+
+    .category-form{
+
+        max-width:100%;
+
+        padding:25px;
+
+    }
+
+    .form-grid{
+
+        grid-template-columns:1fr;
+
+    }
+
+    .form-buttons{
+
+        flex-direction:column-reverse;
+
+    }
+
+    .cancel-button,
+
+    .save-button{
+
+        width:100%;
+
+    }
 
 }

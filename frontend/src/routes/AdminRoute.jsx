@@ -1,9 +1,15 @@
 import { Navigate } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
-
+import ProductDetail from "../pages/Products/ProductDetail/ProductDetail";
 function AdminRoute({ children }) {
 
-    const { usuario } = useAuth();
+    const { usuario, loading } = useAuth();
+
+    if (loading) {
+
+        return <div>Cargando...</div>;
+
+    }
 
     if (!usuario) {
 

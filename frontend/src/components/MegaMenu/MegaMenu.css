@@ -1,0 +1,113 @@
+.mega-menu{
+    position: absolute;
+    top: 100%;
+    left: 0;
+
+    width: 100%;
+
+    background: var(--white);
+    padding: 40px 50px;
+
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 50px;
+
+    border: 1px solid var(--border);
+    border-top: 3px solid var(--primary);
+    border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+
+    box-shadow: var(--shadow-md);
+
+    z-index: var(--z-dropdown);
+
+    animation: fadeMenu .3s ease;
+}
+
+.mega-column{
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.mega-column h3{
+    position: relative;
+
+    color: var(--primary);
+    font-size: 18px;
+    font-weight: var(--fw-semibold);
+
+    margin-bottom: 12px;
+    padding-bottom: 8px;
+}
+
+.mega-column h3::after{
+    content: "";
+
+    position: absolute;
+    left: 0;
+    bottom: 0;
+
+    width: 40px;
+    height: 3px;
+
+    background: var(--accent);
+    border-radius: 999px;
+}
+
+.mega-column a{
+    position: relative;
+
+    color: var(--secondary);
+    text-decoration: none;
+
+    font-size: 15px;
+    font-weight: var(--fw-regular);
+
+    padding: 8px 12px;
+    border-radius: var(--radius-sm);
+
+    transition: all var(--transition);
+}
+
+.mega-column a:hover{
+    color: var(--primary);
+
+    background: var(--background);
+
+    padding-left: 18px;
+
+    transform: translateX(4px);
+}
+
+.mega-column a::before{
+    content: "";
+
+    position: absolute;
+    left: 0;
+    top: 50%;
+
+    width: 4px;
+    height: 0;
+
+    background: var(--primary);
+
+    border-radius: 10px;
+
+    transform: translateY(-50%);
+    transition: .25s;
+}
+
+.mega-column a:hover::before{
+    height: 70%;
+}
+
+@keyframes fadeMenu{
+    from{
+        opacity: 0;
+        transform: translateY(18px);
+    }
+    to{
+        opacity: 1;
+        transform: translateY(0);
+    }
+}

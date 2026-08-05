@@ -2,11 +2,13 @@
 
     background:white;
 
-    padding:30px;
+    border-radius:22px;
 
-    border-radius:18px;
+    padding:28px;
 
-    box-shadow:var(--shadow-md);
+    box-shadow:0 15px 35px rgba(0,0,0,.06);
+
+    border:1px solid #ececec;
 
 }
 
@@ -14,9 +16,11 @@
 
     margin-bottom:25px;
 
+    color:var(--secondary);
+
 }
 
-table{
+.category-table table{
 
     width:100%;
 
@@ -24,55 +28,112 @@ table{
 
 }
 
-thead{
+.category-table thead tr{
 
-    background:#f6f6f6;
+    background:#f5f7fa;
 
 }
 
-th,
-td{
+.category-table th{
 
-    padding:16px;
+    padding:18px;
 
     text-align:left;
 
-    border-bottom:1px solid #ececec;
+    color:#7b8794;
 
 }
 
-.active{
+.category-table td{
+
+    padding:18px;
+
+    border-top:1px solid #ececec;
+
+}
+
+.category-table tbody tr:hover{
+
+    background:#fafafa;
+
+}
+
+.category-table .active{
 
     background:#dff8e4;
 
-    color:#17843d;
+    color:#15803d;
 
-    padding:6px 12px;
+    padding:7px 16px;
 
-    border-radius:20px;
+    border-radius:30px;
+
+    font-size:13px;
+
+    font-weight:600;
 
 }
 
-td button{
+.category-table .inactive{
 
-    padding:8px 14px;
+    background:#ffe3e3;
+
+    color:#dc2626;
+
+    padding:7px 16px;
+
+    border-radius:30px;
+
+    font-size:13px;
+
+    font-weight:600;
+
+}
+
+.category-table .actions{
+
+    display:flex;
+
+    gap:10px;
+
+}
+
+.category-table .actions button{
+
+    width:42px;
+
+    height:42px;
 
     border:none;
 
-    border-radius:8px;
-
-    cursor:pointer;
-
-    margin-right:10px;
-
-    background:var(--primary);
+    border-radius:12px;
 
     color:white;
 
+    cursor:pointer;
+
+    display:flex;
+
+    justify-content:center;
+
+    align-items:center;
+
 }
 
-.delete{
+.category-table .edit{
 
-    background:#dc3545;
+    background:#336769;
+
+}
+
+.category-table .delete{
+
+    background:#d62828;
+
+}
+
+.category-table .view{
+
+    background:#0f766e;
 
 }

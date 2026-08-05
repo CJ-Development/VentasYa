@@ -30,6 +30,8 @@ class CategoriaService:
         )
 
         categoria.nombre = data["nombre"]
+        categoria.descripcion = data["descripcion"]
+        categoria.estado = data["estado"]
 
         categoria.save()
 

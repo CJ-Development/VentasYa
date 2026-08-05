@@ -1,0 +1,347 @@
+
+@import "../../../styles/base/variables.css";
+
+/* ==========================
+   PRODUCT DETAIL - VentasYa
+   Rediseño compacto
+========================== */
+
+.product-detail{
+    width:100%;
+    background:var(--background);
+    padding:40px 0 70px;
+}
+
+.product-container{
+    max-width:1350px;
+    margin:auto;
+    padding:0 30px;
+    display:grid;
+    grid-template-columns:620px 1fr;
+    gap:55px;
+    align-items:start;
+}
+
+/* GALERÍA */
+
+.product-gallery{
+    display:grid;
+    grid-template-columns:85px 1fr;
+    gap:18px;
+}
+
+.gallery-thumbnails{
+    display:flex;
+    flex-direction:column;
+    gap:14px;
+}
+
+.gallery-thumbnails img{
+    width:75px;
+    height:95px;
+    object-fit:cover;
+    border-radius:12px;
+    border:2px solid var(--border);
+    cursor:pointer;
+    transition:.25s;
+    background:#fff;
+}
+
+.gallery-thumbnails img:hover{
+    border-color:var(--primary);
+    transform:translateY(-2px);
+}
+
+.gallery-main{
+    background:#F5F5F3;
+    border:1px solid var(--border);
+    border-radius:22px;
+    height:680px;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    padding:30px;
+}
+
+.gallery-main img{
+    width:100%;
+    max-width:430px;
+    max-height:600px;
+    object-fit:contain;
+    transition:.35s;
+}
+
+.gallery-main img:hover{
+    transform:scale(1.03);
+}
+
+/* INFO */
+
+.product-info{
+    padding-top:8px;
+    display:flex;
+    flex-direction:column;
+    align-items:flex-start;
+}
+
+.product-category{
+    color:var(--primary);
+    font-size:13px;
+    font-weight:700;
+    letter-spacing:1px;
+    text-transform:uppercase;
+    margin-bottom:6px;
+}
+
+.product-info h1{
+    font-size:30px;
+    font-weight:700;
+    line-height:1.2;
+    color:var(--secondary);
+    margin:0 0 8px;
+}
+
+.product-rating{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    margin:6px 0 18px;
+    font-size:14px;
+}
+
+.product-rating span{
+    color:var(--text-light);
+}
+
+.product-info h2{
+    font-size:34px;
+    color:var(--primary);
+    margin:18px 0 8px;
+}
+
+.product-info p{
+    margin:0 0 22px;
+    color:var(--text-light);
+    font-size:14px;
+}
+
+.product-description{
+    font-size:15px;
+    line-height:1.8;
+    color:#555;
+    margin-bottom:28px;
+    max-width:520px;
+}
+
+/* OPCIONES */
+
+.product-options{
+    width:100%;
+}
+
+.product-options h4{
+    margin:0 0 10px;
+    color:var(--secondary);
+    font-size:15px;
+}
+
+.colors{
+    display:flex;
+    gap:10px;
+    margin-bottom:22px;
+}
+
+.color{
+    width:34px;
+    height:34px;
+    border-radius:50%;
+    border:2px solid #d5d5d5;
+    cursor:pointer;
+    transition:.25s;
+}
+
+.color:hover{
+    transform:scale(1.08);
+    border-color:var(--primary);
+}
+
+.black{background:#111;}
+.white{background:#fff;}
+.green{background:var(--accent);}
+
+.sizes{
+    display:flex;
+    gap:10px;
+    margin-bottom:24px;
+}
+
+.sizes button{
+    width:48px;
+    height:48px;
+    border-radius:10px;
+    border:1px solid var(--border);
+    background:#fff;
+    cursor:pointer;
+    font-weight:600;
+    transition:.25s;
+}
+
+.sizes button:hover,
+.sizes .active{
+    background:var(--primary);
+    border-color:var(--primary);
+    color:#fff;
+}
+
+/* CANTIDAD */
+
+.quantity{
+    display:flex;
+    align-items:center;
+    gap:14px;
+    margin-bottom:28px;
+}
+
+.quantity button{
+    width:42px;
+    height:42px;
+    border:none;
+    border-radius:10px;
+    background:#ECECEC;
+    cursor:pointer;
+    font-size:20px;
+    transition:.25s;
+}
+
+.quantity button:hover{
+    background:var(--primary);
+    color:#fff;
+}
+
+.quantity span{
+    min-width:28px;
+    text-align:center;
+    font-size:18px;
+    font-weight:700;
+}
+
+/* BOTONES */
+
+.buttons{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    width:100%;
+    margin-bottom:28px;
+}
+
+.buy-button{
+    flex:1;
+    height:54px;
+    border:none;
+    border-radius:12px;
+    background:var(--primary);
+    color:#fff;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    gap:8px;
+    font-size:15px;
+    font-weight:600;
+    cursor:pointer;
+    transition:.25s;
+}
+
+.buy-button:hover{
+    background:var(--secondary);
+}
+
+.favorite{
+    width:54px;
+    height:54px;
+    border:none;
+    border-radius:12px;
+    background:#ECECEC;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    cursor:pointer;
+    transition:.25s;
+}
+
+.favorite:hover{
+    background:#ffdede;
+    color:#d7263d;
+}
+
+/* SERVICIOS */
+
+.services{
+    width:100%;
+    border-top:1px solid var(--border);
+    padding-top:20px;
+    display:flex;
+    flex-direction:column;
+    gap:14px;
+}
+
+.services div{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    color:var(--text);
+    font-size:14px;
+}
+
+.services svg{
+    color:var(--primary);
+}
+
+/* RESPONSIVE */
+
+@media (max-width:1100px){
+    .product-container{
+        grid-template-columns:1fr;
+    }
+
+    .gallery-main{
+        height:520px;
+    }
+}
+
+@media (max-width:768px){
+
+    .product-container{
+        padding:0 20px;
+    }
+
+    .product-gallery{
+        grid-template-columns:1fr;
+    }
+
+    .gallery-thumbnails{
+        flex-direction:row;
+        justify-content:center;
+    }
+
+    .gallery-main{
+        height:420px;
+    }
+
+    .product-info h1{
+        font-size:24px;
+    }
+
+    .product-info h2{
+        font-size:28px;
+    }
+
+    .buttons{
+        flex-direction:column;
+    }
+
+    .favorite,
+    .buy-button{
+        width:100%;
+    }
+}

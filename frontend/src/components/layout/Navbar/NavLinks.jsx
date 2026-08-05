@@ -1,24 +1,32 @@
-function NavLinks(){
+import { useState } from "react";
 
-    return(
+import MegaMenu from "../../MegaMenu/MegaMenu";
+
+function NavLinks() {
+
+    const [showProducts, setShowProducts] = useState(false);
+
+    const [showOffers, setShowOffers] = useState(false);
+
+    return (
 
         <nav className="navbar-bottom">
 
             <a href="/">Inicio</a>
-
-            <a href="/productos">Productos</a>
-
-            <a href="#">Ofertas</a>
-
-            <a href="#">Novedades</a>
-
-            <a href="#">Nosotros</a>
-
-            <a href="#">Ayuda</a>
-
+            <div className="nav-item" onMouseEnter={() => setShowProducts(true)} onMouseLeave={() => setShowProducts(false)} >
+                <a href="/products"> Productos </a>
+                {showProducts && <MegaMenu />}
+            </div>
+            <div className="nav-item" onMouseEnter={() => setShowOffers(true)} onMouseLeave={() => setShowOffers(false)}>
+                <a href="/offers"> Ofertas </a>
+                {showOffers && <MegaMenu />}
+            </div>
+            <a href="/new"> Novedades </a>
+            <a href="/about"> Nosotros </a>
+            <a href="/help"> Ayuda </a>
         </nav>
 
-    )
+    );
 
 }
 

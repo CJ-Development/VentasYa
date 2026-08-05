@@ -6,6 +6,8 @@ function AuthProvider({ children }) {
 
     const [usuario, setUsuario] = useState(null);
 
+    const [loading, setLoading] = useState(true);
+
     useEffect(() => {
 
         const usuarioGuardado = localStorage.getItem("usuario");
@@ -15,6 +17,8 @@ function AuthProvider({ children }) {
             setUsuario(JSON.parse(usuarioGuardado));
 
         }
+
+        setLoading(false);
 
     }, []);
 
@@ -40,11 +44,19 @@ function AuthProvider({ children }) {
     return (
 
         <AuthContext.Provider
+
             value={{
+
                 usuario,
+
+                loading,
+
                 login,
+
                 logout
+
             }}
+
         >
 
             {children}

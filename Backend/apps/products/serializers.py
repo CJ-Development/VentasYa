@@ -2,6 +2,9 @@ from rest_framework import serializers
 
 from .models import *
 
+from apps.categories.serializers import CategoriaSerializer
+
+
 class MarcaSerializer(serializers.ModelSerializer):
 
     class Meta:
@@ -27,7 +30,7 @@ class ImagenSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ImagenProducto
-        fields="__all__"
+        fields = "__all__"
 
 
 class VarianteSerializer(serializers.ModelSerializer):
@@ -39,13 +42,21 @@ class VarianteSerializer(serializers.ModelSerializer):
     )
 
     class Meta:
-        model=Variante
-        fields="__all__"
+        model = Variante
+        fields = "__all__"
 
 
 class ProductoSerializer(serializers.ModelSerializer):
 
-    variantes=VarianteSerializer(
+    categoria = CategoriaSerializer(read_only=True)
+
+    categoria_id = serializers.PrimaryKeyRelatedField(
+        queryset=Categoria.objects.all(),
+        source="categoria",
+        write_only=True
+    )
+
+    variantes = VarianteSerializer(
         many=True,
         read_only=True,
         source="variante_set"
@@ -53,6 +64,6 @@ class ProductoSerializer(serializers.ModelSerializer):
 
     class Meta:
 
-        model=Producto
+        model = Producto
 
-        fields="__all__"
+        fields = "__all__"
