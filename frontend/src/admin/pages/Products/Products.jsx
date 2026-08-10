@@ -11,6 +11,8 @@ function Products() {
 
     const [selectedProduct, setSelectedProduct] = useState(null);
 
+    const [refreshKey, setRefreshKey] = useState(0);
+
     const handleNewProduct = () => {
 
         setSelectedProduct(null);
@@ -32,6 +34,12 @@ function Products() {
         setOpenForm(false);
 
         setSelectedProduct(null);
+
+    };
+
+    const handleSaved = () => {
+
+        setRefreshKey((prev) => prev + 1);
 
     };
 
@@ -75,9 +83,8 @@ function Products() {
             </div>
 
             <ProductTable
-
+                refreshKey={refreshKey}
                 onEdit={handleEditProduct}
-
             />
 
             {
@@ -85,11 +92,9 @@ function Products() {
                 openForm && (
 
                     <ProductForm
-
                         product={selectedProduct}
-
                         onClose={closeForm}
-
+                        onSaved={handleSaved}
                     />
 
                 )

@@ -15,15 +15,13 @@ function NavLinks() {
             <a href="/">Inicio</a>
             <div className="nav-item" onMouseEnter={() => setShowProducts(true)} onMouseLeave={() => setShowProducts(false)} >
                 <a href="/products"> Productos </a>
-                {showProducts && <MegaMenu />}
+                {showProducts && <MegaMenu variant="productos" />}
             </div>
             <div className="nav-item" onMouseEnter={() => setShowOffers(true)} onMouseLeave={() => setShowOffers(false)}>
                 <a href="/offers"> Ofertas </a>
-                {showOffers && <MegaMenu />}
+                {showOffers && <MegaMenu variant="ofertas" />}
             </div>
             <a href="/new"> Novedades </a>
-            <a href="/about"> Nosotros </a>
-            <a href="/help"> Ayuda </a>
         </nav>
 
     );

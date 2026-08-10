@@ -3,7 +3,7 @@ import { X } from "lucide-react";
 import { createCategory } from "../../../services/adminService";
 import "./CategoryForm.css";
 
-function CategoryForm({ onClose }) {
+function CategoryForm({ onClose, onCreated }) {
 
     const [formData, setFormData] = useState({
 
@@ -12,6 +12,8 @@ function CategoryForm({ onClose }) {
         estado: "activo"
 
     });
+
+    const [submitting, setSubmitting] = useState(false);
 
     const handleChange = (e) => {
 
@@ -31,15 +33,13 @@ function CategoryForm({ onClose }) {
 
         e.preventDefault();
 
+        setSubmitting(true);
+
         try {
 
-            console.log(formData);
+            await createCategory(formData);
 
-            const respuesta = await createCategory(formData);
-
-            console.log(respuesta.data);
-
-            alert("Categoría creada correctamente.");
+            if (onCreated) await onCreated();
 
             onClose();
 
@@ -50,6 +50,12 @@ function CategoryForm({ onClose }) {
             console.error(error);
 
             alert("Error al crear la categoría.");
+
+        }
+
+        finally {
+
+            setSubmitting(false);
 
         }
 
@@ -211,6 +217,8 @@ function CategoryForm({ onClose }) {
 
                         onClick={onClose}
 
+                        disabled={submitting}
+
                     >
 
                         Cancelar
@@ -223,9 +231,11 @@ function CategoryForm({ onClose }) {
 
                         className="save-button"
 
+                        disabled={submitting}
+
                     >
 
-                        Guardar categoría
+                        {submitting ? "Guardando..." : "Guardar categoría"}
 
                     </button>
 

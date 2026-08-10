@@ -2,6 +2,8 @@ from rest_framework import serializers
 
 from .models import *
 
+from apps.users.serializers import UsuarioSerializer
+
 
 class MetodoPagoSerializer(serializers.ModelSerializer):
 
@@ -25,6 +27,11 @@ class CompraSerializer(serializers.ModelSerializer):
 
     detalles=DetalleCompraSerializer(
         many=True,
+        read_only=True
+    )
+
+    usuario_info=UsuarioSerializer(
+        source="usuario",
         read_only=True
     )
 

@@ -1,34 +1,6 @@
 from django.db import models
 
 # ==========================
-# MARCAS
-# ==========================
-
-class Marca(models.Model):
-
-    id_marca = models.AutoField(primary_key=True)
-
-    nombre = models.CharField(
-        max_length=100,
-        unique=True
-    )
-
-    logo = models.ImageField(
-        upload_to="brands/",
-        blank=True,
-        null=True
-    )
-
-    estado = models.BooleanField(default=True)
-
-    class Meta:
-        db_table = "marcas"
-
-    def __str__(self):
-        return self.nombre
-
-
-# ==========================
 # COLORES
 # ==========================
 
@@ -85,7 +57,9 @@ class Producto(models.Model):
 
         ("activo","Activo"),
 
-        ("inactivo","Inactivo")
+        ("inactivo","Inactivo"),
+
+        ("archivado","Archivado"),
 
     ]
 
@@ -183,9 +157,9 @@ class ImagenProducto(models.Model):
 
     )
 
-    imagen = models.ImageField(
+    imagen = models.URLField(
 
-        upload_to="products/"
+        max_length=500
 
     )
 

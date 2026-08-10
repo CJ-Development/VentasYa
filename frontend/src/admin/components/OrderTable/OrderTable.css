@@ -88,3 +88,91 @@ td button:hover{
     background:var(--secondary);
 
 }
+
+.contact-cell{
+
+    display:inline-flex;
+
+    align-items:center;
+
+    gap:6px;
+
+    color:var(--primary);
+
+    font-weight:600;
+
+}
+
+.contact-cell a{
+
+    color:inherit;
+
+    text-decoration:none;
+
+}
+
+.contact-cell a:hover{
+
+    text-decoration:underline;
+
+}
+
+.add-contact-button{
+
+    background:transparent !important;
+
+    color:var(--primary) !important;
+
+    border:1px dashed var(--primary) !important;
+
+    padding:6px 10px !important;
+
+    border-radius:8px !important;
+
+    display:inline-flex !important;
+
+    align-items:center !important;
+
+    gap:4px !important;
+
+    font-size:12px !important;
+
+    font-weight:600 !important;
+
+    margin-right:0 !important;
+
+    cursor:pointer;
+
+}
+
+.add-contact-button:hover{
+
+    background:rgba(56,77,72,0.06) !important;
+
+}
+
+.empty-contact{
+
+    color:#9ca3af;
+
+    font-style:italic;
+
+    font-size:13px;
+
+}
+
+.form-group label{
+
+    display:flex;
+
+    align-items:center;
+
+    gap:6px;
+
+    margin-bottom:8px;
+
+    font-weight:600;
+
+    color:var(--primary);
+
+}

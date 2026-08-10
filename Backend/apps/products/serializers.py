@@ -1,15 +1,9 @@
 from rest_framework import serializers
 
-from .models import *
+from .models import Producto, Variante, ImagenProducto, Color, Talla
 
 from apps.categories.serializers import CategoriaSerializer
-
-
-class MarcaSerializer(serializers.ModelSerializer):
-
-    class Meta:
-        model = Marca
-        fields = "__all__"
+from apps.categories.models import Categoria
 
 
 class ColorSerializer(serializers.ModelSerializer):
@@ -39,6 +33,13 @@ class VarianteSerializer(serializers.ModelSerializer):
         many=True,
         read_only=True,
         source="imagenproducto_set"
+    )
+
+    producto_id = serializers.PrimaryKeyRelatedField(
+        queryset=Producto.objects.all(),
+        source="producto",
+        write_only=True,
+        required=False
     )
 
     class Meta:

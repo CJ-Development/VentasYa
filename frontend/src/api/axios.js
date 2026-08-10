@@ -1,59 +1,17 @@
-import axios from "axios";
+/* =====================================================
+   Módulo legacy: re-exporta el cliente único
+   - Conserva compatibilidad con imports existentes:
+     `import { login } from "../../api/axios"`
+     `import { getUsers } from "../../../api/axios"`
+   - La implementación real vive en /services/api.js
+===================================================== */
 
-const api = axios.create({
-
-    baseURL: "http://127.0.0.1:8000/api/",
-
-    headers: {
-
-        "Content-Type": "application/json",
-
-    },
-
-});
-
-/* ==========================
-        AUTENTICACIÓN
-========================== */
-
-export const register = (data) => {
-
-    return api.post("users/register/", data);
-
-};
-
-export const login = (data) => {
-
-    return api.post("users/login/", data);
-
-};
-
-/* ==========================
-          USUARIOS
-========================== */
-
-export const getUsers = () => {
-
-    return api.get("users/");
-
-};
-
-export const getUser = (id) => {
-
-    return api.get(`users/${id}/`);
-
-};
-
-export const updateUser = (id, data) => {
-
-    return api.put(`users/${id}/`, data);
-
-};
-
-export const deleteUser = (id) => {
-
-    return api.delete(`users/${id}/`);
-
-};
-
-export default api;
+export {
+    default,
+    register,
+    login,
+    getUsers,
+    getUser,
+    updateUser,
+    deleteUser,
+} from "../services/api";

@@ -4,10 +4,28 @@ import "./Categories.css";
 
 import CategoryForm from "../../components/CategoryForm/CategoryForm";
 import CategoryTable from "../../components/CategoryTable/CategoryTable";
+import { getCategories } from "../../../services/adminService";
 
 function Categories() {
 
     const [showModal, setShowModal] = useState(false);
+
+    const [refreshKey, setRefreshKey] = useState(0);
+
+    const handleCreated = async () => {
+
+        // Confirmamos la creación contra la BD antes de refrescar la tabla.
+        try {
+
+            await getCategories();
+
+        } finally {
+
+            setRefreshKey((prev) => prev + 1);
+
+        }
+
+    };
 
     return (
 
@@ -45,7 +63,7 @@ function Categories() {
 
             </div>
 
-            <CategoryTable />
+            <CategoryTable refreshKey={refreshKey} />
 
             {
 
@@ -54,6 +72,8 @@ function Categories() {
                     <CategoryForm
 
                         onClose={() => setShowModal(false)}
+
+                        onCreated={handleCreated}
 
                     />
 

@@ -1,8 +1,18 @@
 import "./Users.css";
 
+import { useState } from "react";
+
 import UserTable from "../../components/UserTable/UserTable";
 
 function Users() {
+
+    const [refreshKey, setRefreshKey] = useState(0);
+
+    const handleRefresh = () => {
+
+        setRefreshKey((prev) => prev + 1);
+
+    };
 
     return (
 
@@ -28,7 +38,10 @@ function Users() {
 
             </div>
 
-            <UserTable />
+            <UserTable
+                refreshKey={refreshKey}
+                onAction={handleRefresh}
+            />
 
         </div>
 

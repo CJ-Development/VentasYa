@@ -1,12 +1,28 @@
 import { useEffect, useState } from "react";
 
-import { getCategories } from "../../../services/adminService";
+import {
+    getCategories,
+    updateCategory,
+    deleteCategory
+} from "../../../services/adminService";
 
 import "./CategoryTable.css";
 
-function CategoryTable() {
+function CategoryTable({ refreshKey }) {
 
     const [categorias, setCategorias] = useState([]);
+
+    const [loading, setLoading] = useState(true);
+
+    const [error, setError] = useState(null);
+
+    const [editTarget, setEditTarget] = useState(null);
+
+    const [editForm, setEditForm] = useState({
+        nombre: "",
+        descripcion: "",
+        estado: "activo"
+    });
 
     const cargarCategorias = async () => {
 
@@ -16,11 +32,21 @@ function CategoryTable() {
 
             setCategorias(data);
 
+            setError(null);
+
         }
 
-        catch(error){
+        catch(err){
 
-            console.error(error);
+            console.error(err);
+
+            setError("No fue posible cargar las categorías.");
+
+        }
+
+        finally {
+
+            setLoading(false);
 
         }
 
@@ -30,7 +56,95 @@ function CategoryTable() {
 
         cargarCategorias();
 
-    }, []);
+    }, [refreshKey]);
+
+    const abrirEdicion = (categoria) => {
+
+        setEditTarget(categoria);
+
+        setEditForm({
+
+            nombre: categoria.nombre,
+            descripcion: categoria.descripcion || "",
+            estado: categoria.estado
+
+        });
+
+    };
+
+    const cancelarEdicion = () => {
+
+        setEditTarget(null);
+
+    };
+
+    const handleEditChange = (e) => {
+
+        const { name, value } = e.target;
+
+        setEditForm({ ...editForm, [name]: value });
+
+    };
+
+    const guardarEdicion = async (e) => {
+
+        e.preventDefault();
+
+        try {
+
+            await updateCategory(editTarget.id_categoria, editForm);
+
+            setEditTarget(null);
+
+            await cargarCategorias();
+
+        }
+
+        catch(err){
+
+            console.error(err);
+
+            alert("No fue posible actualizar la categoría.");
+
+        }
+
+    };
+
+    const eliminarCategoria = async (id) => {
+
+        const confirmar = window.confirm("¿Eliminar esta categoría?");
+
+        if (!confirmar) return;
+
+        try {
+
+            await deleteCategory(id);
+
+            await cargarCategorias();
+
+        }
+
+        catch(err){
+
+            console.error(err);
+
+            alert("No fue posible eliminar la categoría.");
+
+        }
+
+    };
+
+    if (loading) {
+
+        return <div className="category-table">Cargando categorías...</div>;
+
+    }
+
+    if (error) {
+
+        return <div className="category-table">{error}</div>;
+
+    }
 
     return (
 
@@ -131,14 +245,16 @@ function CategoryTable() {
 
                                 <td>
 
-                                    <button>
+                                    <button
+                                        onClick={() => abrirEdicion(categoria)}
+                                    >
 
                                         Editar
 
                                     </button>
-
                                     <button
                                         className="delete"
+                                        onClick={() => eliminarCategoria(categoria.id_categoria)}
                                     >
 
                                         Quitar
@@ -156,6 +272,95 @@ function CategoryTable() {
                 </tbody>
 
             </table>
+
+            {
+
+                editTarget && (
+
+                    <div className="modal-overlay">
+
+                        <form
+                            className="category-form"
+                            onSubmit={guardarEdicion}
+                        >
+
+                            <h2>
+
+                                Editar categoría
+
+                            </h2>
+
+                            <div className="form-group">
+
+                                <label>Nombre</label>
+
+                                <input
+                                    type="text"
+                                    name="nombre"
+                                    value={editForm.nombre}
+                                    onChange={handleEditChange}
+                                    required
+                                />
+
+                            </div>
+
+                            <div className="form-group">
+
+                                <label>Estado</label>
+
+                                <select
+                                    name="estado"
+                                    value={editForm.estado}
+                                    onChange={handleEditChange}
+                                >
+
+                                    <option value="activo">Activo</option>
+                                    <option value="inactivo">Inactivo</option>
+
+                                </select>
+
+                            </div>
+
+                            <div className="form-group">
+
+                                <label>Descripción</label>
+
+                                <textarea
+                                    rows="5"
+                                    name="descripcion"
+                                    value={editForm.descripcion}
+                                    onChange={handleEditChange}
+                                />
+
+                            </div>
+
+                            <div className="form-buttons">
+
+                                <button
+                                    type="button"
+                                    className="cancel-button"
+                                    onClick={cancelarEdicion}
+                                >
+
+                                    Cancelar
+
+                                </button>
+
+                                <button type="submit" className="save-button">
+
+                                    Guardar cambios
+
+                                </button>
+
+                            </div>
+
+                        </form>
+
+                    </div>
+
+                )
+
+            }
 
         </div>
 

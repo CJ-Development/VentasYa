@@ -9,9 +9,121 @@ import {
     AlertTriangle
 } from "lucide-react";
 
+import { useEffect, useState } from "react";
+
 import DashboardCard from "../components/DashboardCard";
 
+import api, { getLowStockVariants } from "../../services/api";
+
+const formatearPesos = (valor) => {
+    if (typeof valor !== "number" || Number.isNaN(valor)) return "$0";
+    return `$${valor.toLocaleString("es-CO")}`;
+};
+
 function Dashboard() {
+
+    const [stats, setStats] = useState({
+        productos: null,
+        pedidos: null,
+        usuarios: null,
+        ventasMes: null,
+        ultimosPedidos: [],
+        pocoStock: [],
+    });
+
+    const [loading, setLoading] = useState(true);
+
+    const [error, setError] = useState(null);
+
+    const cargarDatos = async () => {
+
+        setLoading(true);
+        setError(null);
+
+        const inicioMes = new Date();
+
+        inicioMes.setDate(1);
+        inicioMes.setHours(0, 0, 0, 0);
+
+        try {
+
+            const [productos, pedidos, usuarios, pocoStock] = await Promise.all([
+                api.get("products/"),
+                api.get("orders/"),
+                api.get("users/"),
+                getLowStockVariants(),
+            ]);
+
+            const compras = pedidos.data || [];
+
+            const ventasMes = compras
+                .filter((compra) => new Date(compra.fecha_compra) >= inicioMes)
+                .reduce((acc, compra) => acc + Number(compra.total || 0), 0);
+
+            setStats({
+                productos: productos.data?.length ?? 0,
+                pedidos: compras.length,
+                usuarios: usuarios.data?.length ?? 0,
+                ventasMes,
+                ultimosPedidos: compras.slice(0, 5),
+                pocoStock: pocoStock.data || [],
+            });
+
+        }
+
+        catch(err){
+
+            console.error(err);
+            setError("No fue posible cargar los datos del panel.");
+
+        }
+
+        finally {
+
+            setLoading(false);
+
+        }
+
+    };
+
+    useEffect(() => {
+
+        cargarDatos();
+
+    }, []);
+
+    const tarjetas = [
+        {
+            icon: <Package size={28} />,
+            title: "Productos",
+            value: stats.productos ?? "—",
+            extra: "Registrados en la tienda",
+        },
+        {
+            icon: <ShoppingCart size={28} />,
+            title: "Pedidos",
+            value: stats.pedidos ?? "—",
+            extra: `${stats.ultimosPedidos.filter((p) => p.estado_compra === "pendiente").length} pendientes`,
+        },
+        {
+            icon: <Users size={28} />,
+            title: "Usuarios",
+            value: stats.usuarios ?? "—",
+            extra: "Cuentas activas",
+        },
+        {
+            icon: <DollarSign size={28} />,
+            title: "Ventas",
+            value: formatearPesos(stats.ventasMes ?? 0),
+            extra: "Este mes",
+        },
+    ];
+
+    if (loading) {
+
+        return <div className="dashboard">Cargando panel...</div>;
+
+    }
 
     return (
 
@@ -31,7 +143,7 @@ function Dashboard() {
 
                     <h1>
 
-                        Hola, John 
+                        Resumen general
 
                     </h1>
 
@@ -43,45 +155,36 @@ function Dashboard() {
 
                 </div>
 
-                <button className="dashboard-button">
+                <button
+                    className="dashboard-button"
+                    onClick={cargarDatos}
+                >
 
-                    Nuevo producto
+                    Actualizar
 
                 </button>
 
             </section>
 
+            {error && (
+                <div className="dashboard-error">
+                    {error}
+                </div>
+            )}
+
             {/* ================= TARJETAS ================= */}
 
             <section className="dashboard-cards">
 
-                <DashboardCard
-                    icon={<Package size={28} />}
-                    title="Productos"
-                    value="320"
-                    extra="+18 este mes"
-                />
-
-                <DashboardCard
-                    icon={<ShoppingCart size={28} />}
-                    title="Pedidos"
-                    value="46"
-                    extra="8 pendientes"
-                />
-
-                <DashboardCard
-                    icon={<Users size={28} />}
-                    title="Usuarios"
-                    value="1.284"
-                    extra="+54 nuevos"
-                />
-
-                <DashboardCard
-                    icon={<DollarSign size={28} />}
-                    title="Ventas"
-                    value="$8.250.000"
-                    extra="Este mes"
-                />
+                {tarjetas.map((tarjeta) => (
+                    <DashboardCard
+                        key={tarjeta.title}
+                        icon={tarjeta.icon}
+                        title={tarjeta.title}
+                        value={tarjeta.value}
+                        extra={tarjeta.extra}
+                    />
+                ))}
 
             </section>
 
@@ -131,65 +234,61 @@ function Dashboard() {
 
                         <tbody>
 
-                            <tr>
+                            {stats.ultimosPedidos.length === 0 ? (
 
-                                <td>#1045</td>
+                                <tr>
 
-                                <td>Juan Pérez</td>
+                                    <td colSpan="4" style={{ textAlign: "center" }}>
 
-                                <td>$180.000</td>
+                                        Aún no hay pedidos registrados.
 
-                                <td>
+                                    </td>
 
-                                    <span className="status success">
+                                </tr>
 
-                                        Pagado
+                            ) : (
+                                stats.ultimosPedidos.map((pedido) => {
 
-                                    </span>
+                                    const cliente = pedido.usuario_info
+                                        ? `${pedido.usuario_info.nombres} ${pedido.usuario_info.apellidos}`
+                                        : `Usuario #${pedido.usuario}`;
 
-                                </td>
+                                    const estado = pedido.estado_compra || "pendiente";
 
-                            </tr>
+                                    const claseEstado = {
+                                        pagado: "success",
+                                        pendiente: "warning",
+                                        enviado: "shipping",
+                                        entregado: "success",
+                                        cancelado: "danger",
+                                    }[estado] || "warning";
 
-                            <tr>
+                                    return (
 
-                                <td>#1044</td>
+                                        <tr key={pedido.id_compra}>
 
-                                <td>Laura Díaz</td>
+                                            <td>#{pedido.id_compra}</td>
 
-                                <td>$95.000</td>
+                                            <td>{cliente}</td>
 
-                                <td>
+                                            <td>{formatearPesos(Number(pedido.total))}</td>
 
-                                    <span className="status warning">
+                                            <td>
 
-                                        Pendiente
+                                                <span className={`status ${claseEstado}`}>
 
-                                    </span>
+                                                    {estado.charAt(0).toUpperCase() + estado.slice(1)}
 
-                                </td>
+                                                </span>
 
-                            </tr>
+                                            </td>
 
-                            <tr>
+                                        </tr>
 
-                                <td>#1043</td>
+                                    );
 
-                                <td>Camilo Ruiz</td>
-
-                                <td>$420.000</td>
-
-                                <td>
-
-                                    <span className="status shipping">
-
-                                        Enviado
-
-                                    </span>
-
-                                </td>
-
-                            </tr>
+                                })
+                            )}
 
                         </tbody>
 
@@ -213,71 +312,52 @@ function Dashboard() {
 
                     <div className="stock-list">
 
-                        <div className="stock-item">
+                        {stats.pocoStock.length === 0 ? (
 
-                            <div>
+                            <div className="stock-item">
 
-                                <strong>
+                                <div>
 
-                                    Camiseta Oversize
+                                    <strong>Sin variantes con bajo stock</strong>
 
-                                </strong>
+                                    <span>Todas las variantes tienen al menos 5 unidades.</span>
 
-                                <span>
-
-                                    Solo quedan 3 unidades
-
-                                </span>
+                                </div>
 
                             </div>
 
-                            <AlertTriangle color="#d97706"/>
+                        ) : (
+                            stats.pocoStock.map((variante) => (
 
-                        </div>
+                                <div
+                                    key={variante.id_variante}
+                                    className="stock-item"
+                                >
 
-                        <div className="stock-item">
+                                    <div>
 
-                            <div>
+                                        <strong>
 
-                                <strong>
+                                            {variante.producto_nombre}
 
-                                    Jean Cargo
+                                        </strong>
 
-                                </strong>
+                                        <span>
 
-                                <span>
+                                            SKU {variante.sku} — Quedan {variante.stock} unidades
 
-                                    Solo quedan 5 unidades
+                                        </span>
 
-                                </span>
+                                    </div>
 
-                            </div>
+                                    <AlertTriangle
+                                        color={variante.stock <= 2 ? "#dc2626" : "#d97706"}
+                                    />
 
-                            <AlertTriangle color="#d97706"/>
+                                </div>
 
-                        </div>
-
-                        <div className="stock-item">
-
-                            <div>
-
-                                <strong>
-
-                                    Chaqueta Denim
-
-                                </strong>
-
-                                <span>
-
-                                    Solo quedan 2 unidades
-
-                                </span>
-
-                            </div>
-
-                            <AlertTriangle color="#dc2626"/>
-
-                        </div>
+                            ))
+                        )}
 
                     </div>
 

@@ -1,6 +1,8 @@
 import "./Profile.css";
 import { Link } from "react-router-dom";
+import { useState } from "react";
 import { useAuth } from "../../hooks/useAuth";
+import ProductDetail from "../Products/ProductDetail/ProductDetail";
 
 import {
     ArrowLeft,
@@ -19,6 +21,9 @@ import {
 function Profile() {
 
     const { usuario } = useAuth();
+
+    // Estado listo para cuando se listen productos del usuario (pedidos/direcciones).
+    const [selectedProductId, setSelectedProductId] = useState(null);
 
     return (
 
@@ -305,6 +310,13 @@ function Profile() {
                 </section>
 
             </div>
+
+            {selectedProductId !== null && (
+                <ProductDetail
+                    productId={selectedProductId}
+                    onClose={() => setSelectedProductId(null)}
+                />
+            )}
 
         </main>
 

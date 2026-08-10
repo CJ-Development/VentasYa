@@ -1,5 +1,5 @@
 import "./Sidebar.css";
-import { LayoutDashboard, Package, FolderTree, Tags, Percent, ShoppingCart, Users, Settings } from "lucide-react";
+import { LayoutDashboard, Package, FolderTree, Percent, ShoppingCart, Users, Settings } from "lucide-react";
 import { NavLink } from "react-router-dom";
 import { LogOut } from "lucide-react";
 import { useNavigate } from "react-router-dom";
@@ -57,14 +57,6 @@ function Sidebar() {
                     <FolderTree size={20}/>
 
                     Categorías
-
-                </NavLink>
-
-                <NavLink to="/admin/brands">
-
-                    <Tags size={20}/>
-
-                    Marcas
 
                 </NavLink>
 

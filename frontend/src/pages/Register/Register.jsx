@@ -9,8 +9,8 @@ import {
     Lock,
     Phone,
     Calendar,
-    CreditCard
 } from "lucide-react";
+import { register } from "../../services/api";
 
 function Register() {
 
@@ -19,8 +19,6 @@ function Register() {
     const [form, setForm] = useState({
         nombres: "",
         apellidos: "",
-        tipo_documento: "CC",
-        numero_documento: "",
         fecha_nacimiento: "",
         email: "",
         telefono: "",
@@ -47,36 +45,26 @@ function Register() {
         setLoading(true);
 
         try {
-            const response = await fetch(
-                "http://127.0.0.1:8000/api/users/register/",
-                {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json"
-                    },
-                    body: JSON.stringify({
-                        nombres: form.nombres,
-                        apellidos: form.apellidos,
-                        tipo_documento: form.tipo_documento,
-                        numero_documento: form.numero_documento,
-                        fecha_nacimiento: form.fecha_nacimiento,
-                        email: form.email,
-                        telefono: form.telefono,
-                        password: form.password
-                    })
-                }
-            );
-            const data = await response.json();
-            if (!response.ok) {
-                console.log(data);
-                alert("No fue posible crear la cuenta");
-                return;
-            }
+            await register({
+                nombres: form.nombres,
+                apellidos: form.apellidos,
+                fecha_nacimiento: form.fecha_nacimiento,
+                email: form.email,
+                telefono: form.telefono,
+                password: form.password
+            });
             alert("Cuenta creada correctamente");
             navigate("/login");
         } catch (error) {
             console.error(error);
-            alert("Error de conexión con el servidor");
+            if (error.response?.data) {
+                console.log(error.response.data);
+            }
+            alert(
+                error.response?.data
+                    ? "No fue posible crear la cuenta. Revisa los datos."
+                    : "Error de conexión con el servidor"
+            );
         } finally {
             setLoading(false);
         }
@@ -138,26 +126,7 @@ function Register() {
                             </div>
                         </div>
                         <div className="form-group">
-                            <label>Tipo documento</label>
-                            <div className="input-icon">
-                                <CreditCard size={18} />
-                                <select name="tipo_documento" value={form.tipo_documento} onChange={handleChange} >
-                                    <option value="CC">CC</option>
-                                    <option value="CE">CE</option>
-                                    <option value="TI">TI</option>
-                                    <option value="PP">Pasaporte</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div className="form-group">
-                            <label>Número documento</label>
-                            <div className="input-icon">
-                                <CreditCard size={18} />
-                                <input type="text" name="numero_documento" value={form.numero_documento} onChange={handleChange} required />
-                            </div>
-                        </div>
-                        <div className="form-group">
-                            <label>Fecha nacimiento</label>
+                            <label>Fecha de nacimiento</label>
                             <div className="input-icon">
                                 <Calendar size={18} />
                                 <input type="date" name="fecha_nacimiento" value={form.fecha_nacimiento} onChange={handleChange} required />

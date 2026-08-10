@@ -33,6 +33,12 @@ function AuthProvider({ children }) {
 
     };
 
+    const updateUsuario = (data) => {
+        const merged = { ...(usuario || {}), ...data };
+        localStorage.setItem("usuario", JSON.stringify(merged));
+        setUsuario(merged);
+    };
+
     const logout = () => {
 
         localStorage.removeItem("usuario");
@@ -53,7 +59,9 @@ function AuthProvider({ children }) {
 
                 login,
 
-                logout
+                logout,
+
+                updateUsuario,
 
             }}
 

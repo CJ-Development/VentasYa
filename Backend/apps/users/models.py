@@ -38,12 +38,16 @@ class Usuario(models.Model):
 
     tipo_documento = models.CharField(
         max_length=20,
-        choices=TIPO_DOCUMENTO
+        choices=TIPO_DOCUMENTO,
+        blank=True,
+        null=True
     )
 
     numero_documento = models.CharField(
         max_length=20,
-        unique=True
+        unique=True,
+        blank=True,
+        null=True
     )
 
     email = models.EmailField(

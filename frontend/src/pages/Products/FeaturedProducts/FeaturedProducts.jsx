@@ -2,14 +2,14 @@ import { useEffect, useState } from "react";
 
 import { getProducts } from "../../../services/adminService";
 import ProductCard from "../ProductCard/ProductCard";
-import ProductDetailImage from "../../../assets/images/no-detail.png";
+import ProductDetail from "../ProductDetail/ProductDetail";
 import "./FeaturedProducts.css";
 
 function FeaturedProducts() {
 
     const [products, setProducts] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [selectedProduct, setSelectedProduct] = useState(null);
+    const [selectedProductId, setSelectedProductId] = useState(null);
 
     const loadProducts = async () => {
 
@@ -116,19 +116,13 @@ function FeaturedProducts() {
                                     products.map(product => (
 
                                         <div
-
                                             key={product.id_producto}
-
-                                            onClick={() => setSelectedProduct(product)}
-
                                             style={{ cursor: "pointer" }}
-
                                         >
 
                                             <ProductCard
-
                                                 product={product}
-
+                                                onSelect={setSelectedProductId}
                                             />
 
                                         </div>
@@ -145,117 +139,12 @@ function FeaturedProducts() {
 
             {
 
-                selectedProduct && (
+                selectedProductId !== null && (
 
-                    <div
-
-                        className="product-modal-overlay"
-
-                        onClick={() => setSelectedProduct(null)}
-
-                    >
-
-                        <div
-
-                            className="product-modal"
-
-                            onClick={(e) => e.stopPropagation()}
-
-                        >
-
-                            <button
-
-                                className="close-modal"
-
-                                onClick={() => setSelectedProduct(null)}
-
-                            >
-
-                                ✕
-
-                            </button>
-
-                            <div className="modal-left">
-                                <img
-                                    src={ProductDetailImage}
-                                    alt={selectedProduct.nombre}
-                                />
-
-                            </div>
-
-                            <div className="modal-right">
-
-                                <span className="modal-category">
-
-                                    {selectedProduct.categoria?.nombre}
-
-                                </span>
-
-                                <h2>
-
-                                    {selectedProduct.nombre}
-
-                                </h2>
-
-                                <h3>
-
-                                    ${Number(selectedProduct.precio).toLocaleString("es-CO")}
-
-                                </h3>
-
-                                <p>
-
-                                    {selectedProduct.descripcion}
-
-                                </p>
-
-                                <h4>
-
-                                    Color
-
-                                </h4>
-
-                                <div className="colors">
-
-                                    <span className="color black"></span>
-
-                                    <span className="color gray"></span>
-
-                                    <span className="color green"></span>
-
-                                    <span className="color white"></span>
-
-                                </div>
-
-                                <h4>
-
-                                    Talla
-
-                                </h4>
-
-                                <div className="sizes">
-
-                                    <button>S</button>
-
-                                    <button className="active">M</button>
-
-                                    <button>L</button>
-
-                                    <button>XL</button>
-
-                                </div>
-
-                                <button className="add-cart-modal">
-
-                                    Agregar al carrito
-
-                                </button>
-
-                            </div>
-
-                        </div>
-
-                    </div>
+                    <ProductDetail
+                        productId={selectedProductId}
+                        onClose={() => setSelectedProductId(null)}
+                    />
 
                 )
 

@@ -154,6 +154,20 @@ td{
 
     font-size:22px;
 
+    overflow:hidden;
+
+    flex-shrink:0;
+
+}
+
+.product-image img{
+
+    width:100%;
+
+    height:100%;
+
+    object-fit:cover;
+
 }
 
 .product-info strong{
@@ -197,6 +211,14 @@ td{
     background:#ffe3e3;
 
     color:#dc2626;
+
+}
+
+.status.archived{
+
+    background:#e5e7eb;
+
+    color:#4b5563;
 
 }
 

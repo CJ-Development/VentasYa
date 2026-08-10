@@ -1,3 +1,5 @@
+@import "../../styles/base/variables.css";
+
 .mega-menu{
     position: absolute;
     top: 100%;
@@ -6,11 +8,13 @@
     width: 100%;
 
     background: var(--white);
-    padding: 40px 50px;
+    padding: 36px 44px 50px;
 
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 50px;
+
+    grid-template-columns: 3fr 1.2fr;
+    grid-template-rows: 1fr auto;
+    gap: 36px 40px;
 
     border: 1px solid var(--border);
     border-top: 3px solid var(--primary);
@@ -23,21 +27,45 @@
     animation: fadeMenu .3s ease;
 }
 
+/* ====== VARIANTE OFERTAS ====== */
+.mega-menu--ofertas{
+    border-top-color: #E53935;
+    background:
+        radial-gradient(circle at top right, rgba(229,57,53,0.07), transparent 50%),
+        var(--white);
+}
+
+.mega-menu-cols{
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 40px;
+}
+
 .mega-column{
     display: flex;
     flex-direction: column;
-    gap: 14px;
+    gap: 12px;
 }
 
 .mega-column h3{
     position: relative;
 
     color: var(--primary);
-    font-size: 18px;
+    font-size: 17px;
     font-weight: var(--fw-semibold);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
 
-    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    margin-bottom: 8px;
     padding-bottom: 8px;
+}
+
+.mega-menu--ofertas .mega-column h3{
+    color: #C62828;
 }
 
 .mega-column h3::after{
@@ -54,8 +82,12 @@
     border-radius: 999px;
 }
 
-.mega-column a{
+.mega-item{
     position: relative;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
 
     color: var(--secondary);
     text-decoration: none;
@@ -69,7 +101,7 @@
     transition: all var(--transition);
 }
 
-.mega-column a:hover{
+.mega-item:hover{
     color: var(--primary);
 
     background: var(--background);
@@ -79,7 +111,7 @@
     transform: translateX(4px);
 }
 
-.mega-column a::before{
+.mega-item::before{
     content: "";
 
     position: absolute;
@@ -97,10 +129,176 @@
     transition: .25s;
 }
 
-.mega-column a:hover::before{
+.mega-item:hover::before{
     height: 70%;
 }
 
+/* ====== BADGES (ofertas) ====== */
+.mega-badge{
+    font-size: 11px;
+    font-weight: 700;
+    padding: 3px 8px;
+    border-radius: 999px;
+    background: #FFE0E0;
+    color: #C62828;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-left: 8px;
+}
+
+.mega-badge--70,
+.mega-badge--hoy,
+.mega-badge--free,
+.mega-badge--stock{
+    background: #E53935;
+    color: #fff;
+}
+
+/* ====== PANEL DESTACADO ====== */
+.mega-menu-panel{
+    grid-row: 1 / span 1;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.mega-panel-head{
+    background: linear-gradient(160deg, #F4F7F5 0%, #E8F0EA 100%);
+    border-radius: 18px;
+    padding: 22px 22px 24px;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.mega-menu--ofertas .mega-panel-head{
+    background: linear-gradient(160deg, #FFE9E5 0%, #FFD2C9 100%);
+}
+
+.mega-panel-tag{
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: #fff;
+    padding: 5px 12px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--primary);
+    width: fit-content;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.06);
+}
+
+.mega-menu--ofertas .mega-panel-tag{
+    color: #C62828;
+}
+
+.mega-panel-head h4{
+    font-size: 22px;
+    font-weight: 800;
+    line-height: 1.2;
+    color: var(--secondary);
+    margin-top: 4px;
+}
+
+.mega-menu--ofertas .mega-panel-head h4{
+    color: #2E1A18;
+}
+
+.mega-panel-head p{
+    font-size: 14px;
+    line-height: 1.5;
+    color: #5A6361;
+    flex: 1;
+}
+
+.mega-panel-cta{
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 18px;
+    background: var(--primary);
+    color: #fff;
+    border-radius: 999px;
+    font-size: 14px;
+    font-weight: 700;
+    text-decoration: none;
+    width: fit-content;
+    transition: .25s;
+}
+
+.mega-menu--ofertas .mega-panel-cta{
+    background: #E53935;
+}
+
+.mega-panel-cta:hover{
+    transform: translateX(4px);
+    filter: brightness(0.95);
+}
+
+.mega-panel-extras{
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+}
+
+.mega-mini{
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 12px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.mega-mini svg{
+    color: #E53935;
+    flex-shrink: 0;
+}
+
+.mega-mini strong{
+    display: block;
+    font-size: 13px;
+    color: var(--secondary);
+}
+
+.mega-mini small{
+    display: block;
+    font-size: 11px;
+    color: #888;
+}
+
+/* ====== NOTA ADMIN ====== */
+.mega-menu-note{
+    grid-column: 1 / -1;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    color: #7A8482;
+    background: #F4F7F5;
+    padding: 10px 14px;
+    border-radius: 10px;
+    border-left: 3px solid var(--primary);
+}
+
+.mega-menu--ofertas .mega-menu-note{
+    background: #FFF5F3;
+    border-left-color: #E53935;
+}
+
+.mega-menu-note svg{
+    color: var(--primary);
+    flex-shrink: 0;
+}
+
+.mega-menu--ofertas .mega-menu-note svg{
+    color: #E53935;
+}
+
+/* ====== ANIMACIÓN ====== */
 @keyframes fadeMenu{
     from{
         opacity: 0;
@@ -109,5 +307,29 @@
     to{
         opacity: 1;
         transform: translateY(0);
+    }
+}
+
+/* ====== RESPONSIVE ====== */
+@media (max-width: 1100px){
+    .mega-menu{
+        grid-template-columns: 1fr;
+        padding: 28px 24px 30px;
+    }
+    .mega-menu-cols{
+        grid-template-columns: repeat(3, 1fr);
+        gap: 24px;
+    }
+    .mega-menu-panel{
+        order: 2;
+    }
+}
+
+@media (max-width: 700px){
+    .mega-menu-cols{
+        grid-template-columns: 1fr 1fr;
+    }
+    .mega-menu-panel{
+        display: none;
     }
 }

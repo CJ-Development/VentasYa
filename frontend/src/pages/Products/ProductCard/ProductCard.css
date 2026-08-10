@@ -124,6 +124,20 @@ FAVORITO
 
 }
 
+.favorite-button.is-favorite{
+
+    background:#FFE4E6;
+
+}
+
+.favorite-button.is-favorite:hover{
+
+    background:#dc2626;
+
+    color:#fff;
+
+}
+
 /*=========================================
 DESCUENTO
 =========================================*/

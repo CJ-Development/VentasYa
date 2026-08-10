@@ -1,8 +1,18 @@
+import { useState } from "react";
+
 import "./Orders.css";
 
 import OrderTable from "../../components/OrderTable/OrderTable";
 
 function Orders() {
+
+    const [refreshKey, setRefreshKey] = useState(0);
+
+    const handleRefresh = () => {
+
+        setRefreshKey((prev) => prev + 1);
+
+    };
 
     return (
 
@@ -28,7 +38,10 @@ function Orders() {
 
             </div>
 
-            <OrderTable />
+            <OrderTable
+                refreshKey={refreshKey}
+                onAction={handleRefresh}
+            />
 
         </div>
 

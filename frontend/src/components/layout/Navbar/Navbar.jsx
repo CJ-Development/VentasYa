@@ -7,6 +7,8 @@ import UserMenu from "./UserMenu";
 import FavoritesButton from "./FavoritesButton";
 import CartButton from "./CartButton";
 
+import CartDrawer from "../../cart/CartDrawer/CartDrawer";
+
 function Navbar() {
     return (
         <header className="navbar">
@@ -26,6 +28,8 @@ function Navbar() {
             </div>
 
             <NavLinks />
+
+            <CartDrawer />
 
         </header>
     );

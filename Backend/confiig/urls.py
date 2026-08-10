@@ -20,9 +20,9 @@ urlpatterns = [
     path("api/users/",include("apps.users.urls")),
     path("api/categories/",include("apps.categories.urls")),
     path("api/products/",include("apps.products.urls")),
+    path("api/offers/",include("apps.offers.urls")),
     path("api/favorites/",include("apps.favorites.urls")),
     path("api/orders/",include("apps.orders.urls")),
     path("api/cart/",include("apps.cart.urls")),
-    path("api/auth/",include("apps.authentication.urls")),
     path("api/reviews/",include("apps.reviews.urls")),
 ]

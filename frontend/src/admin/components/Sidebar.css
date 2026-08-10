@@ -27,38 +27,55 @@
 /* ===========================
    LOGO
 =========================== */
+/*=========================================
+            LOGO
+=========================================*/
 
-.sidebar-logo {
+.sidebar-logo{
 
-    display: flex;
-    flex-direction: column;
-    align-items: center;
+    display:flex;
 
-    margin-bottom: 45px;
+    flex-direction:column;
 
-}
+    align-items:center;
 
-.sidebar-logo img {
+    justify-content:center;
 
-    width: 140px;
-    object-fit: contain;
-
-    margin-bottom: 12px;
+    margin-bottom:45px;
 
 }
 
-.sidebar-logo span {
+.sidebar-logo-image{
 
-    color: #ACAD94;
+    width:170px;
 
-    font-size: .90rem;
+    object-fit:contain;
 
-    letter-spacing: .8px;
+    margin-bottom:14px;
 
-    text-transform: uppercase;
+    transition:.30s;
 
 }
 
+.sidebar-logo-image:hover{
+
+    transform:scale(1.03);
+
+}
+
+.sidebar-role{
+
+    color:#ACAD94;
+
+    font-size:.82rem;
+
+    letter-spacing:2px;
+
+    text-transform:uppercase;
+
+    font-weight:600;
+
+}
 /* ===========================
    MENÚ
 =========================== */

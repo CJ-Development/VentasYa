@@ -1,21 +1,28 @@
 import "./Login.css";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useState } from "react";
 import LoginImage from "../../assets/images/Login.png";
 import { ArrowLeft, Truck, ShieldCheck, Package } from "lucide-react";
 import { login } from "../../api/axios";
 import { useAuth } from "../../hooks/useAuth";
+import { useCart } from "../../hooks/useCart";
 
 function Login() {
 
     const navigate = useNavigate();
 
+    const location = useLocation();
+
     const { login: loginContext } = useAuth();
+
+    const { syncOnLogin } = useCart();
 
     const [formData, setFormData] = useState({
         email: "",
         password: "",
     });
+
+    const [cargando, setCargando] = useState(false);
 
     const handleChange = (e) => {
 
@@ -31,17 +38,51 @@ function Login() {
         e.preventDefault();
 
         try {
+
+            setCargando(true);
+
             const { data } = await login(formData);
+
             loginContext(data);
 
-alert(`Bienvenido ${data.nombres}`);
+            // Si veniamos del checkout, sincronizamos lo del carrito local
+            // al backend para no perder los productos seleccionados.
 
-        if (data.rol === 2) {
-            navigate("/admin");
-        } else {
-            navigate("/");
+            if (data?.id_usuario) {
 
-        }
+                try {
+
+                    await syncOnLogin(data.id_usuario);
+
+                } catch (syncErr) {
+
+                    console.error("Error sincronizando carrito:", syncErr);
+
+                }
+
+            }
+
+            alert(`Bienvenido ${data.nombres}`);
+
+            // Respetar redireccion ?from= o ?redirect=
+            const params = new URLSearchParams(location.search);
+
+            const destino = params.get("from") || params.get("redirect");
+
+            if (destino) {
+
+                navigate(destino, { replace: true });
+
+                return;
+
+            }
+
+            if (data.rol === 2) {
+                navigate("/admin");
+            } else {
+                navigate("/");
+            }
+
         } catch (error) {
 
             if (error.response) {
@@ -54,9 +95,14 @@ alert(`Bienvenido ${data.nombres}`);
 
             }
 
+        } finally {
+
+            setCargando(false);
+
         }
 
     };
+
     return (
         <main className="login-page">
             <div className="login-card">
@@ -108,16 +154,36 @@ alert(`Bienvenido ${data.nombres}`);
                     <form onSubmit={handleSubmit}>
                         <div className="form-group">
                             <label>Correo electrónico</label>
-                            <input type="email" name="email" value={formData.email} onChange={handleChange} placeholder="tu@gmail.com" />
+                            <input
+                                type="email"
+                                name="email"
+                                value={formData.email}
+                                onChange={handleChange}
+                                placeholder="tu@gmail.com"
+                                disabled={cargando}
+                            />
                         </div>
                         <div className="form-group">
                             <div className="label-row">
                                 <label>Contraseña</label>
                                 <Link to="/recuperar-password" className="forgot-password" >¿Olvidaste tu contraseña? </Link>
                             </div>
-                            <input type="password" name="password" value={formData.password} onChange={handleChange} placeholder="********" />
+                            <input
+                                type="password"
+                                name="password"
+                                value={formData.password}
+                                onChange={handleChange}
+                                placeholder="********"
+                                disabled={cargando}
+                            />
                         </div>
-                        <button type="submit" className="login-button" > Iniciar sesión </button>
+                        <button
+                            type="submit"
+                            className="login-button"
+                            disabled={cargando}
+                        >
+                            {cargando ? "Ingresando..." : "Iniciar sesión"}
+                        </button>
                     </form>
                     <div className="divider">
                         <span>o continúa con</span>

@@ -71,6 +71,12 @@ class Compra(models.Model):
         default="pendiente"
     )
 
+    telefono_contacto = models.CharField(
+        max_length=20,
+        blank=True,
+        null=True,
+    )
+
     class Meta:
 
         db_table="compras"

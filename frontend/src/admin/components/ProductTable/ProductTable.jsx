@@ -6,14 +6,52 @@ import {
     Search,
     Eye,
     Pencil,
-    Trash2
+    Archive,
+    RotateCcw,
 } from "lucide-react";
 
-import { getProducts } from "../../../services/adminService";
+import {
+    getProducts,
+    archiveProduct,
+    reactivateProduct,
+    getCategories,
+} from "../../../services/adminService";
 
-function ProductTable() {
+const PLACEHOLDER = "https://via.placeholder.com/80?text=Sin+imagen";
+
+function obtenerPrimeraImagen(producto) {
+
+    if (!producto.variantes || producto.variantes.length === 0) return null;
+
+    for (const v of producto.variantes) {
+
+        if (v.imagenes && v.imagenes.length > 0) {
+
+            return v.imagenes[0].imagen;
+
+        }
+
+    }
+
+    return null;
+
+}
+
+function ProductTable({ refreshKey, onEdit, onPreview }) {
 
     const [productos, setProductos] = useState([]);
+
+    const [categorias, setCategorias] = useState([]);
+
+    const [loading, setLoading] = useState(true);
+
+    const [error, setError] = useState(null);
+
+    const [busqueda, setBusqueda] = useState("");
+
+    const [filtroCategoria, setFiltroCategoria] = useState("");
+
+    const [filtroEstado, setFiltroEstado] = useState("");
 
     const cargarProductos = async () => {
 
@@ -23,11 +61,39 @@ function ProductTable() {
 
             setProductos(data);
 
+            setError(null);
+
         }
 
-        catch(error){
+        catch (err) {
 
-            console.error(error);
+            console.error(err);
+
+            setError("No fue posible cargar los productos.");
+
+        }
+
+        finally {
+
+            setLoading(false);
+
+        }
+
+    };
+
+    const cargarCategorias = async () => {
+
+        try {
+
+            const { data } = await getCategories();
+
+            setCategorias(data);
+
+        }
+
+        catch (err) {
+
+            console.error(err);
 
         }
 
@@ -37,7 +103,88 @@ function ProductTable() {
 
         cargarProductos();
 
-    }, []);
+        cargarCategorias();
+
+    }, [refreshKey]);
+
+    const archivarProducto = async (id) => {
+
+        const confirmar = window.confirm(
+            "¿Archivar este producto? No se eliminará, solo quedará oculto."
+        );
+
+        if (!confirmar) return;
+
+        try {
+
+            await archiveProduct(id);
+
+            await cargarProductos();
+
+        }
+
+        catch (err) {
+
+            console.error(err);
+
+            alert("No fue posible archivar el producto.");
+
+        }
+
+    };
+
+    const reactivarProducto = async (id) => {
+
+        try {
+
+            await reactivateProduct(id);
+
+            await cargarProductos();
+
+        }
+
+        catch (err) {
+
+            console.error(err);
+
+            alert("No fue posible reactivar el producto.");
+
+        }
+
+    };
+
+    const productosFiltrados = productos.filter((producto) => {
+
+        const texto = busqueda.toLowerCase();
+
+        const coincideBusqueda =
+            !busqueda ||
+            producto.nombre.toLowerCase().includes(texto) ||
+            (producto.slug || "").toLowerCase().includes(texto);
+
+        const coincideCategoria =
+            !filtroCategoria ||
+            producto.categoria?.id_categoria === Number(filtroCategoria);
+
+        const coincideEstado =
+            !filtroEstado ||
+            producto.estado === filtroEstado;
+
+        return coincideBusqueda && coincideCategoria && coincideEstado;
+
+    });
+
+    if (loading) {
+
+        return <div className="product-table">Cargando productos...</div>;
+
+    }
+
+    if (error) {
+
+        return <div className="product-table">{error}</div>;
+
+    }
 
     return (
 
@@ -47,34 +194,53 @@ function ProductTable() {
 
                 <div className="table-search">
 
-                    <Search size={18}/>
+                    <Search size={18} />
 
                     <input
                         type="text"
                         placeholder="Buscar producto..."
+                        value={busqueda}
+                        onChange={(e) => setBusqueda(e.target.value)}
                     />
 
                 </div>
 
                 <div className="table-filters">
 
-                    <select>
+                    <select
+                        value={filtroCategoria}
+                        onChange={(e) => setFiltroCategoria(e.target.value)}
+                    >
 
-                        <option>
+                        <option value="">Todas las categorías</option>
 
-                            Todas las categorías
+                        {categorias.map((categoria) => (
 
-                        </option>
+                            <option
+                                key={categoria.id_categoria}
+                                value={categoria.id_categoria}
+                            >
+
+                                {categoria.nombre}
+
+                            </option>
+
+                        ))}
 
                     </select>
 
-                    <select>
+                    <select
+                        value={filtroEstado}
+                        onChange={(e) => setFiltroEstado(e.target.value)}
+                    >
 
-                        <option>
+                        <option value="">Todos los estados</option>
 
-                            Todos los estados
+                        <option value="activo">Activo</option>
 
-                        </option>
+                        <option value="inactivo">Inactivo</option>
+
+                        <option value="archivado">Archivado</option>
 
                     </select>
 
@@ -88,35 +254,15 @@ function ProductTable() {
 
                     <tr>
 
-                        <th>
+                        <th>Producto</th>
 
-                            Producto
+                        <th>Categoría</th>
 
-                        </th>
+                        <th>Precio</th>
 
-                        <th>
+                        <th>Estado</th>
 
-                            Categoría
-
-                        </th>
-
-                        <th>
-
-                            Precio
-
-                        </th>
-
-                        <th>
-
-                            Estado
-
-                        </th>
-
-                        <th>
-
-                            Acciones
-
-                        </th>
+                        <th>Acciones</th>
 
                     </tr>
 
@@ -124,131 +270,154 @@ function ProductTable() {
 
                 <tbody>
 
-                    {
+                    {productosFiltrados.length === 0 ? (
 
-                        productos.length === 0 ?
+                        <tr>
 
-                        (
-
-                            <tr>
-
-                                <td
-                                    colSpan="5"
-                                    style={{
-                                        textAlign:"center",
-                                        padding:"40px"
-                                    }}
-                                >
-
-                                    No existen productos registrados.
-
-                                </td>
-
-                            </tr>
-
-                        )
-
-                        :
-
-                        productos.map((producto)=>(
-
-                            <tr
-                                key={producto.id_producto}
+                            <td
+                                colSpan="5"
+                                style={{
+                                    textAlign: "center",
+                                    padding: "40px",
+                                }}
                             >
 
-                                <td>
+                                No existen productos que coincidan con los filtros.
 
-                                    <div className="product-info">
+                            </td>
 
-                                        <div className="product-image">
+                        </tr>
 
-                                            📦
+                    ) : (
+
+                        productosFiltrados.map((producto) => {
+
+                            const imagen = obtenerPrimeraImagen(producto);
+
+                            return (
+
+                                <tr key={producto.id_producto}>
+
+                                    <td>
+
+                                        <div className="product-info">
+
+                                            <div className="product-image">
+
+                                                <img
+                                                    src={imagen || PLACEHOLDER}
+                                                    alt={producto.nombre}
+                                                    onError={(e) => {
+                                                        e.currentTarget.src = PLACEHOLDER;
+                                                    }}
+                                                />
+
+                                            </div>
+
+                                            <div>
+
+                                                <strong>{producto.nombre}</strong>
+
+                                                <span>{producto.slug}</span>
+
+                                            </div>
 
                                         </div>
 
-                                        <div>
+                                    </td>
 
-                                            <strong>
+                                    <td>
 
-                                                {producto.nombre}
+                                        {producto.categoria?.nombre || "Sin categoría"}
 
-                                            </strong>
+                                    </td>
 
-                                            <span>
+                                    <td>
 
-                                                {producto.slug}
+                                        ${Number(producto.precio).toLocaleString("es-CO")}
 
-                                            </span>
+                                    </td>
+
+                                    <td>
+
+                                        <span
+                                            className={
+                                                `status ` +
+                                                (producto.estado === "activo"
+                                                    ? "active"
+                                                    : producto.estado === "inactivo"
+                                                        ? "inactive"
+                                                        : "archived")
+                                            }
+                                        >
+
+                                            {producto.estado}
+
+                                        </span>
+
+                                    </td>
+
+                                    <td>
+
+                                        <div className="actions">
+
+                                            <button
+                                                className="view"
+                                                title="Ver vista previa"
+                                                onClick={() => onPreview && onPreview(producto)}
+                                            >
+
+                                                <Eye size={18} />
+
+                                            </button>
+
+                                            <button
+                                                className="edit"
+                                                title="Editar"
+                                                onClick={() => onEdit(producto)}
+                                            >
+
+                                                <Pencil size={18} />
+
+                                            </button>
+
+                                            {producto.estado === "archivado" ? (
+
+                                                <button
+                                                    className="reactivate"
+                                                    title="Reactivar"
+                                                    onClick={() => reactivarProducto(producto.id_producto)}
+                                                >
+
+                                                    <RotateCcw size={18} />
+
+                                                </button>
+
+                                            ) : (
+
+                                                <button
+                                                    className="archive"
+                                                    title="Archivar"
+                                                    onClick={() => archivarProducto(producto.id_producto)}
+                                                >
+
+                                                    <Archive size={18} />
+
+                                                </button>
+
+                                            )}
 
                                         </div>
 
-                                    </div>
+                                    </td>
 
-                                </td>
+                                </tr>
 
-                                <td>
-                                    {producto.categoria?.nombre}
-                                </td>
+                            );
 
-                                <td>
+                        })
 
-                                    $
-
-                                    {Number(producto.precio).toLocaleString()}
-
-                                </td>
-
-                                <td>
-
-                                    <span
-
-                                        className={
-                                            producto.estado === "activo"
-
-                                            ? "status active"
-
-                                            : "status inactive"
-                                        }
-
-                                    >
-
-                                        {producto.estado}
-
-                                    </span>
-
-                                </td>
-
-                                <td>
-
-                                    <div className="actions">
-
-                                        <button className="view">
-
-                                            <Eye size={18}/>
-
-                                        </button>
-
-                                        <button className="edit">
-
-                                            <Pencil size={18}/>
-
-                                        </button>
-
-                                        <button className="delete">
-
-                                            <Trash2 size={18}/>
-
-                                        </button>
-
-                                    </div>
-
-                                </td>
-
-                            </tr>
-
-                        ))
-
-                    }
+                    )}
 
                 </tbody>
 

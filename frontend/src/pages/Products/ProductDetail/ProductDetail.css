@@ -345,3 +345,193 @@
         width:100%;
     }
 }
+
+/* ==========================
+   MODO MODAL
+========================== */
+
+.product-detail--modal{
+
+    position: fixed;
+
+    inset: 0;
+
+    z-index: 9999;
+
+    background: rgba(0,0,0,0.55);
+
+    display: flex;
+
+    justify-content: center;
+
+    align-items: flex-start;
+
+    padding: 40px 20px;
+
+    overflow-y: auto;
+
+    animation: detailFadeIn 0.2s ease;
+
+}
+
+@keyframes detailFadeIn {
+
+    from { opacity: 0; }
+
+    to   { opacity: 1; }
+
+}
+
+.product-detail--modal .product-container{
+
+    position: relative;
+
+    background: var(--background);
+
+    border-radius: 22px;
+
+    padding: 40px 30px;
+
+    box-shadow: 0 20px 60px rgba(0,0,0,0.25);
+
+    max-width: 1350px;
+
+    width: 100%;
+
+    animation: detailSlideIn 0.25s ease;
+
+}
+
+@keyframes detailSlideIn {
+
+    from { transform: translateY(-20px); opacity: 0; }
+
+    to   { transform: translateY(0); opacity: 1; }
+
+}
+
+.product-detail-close{
+
+    position: absolute;
+
+    top: 18px;
+
+    right: 18px;
+
+    width: 42px;
+
+    height: 42px;
+
+    border-radius: 12px;
+
+    background: #E2E2E2;
+
+    border: none;
+
+    cursor: pointer;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    color: #384D48;
+
+    transition: 0.2s;
+
+    z-index: 2;
+
+}
+
+.product-detail-close:hover{
+
+    background: #D8D4D5;
+
+}
+
+.product-detail-loading{
+
+    background: var(--background);
+
+    border-radius: 18px;
+
+    padding: 60px 40px;
+
+    display: flex;
+
+    flex-direction: column;
+
+    align-items: center;
+
+    gap: 16px;
+
+    color: #6E7271;
+
+    width: 100%;
+
+    max-width: 400px;
+
+    margin: auto;
+
+}
+
+.product-detail-loading .spin{
+
+    animation: spin 0.9s linear infinite;
+
+    color: var(--primary);
+
+}
+
+@keyframes spin {
+
+    to { transform: rotate(360deg); }
+
+}
+
+.gallery-thumbnails img.active{
+
+    border-color: var(--primary);
+
+    transform: translateY(-2px);
+
+}
+
+.color-option{
+
+    width: 34px;
+
+    height: 34px;
+
+    border-radius: 50%;
+
+    border: 2px solid #d5d5d5;
+
+    cursor: pointer;
+
+    transition: 0.25s;
+
+    padding: 0;
+
+    outline: none;
+
+}
+
+.color-option:hover{
+
+    transform: scale(1.08);
+
+    border-color: var(--primary);
+
+}
+
+.color-option--active{
+
+    border-color: var(--primary);
+
+    box-shadow: 0 0 0 3px rgba(56,77,72,0.18);
+
+    transform: scale(1.08);
+
+}

@@ -5,7 +5,6 @@ import MainLayout from "../layouts/MainLayout";
 import Home from "../pages/Home/Home";
 import Login from "../pages/Login/Login";
 import Register from "../pages/Register/Register";
-import ProductDetail from "../pages/Products/ProductDetail/ProductDetail";
 
 // Usuario
 import Profile from "../pages/Profile/Profile";
@@ -18,10 +17,12 @@ import Dashboard from "../admin/pages/Dashboard";
 import AdminRoute from "./AdminRoute";
 import Products from "../admin/pages/Products/Products";
 import Categories from "../admin/pages/Categories/Categories";
-import Brands from "../admin/pages/Brands/Brands";
-import Offers from "../admin/pages/Offers/Offers";
+import AdminOffers from "../admin/pages/Offers/Offers";
 import Orders from "../admin/pages/Orders/Orders";
 import Users from "../admin/pages/Users/Users";
+
+// Cliente
+import ClientOffers from "../pages/Offers/Offers";
 
 function AppRouter() {
     return (
@@ -32,6 +33,7 @@ function AppRouter() {
 
                 <Route path="/" element={<Home />} />
                 <Route path="/products" element={<Products />} />
+                <Route path="/offers" element={<ClientOffers />} />
 
                 <Route path="/login" element={<Login />} />
                 <Route path="/register" element={<Register />} />
@@ -40,7 +42,6 @@ function AppRouter() {
                 <Route path="/favorites" element={<Favorites />} />
                 <Route path="/orders" element={<Orders />} />
                 <Route path="/settings" element={<Settings />} />
-                <Route path="/producto/:id" element={<ProductDetail />} />
 
             </Route>
 
@@ -49,8 +50,7 @@ function AppRouter() {
                 <Route index element={<Dashboard />} />
                 <Route path="categories" element={<Categories />}/>
                 <Route path="products" element={<Products />} />
-                <Route path="brands" element={<Brands />} />
-                <Route path="offers" element={<Offers />} />
+                <Route path="offers" element={<AdminOffers />} />
                 <Route path="orders" element={<Orders />} />
                 <Route path="users" element={<Users />}/>
             </Route>
