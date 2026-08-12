@@ -7,8 +7,12 @@ from .models import Oferta
 from .serializers import OfertaSerializer
 from .services import OfertaService
 
+from utils.permissions import IsAdministradorOrReadOnly
+
 
 class OfertaView(APIView):
+
+    permission_classes = [IsAdministradorOrReadOnly]
 
     def get(self, request):
 
@@ -33,6 +37,8 @@ class OfertaView(APIView):
 
 
 class OfertaDetalleView(APIView):
+
+    permission_classes = [IsAdministradorOrReadOnly]
 
     def get(self, request, id):
 

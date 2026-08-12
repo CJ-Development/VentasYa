@@ -1,56 +1,42 @@
-from rest_framework.views import APIView
-from rest_framework.response import Response
 from rest_framework import status
+from rest_framework.response import Response
+from rest_framework.views import APIView
 
-from .models import Categoria
+from utils.permissions import IsAdministradorOrReadOnly
+
 from .serializers import CategoriaSerializer
 from .services import CategoriaService
 
 
 class CategoriaView(APIView):
 
+    permission_classes = [IsAdministradorOrReadOnly]
+
     def get(self, request):
 
         categorias = CategoriaService.listar()
 
-        serializer = CategoriaSerializer(
-            categorias,
-            many=True
+        return Response(
+            CategoriaSerializer(categorias, many=True).data
         )
-
-        return Response(serializer.data)
 
     def post(self, request):
 
-        print("=" * 50)
-        print("REQUEST:")
-        print(request.data)
-
         serializer = CategoriaSerializer(data=request.data)
 
-        if serializer.is_valid():
+        serializer.is_valid(raise_exception=True)
 
-            print("VALIDADO:")
-            print(serializer.validated_data)
-
-            categoria = serializer.save()
-
-            print("GUARDADO:")
-            print(categoria.id_categoria)
-
-            return Response(
-                CategoriaSerializer(categoria).data,
-                status=status.HTTP_201_CREATED
-            )
-
-        print(serializer.errors)
+        categoria = serializer.save()
 
         return Response(
-            serializer.errors,
-            status=status.HTTP_400_BAD_REQUEST
+            CategoriaSerializer(categoria).data,
+            status=status.HTTP_201_CREATED
         )
 
+
 class CategoriaDetalleView(APIView):
+
+    permission_classes = [IsAdministradorOrReadOnly]
 
     def get(self, request, id):
 

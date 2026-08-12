@@ -105,6 +105,18 @@ class Producto(models.Model):
     class Meta:
         db_table="productos"
         ordering=["-created_at", "id_producto"]
+        indexes = [
+            models.Index(
+                fields=["estado", "categoria", "-created_at"],
+                name="idx_producto_estado_cat",
+            ),
+        ]
+        constraints = [
+            models.CheckConstraint(
+                condition=models.Q(precio__gte=0),
+                name="chk_producto_precio_no_negativo",
+            ),
+        ]
 
     def __str__(self):
         return self.nombre
@@ -146,6 +158,24 @@ class Variante(models.Model):
     class Meta:
 
         db_table="producto_variantes"
+
+        constraints = [
+            models.UniqueConstraint(
+                fields=["producto", "color", "talla"],
+                name="uniq_variante_producto_color_talla",
+            ),
+            models.CheckConstraint(
+                condition=models.Q(stock__gte=0),
+                name="chk_variante_stock_no_negativo",
+            ),
+        ]
+
+        indexes = [
+            models.Index(
+                fields=["producto", "stock"],
+                name="idx_variante_producto_stock",
+            ),
+        ]
 
     def __str__(self):
 

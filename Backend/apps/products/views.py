@@ -13,8 +13,12 @@ from .serializers import (
 )
 from .services import ProductoService
 
+from utils.permissions import IsAdministrador, IsAdministradorOrReadOnly
+
 
 class ProductoView(APIView):
+
+    permission_classes = [IsAdministradorOrReadOnly]
 
     def get(self, request):
 
@@ -80,6 +84,8 @@ class ProductoView(APIView):
 
 class LowStockVariantesView(APIView):
 
+    permission_classes = [IsAdministrador]
+
     UMBRAL_STOCK = 5
 
     def get(self, request):
@@ -107,6 +113,8 @@ class LowStockVariantesView(APIView):
 
 class ColorListView(APIView):
 
+    permission_classes = [IsAdministradorOrReadOnly]
+
     def get(self, request):
 
         colores = Color.objects.all().order_by("nombre")
@@ -130,6 +138,8 @@ class ColorListView(APIView):
 
 
 class ColorDetalleView(APIView):
+
+    permission_classes = [IsAdministradorOrReadOnly]
 
     def get(self, request, id):
 
@@ -158,6 +168,8 @@ class ColorDetalleView(APIView):
 
 class TallaListView(APIView):
 
+    permission_classes = [IsAdministradorOrReadOnly]
+
     def get(self, request):
 
         tallas = Talla.objects.all().order_by("nombre")
@@ -181,6 +193,8 @@ class TallaListView(APIView):
 
 
 class TallaDetalleView(APIView):
+
+    permission_classes = [IsAdministradorOrReadOnly]
 
     def get(self, request, id):
 
@@ -208,6 +222,8 @@ class TallaDetalleView(APIView):
 
 
 class ProductoDetalleView(APIView):
+
+    permission_classes = [IsAdministradorOrReadOnly]
 
     def get(self, request, id):
 
@@ -250,6 +266,8 @@ class ProductoDetalleView(APIView):
 
 class ProductoReactivarView(APIView):
 
+    permission_classes = [IsAdministrador]
+
     def post(self, request, id):
 
         producto = get_object_or_404(Producto, id_producto=id)
@@ -262,6 +280,8 @@ class ProductoReactivarView(APIView):
 
 
 class VariantesPorProductoView(APIView):
+
+    permission_classes = [IsAdministradorOrReadOnly]
 
     def get(self, request, id):
 
@@ -299,6 +319,8 @@ class VariantesPorProductoView(APIView):
 
 
 class VarianteDetalleView(APIView):
+
+    permission_classes = [IsAdministradorOrReadOnly]
 
     def get(self, request, variante_id):
 
@@ -338,6 +360,8 @@ class VarianteDetalleView(APIView):
 
 class ImagenesPorVarianteView(APIView):
 
+    permission_classes = [IsAdministradorOrReadOnly]
+
     def get(self, request, variante_id):
 
         imagenes = ImagenProducto.objects.filter(
@@ -369,6 +393,8 @@ class ImagenesPorVarianteView(APIView):
 
 
 class ImagenDetalleView(APIView):
+
+    permission_classes = [IsAdministrador]
 
     def put(self, request, imagen_id):
 

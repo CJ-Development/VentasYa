@@ -1,4 +1,11 @@
+from django.contrib.auth.base_user import AbstractBaseUser
+from django.contrib.auth.models import BaseUserManager, PermissionsMixin
 from django.db import models
+from django.db.models import Q
+
+
+ROL_ADMIN = "administrador"
+ROL_CLIENTE = "cliente"
 
 
 class Rol(models.Model):
@@ -12,7 +19,49 @@ class Rol(models.Model):
         return self.nombre_rol
 
 
-class Usuario(models.Model):
+class UsuarioManager(BaseUserManager):
+
+    use_in_migrations = True
+
+    def _rol_por_nombre(self, nombre):
+        rol = Rol.objects.filter(nombre_rol__iexact=nombre).first()
+
+        if rol is None:
+            rol = Rol.objects.create(nombre_rol=nombre)
+
+        return rol
+
+    def create_user(self, email, password=None, **extra_fields):
+        if not email:
+            raise ValueError("El email es obligatorio.")
+
+        extra_fields.setdefault("is_staff", False)
+        extra_fields.setdefault("is_superuser", False)
+
+        if "rol" not in extra_fields and "rol_id" not in extra_fields:
+            extra_fields["rol"] = self._rol_por_nombre(ROL_CLIENTE)
+
+        usuario = self.model(email=self.normalize_email(email), **extra_fields)
+        usuario.set_password(password)
+        usuario.save(using=self._db)
+        return usuario
+
+    def create_superuser(self, email, password=None, **extra_fields):
+        extra_fields.setdefault("is_staff", True)
+        extra_fields.setdefault("is_superuser", True)
+        extra_fields.setdefault("nombres", "Admin")
+        extra_fields.setdefault("apellidos", "VentasYa")
+        extra_fields.setdefault("rol", self._rol_por_nombre(ROL_ADMIN))
+
+        if extra_fields.get("is_staff") is not True:
+            raise ValueError("El superusuario debe tener is_staff=True.")
+        if extra_fields.get("is_superuser") is not True:
+            raise ValueError("El superusuario debe tener is_superuser=True.")
+
+        return self.create_user(email, password, **extra_fields)
+
+
+class Usuario(AbstractBaseUser, PermissionsMixin):
     TIPO_DOCUMENTO = [
         ("CC", "CC"),
         ("CE", "CE"),
@@ -55,10 +104,9 @@ class Usuario(models.Model):
         unique=True
     )
 
-    fecha_nacimiento = models.DateField()
-
-    password_hash = models.CharField(
-        max_length=255
+    fecha_nacimiento = models.DateField(
+        blank=True,
+        null=True
     )
 
     telefono = models.CharField(
@@ -71,17 +119,43 @@ class Usuario(models.Model):
         auto_now_add=True
     )
 
+    updated_at = models.DateTimeField(
+        auto_now=True,
+        null=True,
+        blank=True
+    )
+
     estado = models.CharField(
         max_length=20,
         choices=ESTADO,
         default="activo"
     )
 
+    is_active = models.BooleanField(default=True)
+
+    is_staff = models.BooleanField(default=False)
+
+    objects = UsuarioManager()
+
+    USERNAME_FIELD = "email"
+    REQUIRED_FIELDS = []
+
     class Meta:
         db_table = "usuarios"
+        indexes = [
+            models.Index(fields=["estado"], name="idx_usuario_estado"),
+        ]
 
     def __str__(self):
         return f"{self.nombres} {self.apellidos}"
+
+    @property
+    def es_administrador(self):
+        return (
+            self.is_superuser
+            or self.is_staff
+            or (self.rol_id is not None and self.rol.nombre_rol.lower() == ROL_ADMIN)
+        )
 
 
 class Direccion(models.Model):
@@ -95,11 +169,19 @@ class Direccion(models.Model):
         related_name="direcciones"
     )
 
+    nombre_destinatario = models.CharField(
+        max_length=150,
+        blank=True,
+        default=""
+    )
+
     direccion = models.CharField(max_length=255)
 
     ciudad = models.CharField(max_length=100)
 
     departamento = models.CharField(max_length=100)
+
+    pais = models.CharField(max_length=100, default="Colombia")
 
     codigo_postal = models.CharField(
         max_length=15,
@@ -111,6 +193,14 @@ class Direccion(models.Model):
 
     class Meta:
         db_table = "direcciones"
+        constraints = [
+            # Como máximo una dirección predeterminada por usuario.
+            models.UniqueConstraint(
+                fields=["usuario"],
+                condition=Q(predeterminada=True),
+                name="uniq_direccion_predeterminada_por_usuario",
+            ),
+        ]
 
     def __str__(self):
         return self.direccion

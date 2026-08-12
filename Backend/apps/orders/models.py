@@ -77,9 +77,34 @@ class Compra(models.Model):
         null=True,
     )
 
+    idempotency_key = models.CharField(
+        max_length=64,
+        unique=True,
+        blank=True,
+        null=True,
+    )
+
     class Meta:
 
         db_table="compras"
+
+        indexes = [
+            models.Index(
+                fields=["usuario", "-fecha_compra"],
+                name="idx_compra_usuario_fecha",
+            ),
+            models.Index(
+                fields=["estado_compra"],
+                name="idx_compra_estado",
+            ),
+        ]
+
+        constraints = [
+            models.CheckConstraint(
+                condition=models.Q(total__gte=0),
+                name="chk_compra_total_no_negativo",
+            ),
+        ]
 
     def __str__(self):
 
@@ -118,6 +143,17 @@ class DetalleCompra(models.Model):
     class Meta:
 
         db_table="detalle_compra"
+
+        constraints = [
+            models.CheckConstraint(
+                condition=models.Q(cantidad__gt=0),
+                name="chk_detalle_cantidad_positiva",
+            ),
+            models.CheckConstraint(
+                condition=models.Q(precio_unitario__gte=0),
+                name="chk_detalle_precio_no_negativo",
+            ),
+        ]
 
     def __str__(self):
 

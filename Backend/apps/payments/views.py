@@ -1,17 +1,21 @@
-from rest_framework.views import APIView
+from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
-from rest_framework import status
+from rest_framework.views import APIView
 
 from apps.orders.models import MetodoPago
-from .serializers import MetodoPagoCatalogoSerializer, PagoSerializer
+from utils.permissions import IsAdministrador
+
 from .models import Pago
+from .serializers import MetodoPagoCatalogoSerializer, PagoSerializer
 
 
 class MetodosPagoView(APIView):
     """
-    GET /api/payments/metodos/  -> lista de métodos de pago
-    disponibles para el checkout del cliente.
+    GET /api/payments/metodos/  -> catálogo público de métodos de pago
+    disponibles para el checkout.
     """
+
+    permission_classes = [AllowAny]
 
     def get(self, request):
 
@@ -24,9 +28,13 @@ class MetodosPagoView(APIView):
 
 class PagosView(APIView):
     """
-    GET  /api/payments/?compra_id=X  -> pagos de una compra
-    POST /api/payments/              -> crear un pago (uso interno del checkout)
+    GET /api/payments/?compra_id=X  -> pagos de una compra (administradores).
+
+    Los pagos NO se crean por API: los genera el checkout dentro de la
+    transacción de compra (y en el futuro el webhook de la pasarela).
     """
+
+    permission_classes = [IsAdministrador]
 
     def get(self, request):
 
@@ -38,13 +46,3 @@ class PagosView(APIView):
             qs = qs.filter(compra_id=compra_id)
 
         return Response(PagoSerializer(qs, many=True).data)
-
-    def post(self, request):
-
-        serializer = PagoSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        pago = serializer.save()
-        return Response(
-            PagoSerializer(pago).data,
-            status=status.HTTP_201_CREATED,
-        )

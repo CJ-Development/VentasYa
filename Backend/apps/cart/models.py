@@ -14,6 +14,8 @@ class Carrito(models.Model):
 
     fecha_creacion = models.DateTimeField(auto_now_add=True)
 
+    updated_at = models.DateTimeField(auto_now=True, null=True, blank=True)
+
     class Meta:
         db_table = "carritos"
 
@@ -42,6 +44,16 @@ class ItemCarrito(models.Model):
 
     class Meta:
         db_table = "carrito_items"
+        constraints = [
+            models.UniqueConstraint(
+                fields=["carrito", "variante"],
+                name="uniq_item_por_variante_en_carrito",
+            ),
+            models.CheckConstraint(
+                condition=models.Q(cantidad__gt=0),
+                name="chk_item_cantidad_positiva",
+            ),
+        ]
 
     def __str__(self):
         return f"{self.variante} ({self.cantidad})"
