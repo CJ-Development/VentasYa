@@ -4,10 +4,11 @@ import { Heart } from "lucide-react";
 import { useAuth } from "../../../hooks/useAuth";
 
 function FavoritesButton() {
-
     const { usuario } = useAuth();
 
-    const destino = usuario ? "/favorites" : "/login";
+    const destino = usuario
+        ? "/favorites"
+        : "/login";
 
     const title = usuario
         ? "Tus favoritos"
@@ -16,7 +17,7 @@ function FavoritesButton() {
     return (
         <Link
             to={destino}
-            className="icon-button"
+            className="icon-button favorites-button"
             title={title}
             aria-label={title}
         >

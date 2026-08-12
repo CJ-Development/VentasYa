@@ -1,353 +1,1070 @@
-.login-page{
-    min-height:100vh;
-    display:flex;
-    justify-content:center;
-    align-items:center;
-    background:#F5F6F8;
-    padding:40px;
+/* =========================================================
+   LOGIN PAGE
+========================================================= */
+
+.login-page {
+
+    width: 100%;
+    min-height: 100vh;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    background: var(--background);
+
+    padding: 40px;
+
 }
 
-.login-card{
-    max-width:980px;
-    min-height:620px;
-    border-radius:24px;
-    background:var(--white);
-    display:grid;
-    grid-template-columns:45% 55%;
-    border-radius:22px;
-    overflow:hidden;
-    box-shadow:var(--shadow-lg);
+
+/* =========================================================
+   LOGIN CARD
+========================================================= */
+
+.login-card {
+
+    width: 100%;
+    max-width: 1180px;
+
+    min-height: 700px;
+
+    display: grid;
+
+    grid-template-columns: 52% 48%;
+
+    background: var(--white);
+
+    border-radius: 20px;
+
+    overflow: hidden;
+
+    border: 1px solid #edf0f2;
+
+    box-shadow:
+        0 12px 35px rgba(7, 29, 45, 0.09);
+
 }
 
-/* ========================================
-   Imagen
-======================================== */
-.login-image{
-    position:relative;
-    width:100%;
-    height:100%;
+
+/* =========================================================
+   PANEL IZQUIERDO
+========================================================= */
+
+.login-image {
+
+    position: relative;
+
+    width: 100%;
+    height: 100%;
+
+    min-height: 700px;
+
+    overflow: hidden;
+
+    background: #edf8f8;
+
 }
 
-.login-image img{
-    width:100%;
-    height:100%;
-    object-fit:cover;
-    display:block;
+
+.login-image img {
+
+    width: 100%;
+    height: 100%;
+
+    display: block;
+
+    object-fit: cover;
+
+    object-position: center;
+
 }
 
-.image-overlay{
-    position:absolute;
-    left:0;
-    right:0;
-    bottom:0;
-    padding:40px;
-    color:white;
-    background:linear-gradient(
-        to top,
-        rgba(3,25,39,.80),
-        rgba(3,25,39,.25),
-        transparent
-    );
+
+/* =========================================================
+   CAPA SOBRE IMAGEN
+========================================================= */
+
+.login-image::after {
+
+    content: "";
+
+    position: absolute;
+
+    inset: 0;
+
+    background:
+        linear-gradient(
+            90deg,
+            rgba(237, 248, 248, 0.97) 0%,
+            rgba(237, 248, 248, 0.88) 28%,
+            rgba(237, 248, 248, 0.42) 52%,
+            rgba(237, 248, 248, 0.05) 76%,
+            rgba(237, 248, 248, 0) 100%
+        );
+
+    pointer-events: none;
+
 }
 
-.image-overlay h2{
-    font-size:2rem;
-    margin-bottom:12px;
+
+/* =========================================================
+   CONTENIDO IZQUIERDO
+========================================================= */
+
+.image-content {
+
+    position: absolute;
+
+    z-index: 2;
+
+    top: 76px;
+    left: 60px;
+
+    width: 355px;
+
+    color: #071d2d;
+
 }
 
-.image-overlay p{
-    margin-bottom:25px;
-    line-height:1.6;
+
+.image-content h2 {
+
+    margin: 0 0 15px;
+
+    font-size: 32px;
+
+    line-height: 1.2;
+
+    letter-spacing: -1px;
+
+    font-weight: 800;
+
 }
 
-.image-overlay ul{
-    list-style:none;
-    display:flex;
-    flex-direction:column;
-    gap:15px;
+
+.image-content h2 span {
+
+    color: #0ea5b5;
+
 }
 
-.image-overlay li{
-    font-size:.95rem;
+
+.image-description {
+
+    max-width: 330px;
+
+    margin: 0 0 42px;
+
+    color: #29465c;
+
+    font-size: 16px;
+
+    line-height: 1.65;
+
 }
 
-/* ========================================
-   Formulario
-======================================== */
-.login-form{
-    display:flex;
-    flex-direction:column;
-    justify-content:center;
-    padding:55px 65px;
+
+/* =========================================================
+   CARACTERÍSTICAS
+========================================================= */
+
+.image-features {
+
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 27px;
+
 }
 
-.login-header{
-    margin-bottom:35px;
+
+.feature {
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 20px;
+
 }
-.login-header h1{
-    font-size:2.4rem;
-    font-weight:700;
-    color:var(--secondary);
-    margin-bottom:10px;
+
+
+.feature-icon {
+
+    width: 56px;
+    height: 56px;
+
+    flex-shrink: 0;
+
+    display: flex;
+
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 50%;
+
+    background: rgba(14, 165, 181, 0.13);
+
+    color: #0b97a7;
+
+}
+
+
+.feature-info {
+
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 4px;
+
+}
+
+
+.feature-info strong {
+
+    color: #071d2d;
+
+    font-size: 15px;
+
+    font-weight: 800;
+
+}
+
+
+.feature-info span {
+
+    color: #38546a;
+
+    font-size: 14px;
+
+    line-height: 1.4;
+
+}
+
+
+/* =========================================================
+   FORMULARIO DERECHO
+========================================================= */
+
+.login-form {
+
+    display: flex;
+
+    flex-direction: column;
+
+    justify-content: center;
+
+    padding: 45px 75px 40px;
+
+    background: #ffffff;
+
+}
+
+
+/* =========================================================
+   ENCABEZADO
+========================================================= */
+
+.form-header {
+
     text-align: center;
-}
 
-.login-header p{
-    color:#7B7B7B;
-    font-size:.95rem;
-    text-align: center;
-}
-
-.login-header a{
-    color:var(--primary);
-    text-decoration:none;
-    font-weight:700;
-    margin-left:5px;
-}
-
-.login-header a:hover{
-    color:var(--secondary);
-}
-
-.login-form form{
-    display:flex;
-    flex-direction:column;
-    gap:22px;
-}
-
-.form-group{
-    display:flex;
-    flex-direction:column;
-    gap:8px;
-}
-
-.label-row{
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-}
-
-.form-group label{
-    font-size:.95rem;
-    font-weight:600;
-    color:var(--text);
-}
-
-.forgot-password{
-    text-decoration:none;
-    color:var(--primary);
-    font-size:.85rem;
-}
-
-.forgot-password:hover{
-    color:var(--secondary);
+    margin-bottom: 30px;
 
 }
 
-.form-group input{
-    width:100%;
-    padding:15px 18px;
-    border:1px solid #D7D7D7;
-    border-radius:10px;
-    outline:none;
-    font-size:15px;
-    transition:var(--transition);
+
+.login-form h1 {
+
+    margin: 0;
+
+    color: #062f40;
+
+    font-size: 35px;
+
+    line-height: 1.2;
+
+    letter-spacing: -1px;
+
+    font-weight: 800;
+
 }
 
-.form-group input:focus{
-    border-color:var(--primary);
-    box-shadow:0 0 0 4px rgba(51,103,105,.15);
+
+.title-line {
+
+    width: 45px;
+    height: 4px;
+
+    margin: 12px auto 13px;
+
+    border-radius: 20px;
+
+    background: #0ea5b5;
+
 }
 
-.login-button{
-    margin-top:10px;
-    width:100%;
-    padding:16px;
-    border:none;
-    border-radius:10px;
-    background:var(--primary);
-    color:white;
-    font-size:16px;
-    font-weight:600;
-    cursor:pointer;
-    transition:var(--transition);
+
+.form-header p {
+
+    max-width: 390px;
+
+    margin: 0 auto;
+
+    color: #536b7d;
+
+    font-size: 15px;
+
+    line-height: 1.6;
+
 }
 
-.login-button:hover{
-    background:var(--secondary);
+
+/* =========================================================
+   FORM
+========================================================= */
+
+.login-form form {
+
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 22px;
+
 }
 
-/* ========================================
-   Divider
-======================================== */
-.divider{
-    display:flex;
-    align-items:center;
-    margin:35px 0;
-    color:var(--text-light);
-    font-size:.9rem;
+
+.form-group {
+
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 9px;
+
 }
+
+
+.form-group label {
+
+    color: #071d2d;
+
+    font-size: 15px;
+
+    font-weight: 700;
+
+}
+
+
+/* =========================================================
+   LABEL PASSWORD
+========================================================= */
+
+.label-row {
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: space-between;
+
+}
+
+
+.forgot-password {
+
+    color: #0795a6;
+
+    text-decoration: none;
+
+    font-size: 13px;
+
+    font-weight: 700;
+
+}
+
+
+.forgot-password:hover {
+
+    color: #006f7d;
+
+}
+
+
+/* =========================================================
+   CONTENEDOR INPUT
+========================================================= */
+
+.login-form .input-wrapper {
+
+    width: 100%;
+    height: 54px;
+
+    display: flex;
+
+    align-items: center;
+
+    border: 1px solid #d7e0e5;
+
+    border-radius: 12px;
+
+    background: #ffffff;
+
+    overflow: hidden;
+
+    transition:
+        border-color 0.2s ease,
+        box-shadow 0.2s ease;
+
+}
+
+
+/* =========================================================
+   ICONOS DE LOS INPUTS
+========================================================= */
+
+.login-form .input-wrapper .login-input-icon {
+
+    width: 20px !important;
+    height: 20px !important;
+
+    min-width: 20px !important;
+    min-height: 20px !important;
+
+    max-width: 20px !important;
+    max-height: 20px !important;
+
+    flex: 0 0 20px !important;
+
+    display: block !important;
+
+    margin: 0 2px 0 16px !important;
+
+    padding: 0 !important;
+
+    border: none !important;
+
+    border-radius: 0 !important;
+
+    background: transparent !important;
+
+    box-shadow: none !important;
+
+    color: #64788b !important;
+
+    stroke: currentColor !important;
+
+    fill: none !important;
+
+    overflow: visible !important;
+
+}
+
+
+/* =========================================================
+   ICONO CUANDO INPUT TIENE FOCUS
+========================================================= */
+
+.login-form .input-wrapper:focus-within .login-input-icon {
+
+    color: #0ea5b5 !important;
+
+}
+
+
+/* =========================================================
+   INPUT
+========================================================= */
+
+.login-form .input-wrapper input {
+
+    flex: 1 1 auto;
+
+    width: 100%;
+    min-width: 0;
+
+    height: 100%;
+
+    border: none !important;
+
+    border-radius: 0 !important;
+
+    outline: none !important;
+
+    background: transparent !important;
+
+    box-shadow: none !important;
+
+    padding: 0 15px !important;
+
+    color: #071d2d;
+
+    font-size: 15px;
+
+}
+
+
+.login-form .input-wrapper input::placeholder {
+
+    color: #82909c;
+
+}
+
+
+/* =========================================================
+   INPUT FOCUS
+========================================================= */
+
+.login-form .input-wrapper:focus-within {
+
+    border-color: #0ea5b5;
+
+    box-shadow:
+        0 0 0 3px rgba(14, 165, 181, 0.12);
+
+}
+
+
+/* =========================================================
+   PASSWORD TOGGLE
+========================================================= */
+
+.login-form .password-toggle {
+
+    width: 48px !important;
+    min-width: 48px !important;
+
+    height: 100% !important;
+
+    flex: 0 0 48px !important;
+
+    display: flex !important;
+
+    align-items: center !important;
+    justify-content: center !important;
+
+    margin: 0 !important;
+
+    padding: 0 !important;
+
+    border: none !important;
+
+    border-radius: 0 !important;
+
+    background: transparent !important;
+
+    color: #64788b;
+
+    cursor: pointer;
+
+}
+
+
+.login-form .password-toggle:hover {
+
+    color: #0ea5b5;
+
+}
+
+
+.login-form .password-toggle svg {
+
+    width: 20px !important;
+    height: 20px !important;
+
+    display: block !important;
+
+    margin: 0 !important;
+    padding: 0 !important;
+
+    border: none !important;
+
+    background: transparent !important;
+
+    box-shadow: none !important;
+
+    fill: none !important;
+
+    stroke: currentColor !important;
+
+}
+
+
+/* =========================================================
+   RECORDARME
+========================================================= */
+
+.remember-row {
+
+    margin-top: -5px;
+
+}
+
+
+.remember-label {
+
+    display: inline-flex;
+
+    align-items: center;
+
+    gap: 10px;
+
+    color: #40566a;
+
+    font-size: 14px;
+
+    cursor: pointer;
+
+}
+
+
+.remember-label input {
+
+    position: absolute;
+
+    opacity: 0;
+
+    pointer-events: none;
+
+}
+
+
+.custom-checkbox {
+
+    width: 21px;
+    height: 21px;
+
+    display: flex;
+
+    align-items: center;
+    justify-content: center;
+
+    border: 1px solid #d2dce1;
+
+    border-radius: 5px;
+
+    color: transparent;
+
+    font-size: 13px;
+
+    font-weight: 800;
+
+    transition: 0.2s ease;
+
+}
+
+
+.remember-label input:checked + .custom-checkbox {
+
+    background: #0ea5b5;
+
+    border-color: #0ea5b5;
+
+    color: #ffffff;
+
+}
+
+
+/* =========================================================
+   BOTÓN LOGIN
+========================================================= */
+
+.login-button {
+
+    width: 100%;
+    height: 55px;
+
+    margin-top: 1px;
+
+    border: none;
+
+    border-radius: 12px;
+
+    background: #062f40;
+
+    color: #ffffff;
+
+    font-size: 15px;
+
+    font-weight: 800;
+
+    cursor: pointer;
+
+    transition:
+        background 0.2s ease,
+        transform 0.2s ease,
+        box-shadow 0.2s ease;
+
+}
+
+
+.login-button:hover {
+
+    background: #0ea5b5;
+
+    transform: translateY(-1px);
+
+    box-shadow:
+        0 7px 18px rgba(14, 165, 181, 0.18);
+
+}
+
+
+.login-button:disabled {
+
+    opacity: 0.7;
+
+    cursor: not-allowed;
+
+    transform: none;
+
+    box-shadow: none;
+
+}
+
+
+/* =========================================================
+   DIVISOR
+========================================================= */
+
+.divider {
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 14px;
+
+    margin: 25px 0 22px;
+
+    color: #53677a;
+
+    font-size: 13px;
+
+}
+
 
 .divider::before,
+.divider::after {
 
-.divider::after{
-    content:"";
-    flex:1;
-    height:1px;
-    background:#D8D8D8;
-}
+    content: "";
 
-.divider span{
-    margin:0 15px;
-}
+    flex: 1;
 
-/* ========================================
-   Redes
-======================================== */
-.social-buttons{
-    display:flex;
-    gap:18px;
+    height: 1px;
+
+    background: #e0e5e8;
+
 }
 
-.social-buttons button{
-    flex:1;
-    padding:15px;
-    border-radius:10px;
-    border:1px solid #D8D8D8;
-    background:white;
-    cursor:pointer;
-    font-weight:600;
-    transition:var(--transition);
+
+.divider span {
+
+    white-space: nowrap;
+
 }
 
-.social-buttons button:hover{
-    border-color:var(--primary);
-    color:var(--primary);
+
+/* =========================================================
+   REDES SOCIALES
+========================================================= */
+
+.social-buttons {
+
+    display: grid;
+
+    grid-template-columns: 1fr 1fr;
+
+    gap: 13px;
+
 }
 
-/* ========================================
-   Footer
-======================================== */
-.terms{
-    margin-top:35px;
-    text-align:center;
-    font-size:.82rem;
-    color:var(--text-light);
-    line-height:1.8;
+
+.social-button {
+
+    height: 53px;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    gap: 10px;
+
+    border: 1px solid #dce3e7;
+
+    border-radius: 12px;
+
+    background: #ffffff;
+
+    color: #071d2d;
+
+    font-size: 15px;
+
+    font-weight: 700;
+
+    cursor: pointer;
+
+    transition:
+        border-color 0.2s ease,
+        box-shadow 0.2s ease,
+        transform 0.2s ease;
+
 }
 
-.terms a{
-    text-decoration:none;
-    color:var(--primary);
-    font-weight:600;
-    margin:0 3px;
+
+.social-button:hover {
+
+    border-color: #0ea5b5;
+
+    color: #0ea5b5;
+
+    box-shadow:
+        0 5px 15px rgba(14, 165, 181, 0.08);
+
+    transform: translateY(-1px);
+
 }
 
-.terms a:hover{
-    color:var(--secondary);
-}
-/* ===========================
-   Volver al inicio
-=========================== */
-.back-home{
-    display:flex;
-    align-items:center;
-    gap:8px;
-    margin-bottom:35px;
-    text-decoration:none;
-    color:var(--primary);
-    font-weight:600;
-    transition:var(--transition);
+
+
+/* =========================================================
+   REGISTRO
+========================================================= */
+
+.register-text {
+
+    margin: 20px 0 0;
+
+    text-align: center;
+
+    color: #53677a;
+
+    font-size: 14px;
+
 }
 
-.back-home:hover{
-    color:var(--secondary);
+
+.register-text a {
+
+    margin-left: 5px;
+
+    color: #0795a6;
+
+    text-decoration: none;
+
+    font-weight: 800;
+
 }
 
-/* ===========================
-   Overlay imagen
-=========================== */
-.image-overlay{
-    position:absolute;
-    color:white;
+
+.register-text a:hover {
+
+    color: #006f7d;
+
 }
 
-.welcome-badge{
-    display:inline-block;
-    padding:8px 16px;
-    margin-bottom:20px;
-    border-radius:999px;
-    background:rgba(255,255,255,.15);
-    backdrop-filter:blur(10px);
-    border:1px solid rgba(255,255,255,.2);
-    font-size:.85rem;
-    font-weight:600;
-}
 
-.image-overlay h2{
-    font-size:2.3rem;
-    font-weight:700;
-    line-height:1.2;
-    margin-bottom:15px;
-}
+/* =========================================================
+   RESPONSIVE - TABLET
+========================================================= */
 
-.image-overlay h2 span{
-    color:#E8F5E9;
-}
+@media (max-width: 1100px) {
 
-.image-overlay p{
-    max-width:320px;
-    line-height:1.7;
-    font-size:1rem;
-    color:rgba(255,255,255,.92);
-    margin-bottom:28px;
-}
+    .login-card {
 
-.image-features{
-    display:flex;
-    flex-direction:column;
-    gap:18px;
-}
+        grid-template-columns: 50% 50%;
 
-.feature{
-    display:flex;
-    align-items:center;
-    gap:12px;
-    font-size:.95rem;
-    font-weight:500;
-}
-
-.feature svg{
-    flex-shrink:0;
-}
-/* ========================================
-   Responsive
-======================================== */
-@media (max-width:950px){
-    .login-card{
-        grid-template-columns:1fr;
     }
-    .login-image{
-        display:none;
+
+
+    .login-form {
+
+        padding: 40px 50px;
+
     }
-    .login-form{
-        padding:45px;
+
+
+    .image-content {
+
+        left: 45px;
+
+        width: 320px;
+
     }
+
 }
 
-@media (max-width:600px){
-    .login-page{
-        padding:15px;
+
+/* =========================================================
+   RESPONSIVE - TABLET PEQUEÑA
+========================================================= */
+
+@media (max-width: 900px) {
+
+    .login-page {
+
+        padding: 25px;
+
     }
-    .login-form{
-        padding:30px;
+
+
+    .login-card {
+
+        grid-template-columns: 1fr;
+
+        max-width: 650px;
+
     }
-    .social-buttons{
-        flex-direction:column;
+
+
+    .login-image {
+
+        min-height: 400px;
+
     }
-    .label-row{
-        flex-direction:column;
-        align-items:flex-start;
-        gap:5px;
+
+
+    .image-content {
+
+        top: 50px;
+
+        left: 45px;
+
     }
+
+
+    .login-form {
+
+        padding: 45px;
+
+    }
+
+}
+
+
+/* =========================================================
+   RESPONSIVE - MÓVIL
+========================================================= */
+
+@media (max-width: 600px) {
+
+    .login-page {
+
+        padding: 15px;
+
+    }
+
+
+    .login-card {
+
+        border-radius: 16px;
+
+    }
+
+
+    .login-image {
+
+        min-height: 360px;
+
+    }
+
+
+    .image-content {
+
+        top: 35px;
+
+        left: 25px;
+
+        width: calc(100% - 50px);
+
+    }
+
+
+    .image-content h2 {
+
+        font-size: 27px;
+
+    }
+
+
+    .image-description {
+
+        font-size: 14px;
+
+        margin-bottom: 25px;
+
+    }
+
+
+    .image-features {
+
+        gap: 16px;
+
+    }
+
+
+    .feature-icon {
+
+        width: 45px;
+        height: 45px;
+
+    }
+
+
+    .feature-info strong {
+
+        font-size: 13px;
+
+    }
+
+
+    .feature-info span {
+
+        font-size: 12px;
+
+    }
+
+
+    .login-form {
+
+        padding: 35px 25px;
+
+    }
+
+
+    .login-form h1 {
+
+        font-size: 29px;
+
+    }
+
+
+    .form-header p {
+
+        font-size: 14px;
+
+    }
+
+
+    .social-buttons {
+
+        grid-template-columns: 1fr;
+
+    }
+
+
+    .label-row {
+
+        align-items: flex-start;
+
+        gap: 6px;
+
+    }
+
 }

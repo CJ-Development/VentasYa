@@ -1,0 +1,604 @@
+/* ============================================================
+   NEW PAGE
+   Página Novedades
+============================================================ */
+
+.new-page {
+    width: 100%;
+    min-height: 100vh;
+    background: #ffffff;
+    padding: 32px 28px 0;
+}
+
+.new-container {
+    width: 100%;
+    max-width: 1460px;
+    margin: 0 auto;
+}
+
+
+/* ============================================================
+   HERO
+============================================================ */
+
+.new-hero {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr);
+    gap: 40px;
+    align-items: center;
+    padding: 24px 0 36px;
+    border-bottom: 1px solid #eef1f4;
+}
+
+
+.new-hero-text h1 {
+    margin: 0 0 12px;
+    color: #0c2230;
+    font-family: "Fjalla One", system-ui, sans-serif;
+    font-size: 44px;
+    font-weight: 400;
+    line-height: 1.05;
+    letter-spacing: -0.5px;
+}
+
+
+.new-hero-text p {
+    margin: 0;
+    max-width: 380px;
+    color: #5b6b78;
+    font-size: 15px;
+    line-height: 1.55;
+}
+
+
+/* ============================================================
+   BENEFICIOS
+============================================================ */
+
+.new-hero-benefits {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 18px;
+}
+
+
+.new-benefit-card {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+
+.new-benefit-icon {
+    flex-shrink: 0;
+
+    width: 46px;
+    height: 46px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border: 1.5px solid #0ea5b5;
+    border-radius: 50%;
+
+    color: #0ea5b5;
+
+    background: #ffffff;
+}
+
+
+.new-benefit-content h3 {
+    margin: 0 0 3px;
+    color: #0c2230;
+    font-size: 14px;
+    font-weight: 700;
+    line-height: 1.2;
+}
+
+
+.new-benefit-content p {
+    margin: 0;
+    color: #5b6b78;
+    font-size: 12px;
+    line-height: 1.4;
+}
+
+
+/* ============================================================
+   TOOLBAR: PILLS + ORDEN
+============================================================ */
+
+.new-toolbar-section {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 18px;
+    padding: 28px 0 24px;
+    flex-wrap: wrap;
+}
+
+
+/* ============================================================
+   PILLS DE CATEGORÍAS
+============================================================ */
+
+.new-pills {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex: 1;
+    min-width: 0;
+    overflow-x: auto;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+
+
+.new-pills::-webkit-scrollbar {
+    display: none;
+}
+
+
+.new-pill {
+    flex-shrink: 0;
+
+    height: 36px;
+    padding: 0 16px;
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    border: 1px solid #e0e4e8;
+    border-radius: 999px;
+
+    background: #ffffff;
+
+    color: #34465a;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 600;
+
+    white-space: nowrap;
+
+    cursor: pointer;
+
+    transition:
+        background 0.18s ease,
+        color 0.18s ease,
+        border-color 0.18s ease,
+        transform 0.18s ease;
+}
+
+
+.new-pill:hover {
+    border-color: #0ea5b5;
+    color: #0ea5b5;
+}
+
+
+.new-pill.active {
+    background: #0ea5b5;
+    border-color: #0ea5b5;
+    color: #ffffff;
+}
+
+
+.new-pill.active:hover {
+    background: #0b8fa1;
+    border-color: #0b8fa1;
+    color: #ffffff;
+}
+
+
+/* ============================================================
+   SELECT ORDEN
+============================================================ */
+
+.new-sort {
+    position: relative;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+}
+
+
+.new-sort select {
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+
+    height: 36px;
+    padding: 0 32px 0 14px;
+
+    border: 1px solid #e0e4e8;
+    border-radius: 8px;
+
+    background: #ffffff;
+
+    color: #34465a;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 600;
+
+    cursor: pointer;
+
+    transition: border-color 0.18s ease;
+}
+
+
+.new-sort select:hover,
+.new-sort select:focus {
+    border-color: #0ea5b5;
+    outline: none;
+}
+
+
+.new-sort-icon {
+    position: absolute;
+    right: 12px;
+    pointer-events: none;
+    color: #5b6b78;
+}
+
+
+/* ============================================================
+   GRID DE PRODUCTOS
+============================================================ */
+
+.new-grid-section {
+    padding-bottom: 36px;
+}
+
+
+.new-grid {
+    display: grid;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: 18px;
+}
+
+
+.new-card-wrapper {
+    position: relative;
+}
+
+
+.new-badge {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    z-index: 6;
+
+    padding: 4px 9px;
+
+    border-radius: 999px;
+
+    background: #0ea5b5;
+
+    color: #ffffff;
+
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.2px;
+    line-height: 1;
+
+    box-shadow:
+        0 4px 10px rgba(14, 165, 181, 0.22);
+
+    pointer-events: none;
+}
+
+
+/* ============================================================
+   ESTADOS (loading / empty)
+============================================================ */
+
+.new-message {
+    padding: 80px 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    color: #5b6b78;
+    font-size: 14px;
+}
+
+
+.new-spinner {
+    width: 36px;
+    height: 36px;
+    border: 3px solid #e7eaed;
+    border-top-color: #0ea5b5;
+    border-radius: 50%;
+    animation: new-spin 0.9s linear infinite;
+}
+
+
+@keyframes new-spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+
+.new-empty {
+    padding: 80px 20px;
+    text-align: center;
+    color: #5b6b78;
+}
+
+
+.new-empty h3 {
+    margin: 0 0 10px;
+    color: #0c2230;
+    font-size: 22px;
+    font-weight: 700;
+}
+
+
+.new-empty p {
+    margin: 0 0 20px;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+
+.new-empty-action {
+    display: inline-block;
+    padding: 11px 22px;
+    border-radius: 10px;
+    background: #0ea5b5;
+    color: #ffffff;
+    font-size: 13px;
+    font-weight: 700;
+    text-decoration: none;
+    transition: background 0.2s ease;
+}
+
+
+.new-empty-action:hover {
+    background: #0b8fa1;
+}
+
+
+/* ============================================================
+   CTA INFERIOR
+============================================================ */
+
+.new-cta {
+    margin-top: 24px;
+    margin-bottom: 0;
+    padding: 26px 32px;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+
+    background:
+        linear-gradient(
+            135deg,
+            #0ea5b5 0%,
+            #102a3a 100%
+        );
+
+    border-radius: 18px 18px 0 0;
+
+    color: #ffffff;
+    position: relative;
+    overflow: hidden;
+}
+
+
+.new-cta::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: 220px;
+    background:
+        radial-gradient(
+            circle at top right,
+            rgba(255, 255, 255, 0.12) 0%,
+            transparent 70%
+        );
+    pointer-events: none;
+}
+
+
+.new-cta-content {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    z-index: 1;
+}
+
+
+.new-cta-icon {
+    width: 46px;
+    height: 46px;
+    flex-shrink: 0;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border: 1.5px solid rgba(255, 255, 255, 0.45);
+    border-radius: 50%;
+
+    color: #ffffff;
+}
+
+
+.new-cta-text h3 {
+    margin: 0 0 4px;
+    color: #ffffff;
+    font-size: 16px;
+    font-weight: 700;
+    line-height: 1.2;
+}
+
+
+.new-cta-text p {
+    margin: 0;
+    color: rgba(255, 255, 255, 0.82);
+    font-size: 13px;
+    line-height: 1.4;
+}
+
+
+.new-cta-button {
+    position: relative;
+    z-index: 1;
+    flex-shrink: 0;
+
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+
+    padding: 12px 22px;
+
+    border-radius: 999px;
+
+    background: #ffffff;
+    color: #102a3a;
+
+    font-size: 13px;
+    font-weight: 700;
+
+    text-decoration: none;
+
+    transition:
+        background 0.2s ease,
+        color 0.2s ease,
+        transform 0.2s ease;
+}
+
+
+.new-cta-button:hover {
+    background: #0c2230;
+    color: #ffffff;
+    transform: translateY(-1px);
+}
+
+
+/* ============================================================
+   RESPONSIVE
+============================================================ */
+
+@media (max-width: 1280px) {
+
+    .new-grid {
+        grid-template-columns: repeat(
+            5,
+            minmax(0, 1fr)
+        );
+    }
+
+}
+
+
+@media (max-width: 1024px) {
+
+    .new-hero {
+        grid-template-columns: 1fr;
+        gap: 28px;
+    }
+
+
+    .new-hero-text h1 {
+        font-size: 36px;
+    }
+
+
+    .new-hero-benefits {
+        grid-template-columns: 1fr 1fr;
+        gap: 14px;
+    }
+
+
+    .new-grid {
+        grid-template-columns: repeat(
+            4,
+            minmax(0, 1fr)
+        );
+    }
+
+}
+
+
+@media (max-width: 768px) {
+
+    .new-page {
+        padding: 24px 18px 0;
+    }
+
+
+    .new-hero-text h1 {
+        font-size: 30px;
+    }
+
+
+    .new-hero-benefits {
+        grid-template-columns: 1fr;
+    }
+
+
+    .new-toolbar-section {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+
+    .new-sort {
+        align-self: flex-end;
+    }
+
+
+    .new-grid {
+        grid-template-columns: repeat(
+            3,
+            minmax(0, 1fr)
+        );
+        gap: 14px;
+    }
+
+
+    .new-cta {
+        flex-direction: column;
+        align-items: flex-start;
+        text-align: left;
+        padding: 24px;
+    }
+
+}
+
+
+@media (max-width: 560px) {
+
+    .new-grid {
+        grid-template-columns: repeat(
+            2,
+            minmax(0, 1fr)
+        );
+    }
+
+
+    .new-hero-text h1 {
+        font-size: 26px;
+    }
+
+}
+
+
+@media (max-width: 420px) {
+
+    .new-grid {
+        grid-template-columns: 1fr;
+    }
+
+}

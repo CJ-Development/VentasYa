@@ -96,6 +96,15 @@
     flex-direction:column;
     justify-content:flex-start;
     padding:35px 55px;
+    overflow-y:auto;
+}
+
+.register-form::-webkit-scrollbar{
+    width:8px;
+}
+.register-form::-webkit-scrollbar-thumb{
+    background:#E0E0E0;
+    border-radius:8px;
 }
 
 .register-form::-webkit-scrollbar{
@@ -119,6 +128,7 @@
 
 .register-form h1{
     font-size:2.2rem;
+    font-weight:700;
     color:var(--secondary);
     margin-bottom:6px;
 }

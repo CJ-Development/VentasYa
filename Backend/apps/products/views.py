@@ -16,17 +16,44 @@ from .services import ProductoService
 
 class ProductoView(APIView):
 
-    def get(self,request):
+    def get(self, request):
 
-        productos=ProductoService.listar()
+        solo_nuevos = self._parse_bool(
+            request.query_params.get("solo_nuevos")
+        )
+        categoria_id = self._parse_int(
+            request.query_params.get("categoria")
+        )
+        ordering = request.query_params.get("ordering") or None
+        estado = request.query_params.get("estado") or None
+
+        productos = ProductoService.listar(
+            solo_nuevos=solo_nuevos,
+            categoria_id=categoria_id,
+            estado=estado,
+            ordering=ordering,
+        )
 
         return Response(
-
-            ProductoSerializer(
-                productos,
-                many=True
-            ).data
+            ProductoSerializer(productos, many=True).data
         )
+
+
+    @staticmethod
+    def _parse_bool(value):
+        if value is None:
+            return False
+        return str(value).lower() in ("true", "1", "yes")
+
+
+    @staticmethod
+    def _parse_int(value):
+        if value is None or value == "":
+            return None
+        try:
+            return int(value)
+        except (TypeError, ValueError):
+            return None
 
 
     def post(self,request):
@@ -88,6 +115,46 @@ class ColorListView(APIView):
             ColorSerializer(colores, many=True).data
         )
 
+    def post(self, request):
+
+        serializer = ColorSerializer(data=request.data)
+
+        serializer.is_valid(raise_exception=True)
+
+        color = serializer.save()
+
+        return Response(
+            ColorSerializer(color).data,
+            status=status.HTTP_201_CREATED,
+        )
+
+
+class ColorDetalleView(APIView):
+
+    def get(self, request, id):
+
+        color = get_object_or_404(Color, id_color=id)
+
+        return Response(ColorSerializer(color).data)
+
+    def put(self, request, id):
+
+        color = get_object_or_404(Color, id_color=id)
+
+        serializer = ColorSerializer(color, data=request.data)
+
+        serializer.is_valid(raise_exception=True)
+
+        serializer.save()
+
+        return Response(ColorSerializer(color).data)
+
+    def delete(self, request, id):
+
+        Color.objects.filter(id_color=id).delete()
+
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
 
 class TallaListView(APIView):
 
@@ -98,6 +165,46 @@ class TallaListView(APIView):
         return Response(
             TallaSerializer(tallas, many=True).data
         )
+
+    def post(self, request):
+
+        serializer = TallaSerializer(data=request.data)
+
+        serializer.is_valid(raise_exception=True)
+
+        talla = serializer.save()
+
+        return Response(
+            TallaSerializer(talla).data,
+            status=status.HTTP_201_CREATED,
+        )
+
+
+class TallaDetalleView(APIView):
+
+    def get(self, request, id):
+
+        talla = get_object_or_404(Talla, id_talla=id)
+
+        return Response(TallaSerializer(talla).data)
+
+    def put(self, request, id):
+
+        talla = get_object_or_404(Talla, id_talla=id)
+
+        serializer = TallaSerializer(talla, data=request.data)
+
+        serializer.is_valid(raise_exception=True)
+
+        serializer.save()
+
+        return Response(TallaSerializer(talla).data)
+
+    def delete(self, request, id):
+
+        Talla.objects.filter(id_talla=id).delete()
+
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 class ProductoDetalleView(APIView):
@@ -173,7 +280,8 @@ class VariantesPorProductoView(APIView):
 
         get_object_or_404(Producto, id_producto=id)
 
-        data = dict(request.data)
+        # Aceptar multipart (por si vienen archivos) o JSON.
+        data = request.data.copy()
         data["producto_id"] = id
 
         serializer = VarianteSerializer(data=data)
@@ -244,7 +352,8 @@ class ImagenesPorVarianteView(APIView):
 
         get_object_or_404(Variante, id_variante=variante_id)
 
-        data = dict(request.data)
+        # Soporta tanto JSON (con `imagen`) como multipart (con `archivo`).
+        data = request.data.copy()
         data["variante"] = variante_id
 
         serializer = ImagenSerializer(data=data)

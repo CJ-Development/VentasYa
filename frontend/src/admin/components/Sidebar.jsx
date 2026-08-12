@@ -1,133 +1,192 @@
 import "./Sidebar.css";
-import { LayoutDashboard, Package, FolderTree, Percent, ShoppingCart, Users, Settings } from "lucide-react";
+
+import {
+    LayoutDashboard,
+    Package,
+    FolderTree,
+    Percent,
+    ShoppingCart,
+    Users,
+    Settings,
+    LogOut
+} from "lucide-react";
+
 import { NavLink } from "react-router-dom";
-import { LogOut } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../hooks/useAuth";
+
 import Logo from "../../assets/icons/Frame 1.png";
+
 
 function Sidebar() {
 
-        const { logout, usuario } = useAuth();
+    const { logout, usuario } = useAuth();
 
-        const navigate = useNavigate();
+    const navigate = useNavigate();
 
-        const handleLogout = () => {
+    const handleLogout = () => {
 
-            logout();
+        logout();
 
-            navigate("/");
+        navigate("/");
 
-        };
+    };
+
 
     return (
 
         <aside className="admin-sidebar">
+
+            {/* LOGO */}
+
             <div className="sidebar-logo">
 
-                <img src={Logo} alt="VentasYa" className="sidebar-logo-image" />
+                <img
+                    src={Logo}
+                    alt="VentasYa"
+                    className="sidebar-logo-image"
+                />
+
                 <span className="sidebar-role">
-
-                    Administrador
-
+                    Panel administrativo
                 </span>
 
             </div>
 
-            <nav>
 
-                <NavLink to="/admin">
+            {/* MENÚ */}
 
-                    <LayoutDashboard size={20}/>
+            <nav className="sidebar-nav">
 
-                    Dashboard
-
+                <NavLink
+                    to="/admin"
+                    end
+                >
+                    <LayoutDashboard size={19} />
+                    <span>Dashboard</span>
                 </NavLink>
+
 
                 <NavLink to="/admin/products">
 
-                    <Package size={20}/>
+                    <Package size={19} />
 
-                    Productos
+                    <span>
+                        Productos
+                    </span>
 
                 </NavLink>
+
 
                 <NavLink to="/admin/categories">
 
-                    <FolderTree size={20}/>
+                    <FolderTree size={19} />
 
-                    Categorías
+                    <span>
+                        Categorías
+                    </span>
 
                 </NavLink>
+
 
                 <NavLink to="/admin/offers">
 
-                    <Percent size={20}/>
+                    <Percent size={19} />
 
-                    Ofertas
+                    <span>
+                        Ofertas
+                    </span>
 
                 </NavLink>
+
 
                 <NavLink to="/admin/orders">
 
-                    <ShoppingCart size={20}/>
+                    <ShoppingCart size={19} />
 
-                    Pedidos
+                    <span>
+                        Pedidos
+                    </span>
 
                 </NavLink>
+
 
                 <NavLink to="/admin/users">
 
-                    <Users size={20}/>
+                    <Users size={19} />
 
-                    Usuarios
+                    <span>
+                        Usuarios
+                    </span>
 
                 </NavLink>
 
+
+                <div className="sidebar-separator"></div>
+
+
                 <NavLink to="/admin/configuracion">
 
-                    <Settings size={20}/>
+                    <Settings size={19} />
 
-                    Configuración
+                    <span>
+                        Configuración
+                    </span>
 
                 </NavLink>
 
             </nav>
 
+
+            {/* USUARIO */}
+
             <div className="sidebar-footer">
 
-            <div className="admin-user">
+                <div className="admin-user">
 
-                <strong>
+                    <div className="admin-avatar">
 
-                    {usuario.nombres}
+                        {usuario?.nombres?.charAt(0)?.toUpperCase() || "A"}
 
-                </strong>
+                    </div>
 
-                <span>
 
-                    Administrador
+                    <div className="admin-info">
 
-                </span>
+                        <strong>
+                            {usuario?.nombres || "Administrador"}
+                        </strong>
+
+                        <span>
+                            Administrador
+                        </span>
+
+                    </div>
+
+                </div>
+
+
+                <button
+                    className="logout-button"
+                    onClick={handleLogout}
+                    type="button"
+                >
+
+                    <LogOut size={17} />
+
+                    <span>
+                        Cerrar sesión
+                    </span>
+
+                </button>
 
             </div>
 
-            <button
-                className="logout-button"
-                onClick={handleLogout}
-            >
-
-                <LogOut size={18} />
-
-                Cerrar sesión
-
-            </button>
-
-        </div>
         </aside>
 
     );
 
 }
+
 
 export default Sidebar;

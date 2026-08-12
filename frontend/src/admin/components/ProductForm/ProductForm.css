@@ -619,3 +619,355 @@ color:#384D48;
     gap:6px;
 
 }
+
+.image-input button:disabled{
+
+    opacity:.5;
+
+    cursor:not-allowed;
+
+}
+
+/* =====================================================
+
+   ERRORES INLINE
+
+===================================================== */
+
+.input-error,
+
+.input-error:focus{
+
+    border-color:#dc2626 !important;
+
+    box-shadow:0 0 0 2px rgba(220,38,38,.15);
+
+}
+
+.error-text{
+
+    color:#dc2626;
+
+    font-size:12px;
+
+    margin-top:4px;
+
+    font-weight:500;
+
+}
+
+.form-error-banner{
+
+    display:flex;
+
+    align-items:center;
+
+    gap:8px;
+
+    background:#fef2f2;
+
+    border:1px solid #fecaca;
+
+    color:#991b1b;
+
+    padding:12px 16px;
+
+    border-radius:12px;
+
+    margin-bottom:20px;
+
+    font-size:14px;
+
+}
+
+/* =====================================================
+
+   TOOLTIP "?" JUNTO A LABELS
+
+===================================================== */
+
+.label-help{
+
+    position:relative;
+
+    display:inline-flex;
+
+    align-items:center;
+
+    justify-content:center;
+
+    width:18px;
+
+    height:18px;
+
+    margin-left:6px;
+
+    border:1px solid #cbd5e1;
+
+    border-radius:50%;
+
+    background:#f8fafc;
+
+    color:#7b8794;
+
+    font-size:11px;
+
+    font-weight:700;
+
+    cursor:help;
+
+    user-select:none;
+
+    outline:none;
+
+}
+
+.label-help:hover,
+
+.label-help:focus{
+
+    background:#384D48;
+
+    color:#fff;
+
+    border-color:#384D48;
+
+}
+
+.label-help-bubble{
+
+    position:absolute;
+
+    bottom:calc(100% + 8px);
+
+    left:50%;
+
+    transform:translateX(-50%);
+
+    background:#1f2937;
+
+    color:#fff;
+
+    padding:8px 12px;
+
+    border-radius:8px;
+
+    font-size:12px;
+
+    font-weight:500;
+
+    line-height:1.4;
+
+    width:max-content;
+
+    max-width:240px;
+
+    text-align:center;
+
+    white-space:normal;
+
+    pointer-events:none;
+
+    opacity:0;
+
+    visibility:hidden;
+
+    transition:opacity .15s ease, visibility .15s ease;
+
+    z-index:10000;
+
+    box-shadow:0 4px 12px rgba(0,0,0,.25);
+
+}
+
+.label-help-bubble::after{
+
+    content:"";
+
+    position:absolute;
+
+    top:100%;
+
+    left:50%;
+
+    transform:translateX(-50%);
+
+    border:6px solid transparent;
+
+    border-top-color:#1f2937;
+
+}
+
+.label-help:hover .label-help-bubble,
+
+.label-help:focus .label-help-bubble{
+
+    opacity:1;
+
+    visibility:visible;
+
+}
+
+/* =====================================================
+
+   SELECT + BOTÓN "+" PARA CREAR EN LÍNEA
+
+===================================================== */
+
+.select-with-add{
+
+    display:flex;
+
+    gap:6px;
+
+    align-items:stretch;
+
+}
+
+.select-with-add select{
+
+    flex:1;
+
+    min-width:0;
+
+}
+
+.add-inline{
+
+    width:36px;
+
+    border:1px solid #cbd5e1;
+
+    background:#f8fafc;
+
+    border-radius:10px;
+
+    cursor:pointer;
+
+    font-size:18px;
+
+    font-weight:700;
+
+    color:#384D48;
+
+    line-height:1;
+
+}
+
+.add-inline:hover{
+
+    background:#384D48;
+
+    color:#fff;
+
+    border-color:#384D48;
+
+}
+
+/* =====================================================
+
+   MINI-MODAL INLINE (crear color/talla)
+
+===================================================== */
+
+.inline-modal-backdrop{
+
+    position:fixed;
+
+    inset:0;
+
+    background:rgba(0,0,0,.55);
+
+    display:flex;
+
+    justify-content:center;
+
+    align-items:center;
+
+    z-index:10000;
+
+}
+
+.inline-modal{
+
+    background:#fff;
+
+    border-radius:18px;
+
+    padding:24px;
+
+    width:380px;
+
+    max-width:90%;
+
+    box-shadow:0 20px 40px rgba(0,0,0,.25);
+
+}
+
+.inline-modal-header{
+
+    display:flex;
+
+    justify-content:space-between;
+
+    align-items:center;
+
+    margin-bottom:20px;
+
+}
+
+.inline-modal-header h4{
+
+    margin:0;
+
+    color:#384D48;
+
+}
+
+.hex-input{
+
+    display:flex;
+
+    gap:8px;
+
+    align-items:center;
+
+}
+
+.hex-input input[type="color"]{
+
+    width:50px;
+
+    height:42px;
+
+    padding:2px;
+
+    cursor:pointer;
+
+    border-radius:10px;
+
+}
+
+.hex-input input[type="text"]{
+
+    flex:1;
+
+}
+
+/* =====================================================
+
+   SEPARADOR "O" ENTRE FILE Y URL
+
+===================================================== */
+
+.input-or{
+
+    color:#7b8794;
+
+    font-size:12px;
+
+    font-weight:600;
+
+    text-transform:uppercase;
+
+}

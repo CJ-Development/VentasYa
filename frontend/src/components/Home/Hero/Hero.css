@@ -1,508 +1,896 @@
-.hero{
-    width:100%;
-    overflow:hidden;
+/* =========================================================
+   HERO
+========================================================= */
 
-    padding:80px 40px;
+.hero {
+    width: 100%;
 
-    background:
-    linear-gradient(
-        125deg,
-        #384D48 0%,
-        #4B5D59 45%,
-        #6E7271 100%
-    );
+    background: #FFFFFF;
 
-    position:relative;
+    padding: 28px 20px 34px;
+
+    overflow: hidden;
 }
 
-.hero::before{
 
-    content:"";
+/* =========================================================
+   CONTENEDOR
+========================================================= */
 
-    position:absolute;
+.hero-container {
+    width: 100%;
+    max-width: 1450px;
 
-    top:-250px;
-    right:-250px;
-
-    width:600px;
-    height:600px;
-
-    border-radius:50%;
-
-    background:
-    radial-gradient(
-        rgba(255,255,255,.08),
-        transparent 70%
-    );
-
+    margin: 0 auto;
 }
 
-.hero::after{
 
-    content:"";
+/* =========================================================
+   TARJETAS PRINCIPALES
+========================================================= */
 
-    position:absolute;
+.hero-categories {
+    width: 100%;
 
-    bottom:-220px;
-    left:-220px;
+    display: grid;
 
-    width:520px;
-    height:520px;
+    grid-template-columns:
+        repeat(3, minmax(0, 1fr));
 
-    border-radius:50%;
-
-    background:
-    radial-gradient(
-        rgba(172,173,148,.15),
-        transparent 70%
-    );
-
+    gap: 18px;
 }
 
-.hero-container{
 
-    max-width:1450px;
+/* =========================================================
+   TARJETA
+========================================================= */
 
-    margin:auto;
+.hero-card {
+    position: relative;
 
-    display:grid;
+    min-height: 260px;
 
-    grid-template-columns:45% 55%;
+    border-radius: 17px;
 
-    gap:70px;
+    overflow: hidden;
 
-    align-items:center;
+    display: flex;
 
-    position:relative;
+    isolation: isolate;
 
-    z-index:2;
-
+    transition:
+        transform .3s ease,
+        box-shadow .3s ease;
 }
 
-.hero-left{
-
-    color:white;
-
-    animation:fadeLeft .8s ease;
-
-}
-
-.hero-badge{
-
-    display:inline-flex;
-
-    align-items:center;
-
-    gap:8px;
-
-    padding:12px 22px;
-
-    border-radius:999px;
-
-    background:rgba(255,255,255,.08);
-
-    border:1px solid rgba(255,255,255,.18);
-
-    backdrop-filter:blur(15px);
-
-    color:#E2E2E2;
-
-    font-size:14px;
-
-    letter-spacing:.6px;
-
-    font-weight:500;
-
-}
-
-.hero-left h1{
-
-    margin-top:28px;
-
-    font-size:4.3rem;
-
-    line-height:1.05;
-
-    font-weight:800;
-
-    letter-spacing:-2px;
-
-}
-
-.hero-left h1 span{
-
-    color:var(--accent);
-
-}
-
-.hero-left p{
-
-    margin-top:28px;
-
-    max-width:560px;
-
-    color:rgba(255,255,255,.82);
-
-    font-size:18px;
-
-    line-height:1.9;
-
-}
-
-.hero-buttons{
-
-    display:flex;
-
-    gap:18px;
-
-    margin-top:45px;
-
-}
-
-.primary-btn{
-
-    border:none;
-
-    cursor:pointer;
-
-    padding:17px 34px;
-
-    border-radius:999px;
-
-    background:white;
-
-    color:var(--primary);
-
-    font-size:15px;
-
-    font-weight:700;
-
-    transition:.35s;
+.hero-card:hover {
+    transform: translateY(-3px);
 
     box-shadow:
-    0 18px 35px rgba(0,0,0,.18);
-
+        0 16px 32px rgba(31, 41, 55, .10);
 }
 
-.primary-btn:hover{
 
-    transform:translateY(-6px);
+/* =========================================================
+   FONDOS DE LAS TARJETAS
+========================================================= */
 
-    background:var(--accent);
-
-    color:white;
-
+.hero-card--fashion {
+    background:
+        linear-gradient(
+            135deg,
+            #EEF9FA 0%,
+            #E4F3F4 100%
+        );
 }
 
-.secondary-btn{
-
-    border:2px solid rgba(255,255,255,.25);
-
-    background:rgba(255,255,255,.05);
-
-    backdrop-filter:blur(12px);
-
-    color:white;
-
-    cursor:pointer;
-
-    padding:17px 34px;
-
-    border-radius:999px;
-
-    font-size:15px;
-
-    transition:.35s;
-
+.hero-card--pets {
+    background:
+        linear-gradient(
+            135deg,
+            #FFF8F0 0%,
+            #FFF0E1 100%
+        );
 }
 
-.secondary-btn:hover{
-
-    background:white;
-
-    color:var(--primary);
-
-    transform:translateY(-6px);
-
+.hero-card--family {
+    background:
+        linear-gradient(
+            135deg,
+            #F2FAF7 0%,
+            #EAF6F1 100%
+        );
 }
 
-.hero-right{
 
-    display:flex;
+/* =========================================================
+   CONTENIDO
+========================================================= */
 
-    justify-content:center;
+.hero-card-content {
+    position: relative;
 
-    align-items:center;
+    z-index: 3;
 
-    animation:fadeRight .8s ease;
+    width: 52%;
 
+    padding:
+        27px
+        0
+        25px
+        25px;
+
+    display: flex;
+
+    flex-direction: column;
+
+    align-items: flex-start;
 }
 
-.hero-right img{
 
-    width:100%;
+/* =========================================================
+   TITULO
+========================================================= */
 
-    max-width:640px;
+.hero-card h1 {
+    margin: 0;
 
-    border-radius:34px;
+    color: #1F2937;
 
-    object-fit:cover;
+    font-size: clamp(22px, 2vw, 27px);
 
-    border:1px solid rgba(255,255,255,.08);
+    line-height: 1.08;
+
+    font-weight: 800;
+
+    letter-spacing: -.7px;
+}
+
+.hero-card--fashion h1 {
+    color: #087E8F;
+}
+
+.hero-card--pets h1 {
+    color: #1F2937;
+}
+
+.hero-card--family h1 {
+    color: #1F2937;
+}
+
+
+/* =========================================================
+   DESCRIPCIÓN
+========================================================= */
+
+.hero-card p {
+    margin: 12px 0 0;
+
+    max-width: 175px;
+
+    color: #4B5563;
+
+    font-size: 10px;
+
+    line-height: 1.45;
+
+    font-weight: 500;
+}
+
+
+/* =========================================================
+   FEATURES
+========================================================= */
+
+.hero-card-features {
+    display: flex;
+
+    align-items: flex-start;
+
+    gap: 16px;
+
+    margin-top: 17px;
+}
+
+.hero-feature {
+    display: flex;
+
+    flex-direction: column;
+
+    align-items: center;
+
+    gap: 5px;
+
+    width: 50px;
+
+    color: #374151;
+
+    text-align: center;
+
+    font-size: 8px;
+
+    line-height: 1.2;
+}
+
+.hero-feature-icon {
+    width: 29px;
+    height: 29px;
+
+    border-radius: 50%;
+
+    display: flex;
+
+    align-items: center;
+    justify-content: center;
+
+    color: #FFFFFF;
+
+    background: #0EA5B5;
 
     box-shadow:
-
-    0 35px 70px rgba(0,0,0,.30);
-
-    transition:.45s;
-
+        0 4px 10px rgba(14, 165, 181, .18);
 }
 
-.hero-right img:hover{
-
-    transform:
-
-    scale(1.03)
-
-    rotate(.4deg);
-
+.hero-card--pets .hero-feature-icon {
+    background: #FF7A00;
 }
 
-.hero-arrow{
-
-    width:60px;
-
-    height:60px;
-
-    border:none;
-
-    border-radius:50%;
-
-    cursor:pointer;
-
-    background:
-
-    rgba(255,255,255,.12);
-
-    backdrop-filter:blur(18px);
-
-    color:white;
-
-    position:absolute;
-
-    top:50%;
-
-    transform:translateY(-50%);
-
-    transition:.35s;
-
+.hero-card--family .hero-feature-icon {
+    background: #20A995;
 }
 
-.hero-arrow:hover{
 
-    background:white;
+/* =========================================================
+   BOTÓN
+========================================================= */
 
-    color:var(--primary);
+.hero-card-button {
+    margin-top: 16px;
 
-    transform:
+    display: inline-flex;
 
-    translateY(-50%)
+    align-items: center;
+    justify-content: center;
 
-    scale(1.08);
+    min-height: 32px;
 
+    padding: 0 15px;
+
+    border-radius: 7px;
+
+    background: #0EA5B5;
+
+    color: #FFFFFF;
+
+    font-size: 9px;
+
+    font-weight: 700;
+
+    text-decoration: none;
+
+    transition:
+        transform .2s ease,
+        filter .2s ease,
+        box-shadow .2s ease;
 }
 
-.hero-arrow.left{
-
-    left:-30px;
-
+.hero-card--pets .hero-card-button {
+    background: #FF7A00;
 }
 
-.hero-arrow.right{
-
-    right:-30px;
-
+.hero-card--family .hero-card-button {
+    background: #20A995;
 }
 
-.hero-dots{
+.hero-card-button:hover {
+    transform: translateY(-2px);
 
-    display:flex;
+    filter: brightness(.96);
 
-    justify-content:center;
-
-    align-items:center;
-
-    gap:12px;
-
-    margin-top:45px;
-
+    box-shadow:
+        0 6px 14px rgba(31, 41, 55, .12);
 }
 
-.dot{
 
-    width:11px;
+/* =========================================================
+   IMÁGENES
+========================================================= */
 
-    height:11px;
+.hero-card-image {
+    position: absolute;
 
-    border-radius:50%;
+    z-index: 2;
 
-    border:none;
+    right: -3px;
+    bottom: 0;
 
-    cursor:pointer;
+    width: 58%;
 
-    background:
+    height: 100%;
 
-    rgba(255,255,255,.35);
+    object-fit: contain;
 
-    transition:.35s;
+    object-position: right bottom;
 
+    pointer-events: none;
+
+    user-select: none;
+
+    transition:
+        transform .4s ease;
 }
 
-.dot:hover{
-
-    background:white;
-
+.hero-card:hover .hero-card-image {
+    transform: scale(1.025);
 }
 
-.dot.active{
 
-    width:58px;
+/* =========================================================
+   DECORACIONES
+========================================================= */
 
-    border-radius:999px;
+.hero-decoration {
+    position: absolute;
 
-    background:var(--accent);
+    z-index: 1;
 
+    pointer-events: none;
 }
 
-@keyframes fadeLeft{
 
-    from{
+/* pequeños puntos */
 
-        opacity:0;
+.hero-decoration-one {
+    width: 32px;
+    height: 32px;
 
-        transform:
+    right: 15px;
+    top: 13px;
 
-        translateX(-70px);
+    background-image:
+        radial-gradient(
+            #0EA5B5 1.2px,
+            transparent 1.2px
+        );
 
+    background-size: 7px 7px;
+
+    opacity: .45;
+}
+
+.hero-card--pets .hero-decoration-one {
+    background-image:
+        radial-gradient(
+            #FF7A00 1.2px,
+            transparent 1.2px
+        );
+}
+
+.hero-card--family .hero-decoration-one {
+    background-image:
+        radial-gradient(
+            #0EA5B5 1.2px,
+            transparent 1.2px
+        );
+}
+
+
+/* línea decorativa */
+
+.hero-decoration-two {
+    width: 45px;
+    height: 20px;
+
+    left: 58%;
+
+    top: 10px;
+
+    border-top: 2px solid rgba(14, 165, 181, .45);
+
+    border-radius: 50%;
+
+    transform: rotate(-8deg);
+}
+
+.hero-card--pets .hero-decoration-two {
+    border-color: rgba(255, 122, 0, .45);
+}
+
+
+/* =========================================================
+   BENEFICIOS
+========================================================= */
+
+.hero-benefits {
+    width: 100%;
+
+    min-height: 78px;
+
+    margin-top: 20px;
+
+    padding: 0 25px;
+
+    background: #FFFFFF;
+
+    border: 1px solid #EEF1F2;
+
+    border-radius: 17px;
+
+    box-shadow:
+        0 6px 22px rgba(31, 41, 55, .06);
+
+    display: grid;
+
+    grid-template-columns:
+        repeat(4, 1fr);
+
+    align-items: center;
+}
+
+
+/* =========================================================
+   BENEFICIO
+========================================================= */
+
+.hero-benefit {
+    min-height: 44px;
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 12px;
+
+    padding: 0 22px;
+
+    border-right: 1px solid #E5E7EB;
+}
+
+.hero-benefit:first-child {
+    padding-left: 0;
+}
+
+.hero-benefit:last-child {
+    border-right: none;
+
+    padding-right: 0;
+}
+
+
+/* =========================================================
+   ICONOS BENEFICIOS
+========================================================= */
+
+.hero-benefit-icon,
+.hero-highlight-icon {
+    flex-shrink: 0;
+
+    display: flex;
+
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 50%;
+}
+
+.hero-benefit-icon {
+    width: 34px;
+    height: 34px;
+}
+
+.hero-icon-coral {
+    color: #FF6B6B;
+
+    background: #FFF0F0;
+}
+
+.hero-icon-orange {
+    color: #FF7A00;
+
+    background: #FFF1E6;
+}
+
+.hero-icon-turquoise {
+    color: #0EA5B5;
+
+    background: #E9F8FA;
+}
+
+
+/* =========================================================
+   TEXTO BENEFICIOS
+========================================================= */
+
+.hero-benefit-text {
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 3px;
+
+    min-width: 0;
+}
+
+.hero-benefit-text strong {
+    color: #1F2937;
+
+    font-size: 10px;
+
+    font-weight: 700;
+
+    white-space: nowrap;
+}
+
+.hero-benefit-text span {
+    color: #6B7280;
+
+    font-size: 9px;
+
+    line-height: 1.2;
+
+    white-space: nowrap;
+}
+
+
+/* =========================================================
+   HIGHLIGHTS
+========================================================= */
+
+.hero-highlights {
+    width: 100%;
+
+    display: grid;
+
+    grid-template-columns:
+        repeat(4, 1fr);
+
+    gap: 14px;
+
+    margin-top: 18px;
+}
+
+
+/* =========================================================
+   HIGHLIGHT
+========================================================= */
+
+.hero-highlight {
+    min-height: 56px;
+
+    padding: 10px 13px;
+
+    border-radius: 13px;
+
+    background: #F5FAFB;
+
+    border: 1px solid transparent;
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 10px;
+
+    text-decoration: none;
+
+    transition:
+        transform .25s ease,
+        border-color .25s ease,
+        background .25s ease;
+}
+
+.hero-highlight:nth-child(1) {
+    background: #F4FAFB;
+}
+
+.hero-highlight:nth-child(2) {
+    background: #F0FAF8;
+}
+
+.hero-highlight:nth-child(3) {
+    background: #F2FAFC;
+}
+
+.hero-highlight:nth-child(4) {
+    background: #FFF8F2;
+}
+
+.hero-highlight:hover {
+    transform: translateY(-2px);
+
+    border-color: #E5E7EB;
+
+    background: #FFFFFF;
+
+    box-shadow:
+        0 7px 18px rgba(31, 41, 55, .06);
+}
+
+
+/* =========================================================
+   ICONO HIGHLIGHT
+========================================================= */
+
+.hero-highlight-icon {
+    width: 31px;
+    height: 31px;
+}
+
+
+/* =========================================================
+   TEXTO HIGHLIGHT
+========================================================= */
+
+.hero-highlight-text {
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 3px;
+
+    min-width: 0;
+
+    flex: 1;
+}
+
+.hero-highlight-text strong {
+    color: #374151;
+
+    font-size: 9px;
+
+    font-weight: 700;
+
+    white-space: nowrap;
+}
+
+.hero-highlight-text span {
+    color: #6B7280;
+
+    font-size: 8px;
+
+    white-space: nowrap;
+}
+
+
+/* =========================================================
+   FLECHA
+========================================================= */
+
+.hero-highlight-arrow {
+    color: #64748B;
+
+    flex-shrink: 0;
+
+    transition:
+        transform .2s ease,
+        color .2s ease;
+}
+
+.hero-highlight:hover .hero-highlight-arrow {
+    color: #0EA5B5;
+
+    transform: translateX(3px);
+}
+
+
+/* =========================================================
+   TABLET
+========================================================= */
+
+@media (max-width: 1100px) {
+
+    .hero {
+        padding: 24px 18px 30px;
     }
 
-    to{
-
-        opacity:1;
-
-        transform:
-
-        translateX(0);
-
+    .hero-categories {
+        gap: 14px;
     }
 
-}
-
-@keyframes fadeRight{
-
-    from{
-
-        opacity:0;
-
-        transform:
-
-        translateX(70px);
-
+    .hero-card {
+        min-height: 245px;
     }
 
-    to{
+    .hero-card-content {
+        width: 58%;
 
-        opacity:1;
-
-        transform:
-
-        translateX(0);
-
+        padding:
+            24px
+            0
+            22px
+            20px;
     }
 
+    .hero-card h1 {
+        font-size: 21px;
+    }
+
+    .hero-card-image {
+        width: 60%;
+    }
+
+    .hero-benefits {
+        padding: 0 15px;
+    }
+
+    .hero-benefit {
+        padding: 0 12px;
+    }
+
+    .hero-benefit-text strong,
+    .hero-benefit-text span {
+        white-space: normal;
+    }
 }
 
-@media(max-width:1100px){
 
-.hero{
+/* =========================================================
+   TABLET PEQUEÑA
+========================================================= */
 
-padding:70px 30px;
+@media (max-width: 850px) {
 
+    .hero-categories {
+        grid-template-columns: 1fr;
+    }
+
+    .hero-card {
+        min-height: 270px;
+    }
+
+    .hero-card-content {
+        width: 50%;
+
+        padding-left: 30px;
+    }
+
+    .hero-card-image {
+        width: 55%;
+    }
+
+    .hero-benefits {
+        grid-template-columns: repeat(2, 1fr);
+
+        padding: 12px 20px;
+    }
+
+    .hero-benefit {
+        min-height: 55px;
+
+        border-right: none;
+    }
+
+    .hero-benefit:nth-child(-n + 2) {
+        border-bottom: 1px solid #E5E7EB;
+    }
+
+    .hero-highlights {
+        grid-template-columns: repeat(2, 1fr);
+    }
 }
 
-.hero-container{
 
-grid-template-columns:1fr;
+/* =========================================================
+   MÓVIL
+========================================================= */
 
-text-align:center;
+@media (max-width: 600px) {
 
-gap:50px;
+    .hero {
+        padding: 16px 12px 24px;
+    }
 
+    .hero-categories {
+        gap: 12px;
+    }
+
+    .hero-card {
+        min-height: 230px;
+
+        border-radius: 15px;
+    }
+
+    .hero-card-content {
+        width: 57%;
+
+        padding:
+            20px
+            0
+            18px
+            18px;
+    }
+
+    .hero-card h1 {
+        font-size: 20px;
+    }
+
+    .hero-card p {
+        max-width: 145px;
+
+        font-size: 9px;
+    }
+
+    .hero-card-features {
+        gap: 8px;
+
+        margin-top: 12px;
+    }
+
+    .hero-feature {
+        width: 43px;
+
+        font-size: 7px;
+    }
+
+    .hero-feature-icon {
+        width: 27px;
+        height: 27px;
+    }
+
+    .hero-card-button {
+        margin-top: 12px;
+
+        min-height: 30px;
+
+        padding: 0 12px;
+
+        font-size: 8px;
+    }
+
+    .hero-card-image {
+        width: 57%;
+    }
+
+    .hero-benefits {
+        grid-template-columns: 1fr;
+
+        padding: 8px 15px;
+    }
+
+    .hero-benefit,
+    .hero-benefit:first-child,
+    .hero-benefit:last-child {
+        min-height: 52px;
+
+        padding: 8px 0;
+
+        border-right: none;
+        border-bottom: 1px solid #E5E7EB;
+    }
+
+    .hero-benefit:last-child {
+        border-bottom: none;
+    }
+
+    .hero-highlights {
+        grid-template-columns: 1fr;
+    }
+
+    .hero-highlight {
+        min-height: 54px;
+    }
 }
 
-.hero-left p{
 
-margin:auto;
+/* =========================================================
+   MÓVIL PEQUEÑO
+========================================================= */
 
-}
+@media (max-width: 400px) {
 
-.hero-buttons{
+    .hero-card {
+        min-height: 215px;
+    }
 
-justify-content:center;
+    .hero-card h1 {
+        font-size: 18px;
+    }
 
-}
+    .hero-card-content {
+        padding-left: 15px;
+    }
 
-.hero-left h1{
-
-font-size:3.2rem;
-
-}
-
-.hero-arrow{
-
-display:none;
-
-}
-
-}
-
-@media(max-width:768px){
-
-.hero{
-
-padding:60px 20px;
-
-}
-
-.hero-left h1{
-
-font-size:2.6rem;
-
-}
-
-.hero-left p{
-
-font-size:16px;
-
-}
-
-.hero-buttons{
-
-flex-direction:column;
-
-}
-
-.primary-btn,
-.secondary-btn{
-
-width:100%;
-
-}
-
-.hero-right img{
-
-max-width:100%;
-
-}
-
+    .hero-card-image {
+        width: 59%;
+    }
 }

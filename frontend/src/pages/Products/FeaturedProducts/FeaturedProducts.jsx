@@ -1,159 +1,194 @@
-import { useEffect, useState } from "react";
+    import { useEffect, useState } from "react";
 
-import { getProducts } from "../../../services/adminService";
-import ProductCard from "../ProductCard/ProductCard";
-import ProductDetail from "../ProductDetail/ProductDetail";
-import "./FeaturedProducts.css";
+    import { getProducts } from "../../../services/adminService";
 
-function FeaturedProducts() {
+    import ProductCard from "../ProductCard/ProductCard";
+    import ProductDetail from "../ProductDetail/ProductDetail";
 
-    const [products, setProducts] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [selectedProductId, setSelectedProductId] = useState(null);
+    import "./FeaturedProducts.css";
 
-    const loadProducts = async () => {
 
-        try {
+    function FeaturedProducts() {
 
-            const { data } = await getProducts();
+        const [products, setProducts] = useState([]);
 
-            const activeProducts = data.filter(
-                product => product.estado === "activo"
-            );
+        const [loading, setLoading] = useState(true);
 
-            setProducts(activeProducts);
+        const [selectedProductId, setSelectedProductId] = useState(null);
 
-        } catch (error) {
 
-            console.error(error);
+        /*
+        ============================================================
+        CARGAR PRODUCTOS
+        ============================================================
+        */
 
-        } finally {
+        const loadProducts = async () => {
 
-            setLoading(false);
+            try {
 
-        }
+                const { data } = await getProducts();
 
-    };
+                const activeProducts = Array.isArray(data)
+                    ? data.filter(
+                        (product) =>
+                            product.estado === "activo"
+                    )
+                    : [];
 
-    useEffect(() => {
+                setProducts(activeProducts);
 
-        loadProducts();
+            } catch (error) {
 
-    }, []);
+                console.error(
+                    "Error cargando productos destacados:",
+                    error
+                );
 
-    return (
+                setProducts([]);
 
-        <section className="featured-products">
+            } finally {
 
-            <div className="featured-header">
+                setLoading(false);
 
-                <div>
+            }
 
-                    <span className="featured-subtitle">
+        };
 
-                        SELECCIÓN PARA TI
 
-                    </span>
+        useEffect(() => {
 
-                    <h2>
+            loadProducts();
 
-                        Productos destacados
+        }, []);
 
-                    </h2>
 
-                    <p>
+        /*
+        ============================================================
+        RENDER
+        ============================================================
+        */
 
-                        Descubre los productos más vendidos y recomendados de nuestra tienda.
+        return (
 
-                    </p>
+            <section className="featured-products">
+
+                {/* ==================================================
+                    ENCABEZADO
+                ================================================== */}
+
+                <div className="featured-header">
+
+                    <div className="featured-header-content">
+
+                        <span className="featured-subtitle">
+                            SELECCIÓN PARA TI
+                        </span>
+
+                        <h2>
+                            Productos destacados
+                        </h2>
+
+                        <p>
+                            Descubre los productos más vendidos
+                            y recomendados de nuestra tienda.
+                        </p>
+
+                    </div>
+
+
+                    <a
+                        href="/products"
+                        className="featured-view-all"
+                    >
+                        Ver todos
+                        <span>→</span>
+                    </a>
 
                 </div>
 
-                <a href="/products">
 
-                    Ver todos →
+                {/* ==================================================
+                    CARGANDO
+                ================================================== */}
 
-                </a>
+                {loading && (
 
-            </div>
+                    <div className="products-message">
 
-            {
+                        <span className="products-loader"></span>
 
-                loading ?
-
-                    (
-
-                        <div className="products-message">
-
+                        <p>
                             Cargando productos...
+                        </p>
 
-                        </div>
+                    </div>
 
-                    )
+                )}
 
-                    :
 
-                    products.length === 0 ?
+                {/* ==================================================
+                    SIN PRODUCTOS
+                ================================================== */}
 
-                        (
+                {!loading && products.length === 0 && (
 
-                            <div className="products-message">
+                    <div className="products-message">
 
-                                No hay productos registrados.
+                        <p>
+                            No hay productos registrados.
+                        </p>
 
-                            </div>
+                    </div>
 
-                        )
+                )}
 
-                        :
 
-                        (
+                {/* ==================================================
+                    PRODUCTOS
+                ================================================== */}
 
-                            <div className="products-grid">
+                {!loading && products.length > 0 && (
 
-                                {
+                    <div className="featured-products-grid">
 
-                                    products.map(product => (
+                        {products.map((product) => (
 
-                                        <div
-                                            key={product.id_producto}
-                                            style={{ cursor: "pointer" }}
-                                        >
-
-                                            <ProductCard
-                                                product={product}
-                                                onSelect={setSelectedProductId}
-                                            />
-
-                                        </div>
-
-                                    ))
-
+                            <ProductCard
+                                key={product.id_producto}
+                                product={product}
+                                onSelect={
+                                    setSelectedProductId
                                 }
+                            />
 
-                            </div>
+                        ))}
 
-                        )
+                    </div>
 
-            }
+                )}
 
-            {
 
-                selectedProductId !== null && (
+                {/* ==================================================
+                    MODAL PRODUCTO
+                ================================================== */}
+
+                {selectedProductId !== null && (
 
                     <ProductDetail
                         productId={selectedProductId}
-                        onClose={() => setSelectedProductId(null)}
+                        onClose={() =>
+                            setSelectedProductId(null)
+                        }
                     />
 
-                )
+                )}
 
-            }
+            </section>
 
-        </section>
+        );
 
-    );
+    }
 
-}
 
-export default FeaturedProducts;
+    export default FeaturedProducts;

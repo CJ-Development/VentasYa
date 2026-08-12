@@ -1,21 +1,39 @@
 import "./Login.css";
+
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useState } from "react";
-import LoginImage from "../../assets/images/Login.png";
-import { ArrowLeft, Truck, ShieldCheck, Package } from "lucide-react";
+
+import ModaImage from "../../assets/images/Moda.png";
+
+import {
+    Mail,
+    LockKeyhole,
+    Eye,
+    EyeOff,
+    ShoppingBag,
+    ShieldCheck,
+    Truck,
+    Tag
+} from "lucide-react";
+
 import { login } from "../../api/axios";
 import { useAuth } from "../../hooks/useAuth";
 import { useCart } from "../../hooks/useCart";
 
+
 function Login() {
 
     const navigate = useNavigate();
-
     const location = useLocation();
 
     const { login: loginContext } = useAuth();
 
     const { syncOnLogin } = useCart();
+
+
+    /* =====================================================
+       ESTADOS
+    ===================================================== */
 
     const [formData, setFormData] = useState({
         email: "",
@@ -23,6 +41,15 @@ function Login() {
     });
 
     const [cargando, setCargando] = useState(false);
+
+    const [mostrarPassword, setMostrarPassword] = useState(false);
+
+    const [recordarme, setRecordarme] = useState(false);
+
+
+    /* =====================================================
+       CAMBIAR INPUT
+    ===================================================== */
 
     const handleChange = (e) => {
 
@@ -33,6 +60,11 @@ function Login() {
 
     };
 
+
+    /* =====================================================
+       INICIAR SESIÓN
+    ===================================================== */
+
     const handleSubmit = async (e) => {
 
         e.preventDefault();
@@ -41,12 +73,20 @@ function Login() {
 
             setCargando(true);
 
+
             const { data } = await login(formData);
+
+
+            /* =============================================
+               GUARDAR SESIÓN
+            ============================================= */
 
             loginContext(data);
 
-            // Si veniamos del checkout, sincronizamos lo del carrito local
-            // al backend para no perder los productos seleccionados.
+
+            /* =============================================
+               SINCRONIZAR CARRITO
+            ============================================= */
 
             if (data?.id_usuario) {
 
@@ -56,42 +96,77 @@ function Login() {
 
                 } catch (syncErr) {
 
-                    console.error("Error sincronizando carrito:", syncErr);
+                    console.error(
+                        "Error sincronizando carrito:",
+                        syncErr
+                    );
 
                 }
 
             }
 
+
+            /* =============================================
+               MENSAJE
+            ============================================= */
+
             alert(`Bienvenido ${data.nombres}`);
 
-            // Respetar redireccion ?from= o ?redirect=
-            const params = new URLSearchParams(location.search);
 
-            const destino = params.get("from") || params.get("redirect");
+            /* =============================================
+               REDIRECCIÓN
+            ============================================= */
+
+            const params = new URLSearchParams(
+                location.search
+            );
+
+
+            const destino =
+                params.get("from") ||
+                params.get("redirect");
+
 
             if (destino) {
 
-                navigate(destino, { replace: true });
+                navigate(destino, {
+                    replace: true
+                });
 
                 return;
 
             }
 
+
+            /* =============================================
+               REDIRECCIÓN POR ROL
+            ============================================= */
+
             if (data.rol === 2) {
+
                 navigate("/admin");
+
             } else {
+
                 navigate("/");
+
             }
+
 
         } catch (error) {
 
             if (error.response) {
 
-                alert(error.response.data.error);
+                alert(
+                    error.response.data?.error ||
+                    "Los datos ingresados no son correctos"
+                );
 
             } else {
 
-                alert("No fue posible iniciar sesión");
+                alert(
+                    "No fue posible iniciar sesión"
+                );
 
             }
 
@@ -103,109 +178,460 @@ function Login() {
 
     };
 
+
     return (
+
         <main className="login-page">
+
             <div className="login-card">
-                {/* Imagen */}
+
+
+                {/* =================================================
+                   PANEL IZQUIERDO
+                ================================================= */}
+
                 <section className="login-image">
-                    <img src={LoginImage} alt="Login" />
-                    <div className="image-overlay">
-                        <span className="welcome-badge"> Tu tienda de confianza </span>
-                        <h2> Bienvenido a <span>VentasYa</span> </h2>
-                        <p>
-                            Accede a miles de productos, ofertas exclusivas y
-                            una experiencia de compra rápida y segura.
+
+                    <img
+                        src={ModaImage}
+                        alt="Moda VentasYa"
+                    />
+
+
+                    <div className="image-content">
+
+
+                        <h2>
+                            ¡Bienvenido{" "}
+                            <span>de nuevo!</span>
+                        </h2>
+
+
+                        <p className="image-description">
+                            Inicia sesión para continuar
+                            comprando tus productos favoritos.
                         </p>
+
+
                         <div className="image-features">
+
+
+                            {/* PRODUCTOS */}
+
                             <div className="feature">
-                                <Truck size={18} />
-                                <span>
-                                    Envíos rápidos a toda Colombia
-                                </span>
+
+                                <div className="feature-icon">
+
+                                    <ShoppingBag
+                                        size={24}
+                                        strokeWidth={2}
+                                    />
+
+                                </div>
+
+
+                                <div className="feature-info">
+
+                                    <strong>
+                                        Miles de productos
+                                    </strong>
+
+                                    <span>
+                                        Descubre lo mejor para ti
+                                    </span>
+
+                                </div>
+
                             </div>
+
+
+                            {/* COMPRAS SEGURAS */}
+
                             <div className="feature">
-                                <ShieldCheck size={18} />
-                                <span>
-                                    Pagos 100% seguros
-                                </span>
+
+                                <div className="feature-icon">
+
+                                    <ShieldCheck
+                                        size={24}
+                                        strokeWidth={2}
+                                    />
+
+                                </div>
+
+
+                                <div className="feature-info">
+
+                                    <strong>
+                                        Compras seguras
+                                    </strong>
+
+                                    <span>
+                                        Protegemos tu información
+                                    </span>
+
+                                </div>
+
                             </div>
+
+
+                            {/* ENVÍOS */}
+
                             <div className="feature">
-                                <Package size={18} />
-                                <span>
-                                    Miles de productos para toda la familia
-                                </span>
+
+                                <div className="feature-icon">
+
+                                    <Truck
+                                        size={24}
+                                        strokeWidth={2}
+                                    />
+
+                                </div>
+
+
+                                <div className="feature-info">
+
+                                    <strong>
+                                        Envíos rápidos
+                                    </strong>
+
+                                    <span>
+                                        A toda Colombia
+                                    </span>
+
+                                </div>
+
                             </div>
+
+
+                            {/* OFERTAS */}
+
+                            <div className="feature">
+
+                                <div className="feature-icon">
+
+                                    <Tag
+                                        size={24}
+                                        strokeWidth={2}
+                                    />
+
+                                </div>
+
+
+                                <div className="feature-info">
+
+                                    <strong>
+                                        Ofertas exclusivas
+                                    </strong>
+
+                                    <span>
+                                        Descuentos solo para miembros
+                                    </span>
+
+                                </div>
+
+                            </div>
+
+
                         </div>
+
                     </div>
+
                 </section>
-                {/* Formulario */}
+
+
+                {/* =================================================
+                   PANEL DERECHO
+                ================================================= */}
+
                 <section className="login-form">
-                    <Link to="/" className="back-home" >
-                        <ArrowLeft size={18} />
-                        Volver al inicio
-                    </Link>
-                    <div className="login-header">
-                        <h1>Iniciar sesión</h1>
+
+
+                    {/* =================================================
+                       ENCABEZADO
+                    ================================================= */}
+
+                    <div className="form-header">
+
+                        <h1>
+                            Iniciar sesión
+                        </h1>
+
+
+                        <div className="title-line"></div>
+
+
                         <p>
-                            ¿No tienes una cuenta?
-                            <Link to="/register"> Crear cuenta </Link>
+                            Ingresa tus datos para acceder
+                            a tu cuenta y continuar comprando.
                         </p>
+
                     </div>
+
+
+                    {/* =================================================
+                       FORMULARIO
+                    ================================================= */}
+
                     <form onSubmit={handleSubmit}>
+
+
+                        {/* =========================================
+                           CORREO
+                        ========================================== */}
+
                         <div className="form-group">
-                            <label>Correo electrónico</label>
-                            <input
-                                type="email"
-                                name="email"
-                                value={formData.email}
-                                onChange={handleChange}
-                                placeholder="tu@gmail.com"
-                                disabled={cargando}
-                            />
-                        </div>
-                        <div className="form-group">
-                            <div className="label-row">
-                                <label>Contraseña</label>
-                                <Link to="/recuperar-password" className="forgot-password" >¿Olvidaste tu contraseña? </Link>
+
+                            <label htmlFor="email">
+                                Correo electrónico
+                            </label>
+
+
+                            <div className="input-wrapper">
+
+
+                                <Mail
+                                    className="login-input-icon"
+                                    size={20}
+                                    strokeWidth={2}
+                                    aria-hidden="true"
+                                />
+
+
+                                <input
+                                    id="email"
+                                    type="email"
+                                    name="email"
+                                    value={formData.email}
+                                    onChange={handleChange}
+                                    placeholder="ejemplo@correo.com"
+                                    disabled={cargando}
+                                    autoComplete="email"
+                                    required
+                                />
+
+
                             </div>
-                            <input
-                                type="password"
-                                name="password"
-                                value={formData.password}
-                                onChange={handleChange}
-                                placeholder="********"
-                                disabled={cargando}
-                            />
+
                         </div>
+
+
+                        {/* =========================================
+                           CONTRASEÑA
+                        ========================================== */}
+
+                        <div className="form-group">
+
+
+                            <div className="label-row">
+
+                                <label htmlFor="password">
+                                    Contraseña
+                                </label>
+
+
+                                <Link
+                                    to="/recuperar-password"
+                                    className="forgot-password"
+                                >
+                                    ¿Olvidaste tu contraseña?
+                                </Link>
+
+                            </div>
+
+
+                            <div className="input-wrapper">
+
+
+                                <LockKeyhole
+                                    className="login-input-icon"
+                                    size={20}
+                                    strokeWidth={2}
+                                    aria-hidden="true"
+                                />
+
+
+                                <input
+                                    id="password"
+                                    type={
+                                        mostrarPassword
+                                            ? "text"
+                                            : "password"
+                                    }
+                                    name="password"
+                                    value={formData.password}
+                                    onChange={handleChange}
+                                    placeholder="••••••••••"
+                                    disabled={cargando}
+                                    autoComplete="current-password"
+                                    required
+                                />
+
+
+                                <button
+                                    type="button"
+                                    className="password-toggle"
+                                    onClick={() =>
+                                        setMostrarPassword(
+                                            !mostrarPassword
+                                        )
+                                    }
+                                    aria-label={
+                                        mostrarPassword
+                                            ? "Ocultar contraseña"
+                                            : "Mostrar contraseña"
+                                    }
+                                >
+
+                                    {mostrarPassword ? (
+
+                                        <EyeOff
+                                            size={20}
+                                            strokeWidth={2}
+                                        />
+
+                                    ) : (
+
+                                        <Eye
+                                            size={20}
+                                            strokeWidth={2}
+                                        />
+
+                                    )}
+
+                                </button>
+
+
+                            </div>
+
+                        </div>
+
+
+                        {/* =========================================
+                           RECORDARME
+                        ========================================== */}
+
+                        <div className="remember-row">
+
+                            <label className="remember-label">
+
+                                <input
+                                    type="checkbox"
+                                    checked={recordarme}
+                                    onChange={(e) =>
+                                        setRecordarme(
+                                            e.target.checked
+                                        )
+                                    }
+                                />
+
+
+                                <span className="custom-checkbox">
+                                    ✓
+                                </span>
+
+
+                                <span>
+                                    Recordarme
+                                </span>
+
+                            </label>
+
+                        </div>
+
+
+                        {/* =========================================
+                           BOTÓN
+                        ========================================== */}
+
                         <button
                             type="submit"
                             className="login-button"
                             disabled={cargando}
                         >
-                            {cargando ? "Ingresando..." : "Iniciar sesión"}
+
+                            {cargando
+                                ? "Ingresando..."
+                                : "Iniciar sesión"
+                            }
+
                         </button>
+
+
                     </form>
+
+
+                    {/* =================================================
+                       DIVISOR
+                    ================================================= */}
+
                     <div className="divider">
-                        <span>o continúa con</span>
+
+                        <span>
+                            o continúa con
+                        </span>
+
                     </div>
+
+
+                    {/* =================================================
+                       REDES
+                    ================================================= */}
+
                     <div className="social-buttons">
-                        <button type="button" className="google-button" > Google </button>
-                        <button type="button" className="facebook-button"> Facebook </button>
+
+
+                        <button
+                            type="button"
+                            className="social-button"
+                        >
+
+                            <span>
+                                Google
+                            </span>
+
+                        </button>
+
+
+                        <button
+                            type="button"
+                            className="social-button"
+                        >
+
+                            <span>
+                                Facebook
+                            </span>
+
+                        </button>
+
+
                     </div>
-                    <p className="terms">
-                        Al iniciar sesión aceptas nuestros
-                        <Link to="#">
-                            Términos y Condiciones
+
+
+                    {/* =================================================
+                       REGISTRO
+                    ================================================= */}
+
+                    <p className="register-text">
+
+                        ¿No tienes cuenta?
+
+                        <Link to="/registro">
+                            Regístrate aquí
                         </Link>
-                        {" "}y{" "}
-                        <Link to="#">
-                            Política de Privacidad
-                        </Link>
+
                     </p>
+
+
                 </section>
+
+
             </div>
+
         </main>
+
     );
+
 }
+
 
 export default Login;

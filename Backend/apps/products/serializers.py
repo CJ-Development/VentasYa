@@ -5,6 +5,11 @@ from .models import Producto, Variante, ImagenProducto, Color, Talla
 from apps.categories.serializers import CategoriaSerializer
 from apps.categories.models import Categoria
 
+import os
+import uuid
+
+from django.conf import settings
+
 
 class ColorSerializer(serializers.ModelSerializer):
 
@@ -22,9 +27,50 @@ class TallaSerializer(serializers.ModelSerializer):
 
 class ImagenSerializer(serializers.ModelSerializer):
 
+    # Campo opcional para subir un archivo desde la PC.
+    # NO está en el modelo: se usa solo en create/update y luego
+    # se guarda en disco y se asigna la URL resultante a `imagen`.
+    archivo = serializers.FileField(
+        required=False,
+        write_only=True,
+    )
+
     class Meta:
         model = ImagenProducto
         fields = "__all__"
+
+    def _guardar_archivo(self, archivo):
+        folder = os.path.join(
+            settings.MEDIA_ROOT,
+            "productos",
+        )
+        os.makedirs(folder, exist_ok=True)
+
+        ext = os.path.splitext(archivo.name)[1].lower() or ".jpg"
+        nombre = f"{uuid.uuid4().hex}{ext}"
+        ruta = os.path.join(folder, nombre)
+
+        with open(ruta, "wb") as destino:
+            for chunk in archivo.chunks():
+                destino.write(chunk)
+
+        return f"{settings.MEDIA_URL}productos/{nombre}"
+
+    def create(self, validated_data):
+        archivo = validated_data.pop("archivo", None)
+
+        if archivo:
+            validated_data["imagen"] = self._guardar_archivo(archivo)
+
+        return super().create(validated_data)
+
+    def update(self, instance, validated_data):
+        archivo = validated_data.pop("archivo", None)
+
+        if archivo:
+            validated_data["imagen"] = self._guardar_archivo(archivo)
+
+        return super().update(instance, validated_data)
 
 
 class VarianteSerializer(serializers.ModelSerializer):

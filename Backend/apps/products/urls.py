@@ -6,7 +6,9 @@ from .views import (
     ProductoReactivarView,
     LowStockVariantesView,
     ColorListView,
+    ColorDetalleView,
     TallaListView,
+    TallaDetalleView,
     VariantesPorProductoView,
     VarianteDetalleView,
     ImagenesPorVarianteView,
@@ -51,8 +53,16 @@ urlpatterns = [
         ColorListView.as_view()
     ),
     path(
+        "colores/<int:id>/",
+        ColorDetalleView.as_view()
+    ),
+    path(
         "tallas/",
         TallaListView.as_view()
+    ),
+    path(
+        "tallas/<int:id>/",
+        TallaDetalleView.as_view()
     ),
 ]
 

@@ -1,6 +1,6 @@
 from django.urls import path
 
-from .views import CompraView, CompraDetalleView, MisPedidosView
+from .views import CompraView, CompraDetalleView, MisPedidosView, CheckoutView
 
 urlpatterns = [
     path(
@@ -10,6 +10,10 @@ urlpatterns = [
     path(
         "mis-pedidos/",
         MisPedidosView.as_view()
+    ),
+    path(
+        "checkout/",
+        CheckoutView.as_view()
     ),
     path(
         "<int:id>/",

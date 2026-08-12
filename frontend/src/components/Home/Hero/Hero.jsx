@@ -1,163 +1,324 @@
 import "./Hero.css";
-import { useEffect, useState } from "react";
-import { ChevronLeft, ChevronRight } from "lucide-react";
 
-import Banner1 from "../../../assets/images/banner1.png";
-import Banner2 from "../../../assets/images/banner2.png";
-import Banner3 from "../../../assets/images/banner3.png";
+import {
+    Shirt,
+    Tag,
+    PawPrint,
+    Heart,
+    Home,
+    Baby,
+    Truck,
+    ShieldCheck,
+    Headphones,
+    Gift,
+    CreditCard,
+    BadgePercent,
+    ArrowRight
+} from "lucide-react";
+
+import Moda from "../../../assets/images/Moda.png";
+import Mascotas from "../../../assets/images/Mascotas.png";
+import Familia from "../../../assets/images/Familia.png";
+
 
 function Hero() {
 
-    const slides = [
+    const categories = [
         {
-            id: 1,
-            badge: "Nueva colección",
-            title: "Moda para toda la familia",
+            id: "moda",
+            title: (
+                <>
+                    Moda que
+                    <br />
+                    te representa
+                </>
+            ),
             description:
-                "Descubre miles de productos con la mejor calidad, precios increíbles y envíos a toda Colombia.",
-            image: Banner1,
+                "Descubre las últimas tendencias en ropa y accesorios.",
+            image: Moda,
+            button: "Ver moda",
+            className: "hero-card--fashion",
+            iconOne: Shirt,
+            iconOneText: "Ropa para todos",
+            iconTwo: Tag,
+            iconTwoText: "Marcas top"
         },
         {
-            id: 2,
-            badge: "Hasta 60% OFF",
-            title: "Tecnología al mejor precio",
+            id: "mascotas",
+            title: (
+                <>
+                    Todo para
+                    <br />
+                    tu mascota
+                </>
+            ),
             description:
-                "Encuentra celulares, computadores y accesorios con promociones exclusivas.",
-            image: Banner2,
+                "TE AMOOOOOOO PERAZA",
+            image: Mascotas,
+            button: "Ver mascotas",
+            className: "hero-card--pets",
+            iconOne: PawPrint,
+            iconOneText: "Mejores marcas",
+            iconTwo: Heart,
+            iconTwoText: "Cuidado y bienestar"
         },
         {
-            id: 3,
-            badge: "Solo por tiempo limitado",
-            title: "Renueva tu hogar",
+            id: "familia",
+            title: (
+                <>
+                    Para toda
+                    <br />
+                    la familia
+                </>
+            ),
             description:
-                "Muebles, decoración y electrodomésticos para transformar cada espacio.",
-            image: Banner3,
-        },
+                "Productos para el hogar, bebés y mucho más.",
+            image: Familia,
+            button: "Ver familia",
+            className: "hero-card--family",
+            iconOne: Home,
+            iconOneText: "Hogar y cocina",
+            iconTwo: Baby,
+            iconTwoText: "Bebés y niños"
+        }
     ];
 
-    const [current, setCurrent] = useState(0);
+    const benefits = [
+        {
+            icon: Tag,
+            title: "Ofertas exclusivas",
+            description: "MELANIE TE AMO X2 ",
+            color: "coral"
+        },
+        {
+            icon: Truck,
+            title: "Envíos rápidos",
+            description: "A todo el país",
+            color: "orange"
+        },
+        {
+            icon: ShieldCheck,
+            title: "Pagos seguros",
+            description: "Protegemos tu información",
+            color: "turquoise"
+        },
+        {
+            icon: Headphones,
+            title: "Soporte 24/7",
+            description: "Estamos para ayudarte",
+            color: "orange"
+        }
+    ];
 
-    useEffect(() => {
-
-        const interval = setInterval(() => {
-
-            setCurrent((prev) =>
-                prev === slides.length - 1 ? 0 : prev + 1
-            );
-
-        }, 5000);
-
-        return () => clearInterval(interval);
-
-    }, [slides.length]);
-
-    const nextSlide = () => {
-
-        setCurrent((prev) =>
-            prev === slides.length - 1 ? 0 : prev + 1
-        );
-
-    };
-
-    const prevSlide = () => {
-
-        setCurrent((prev) =>
-            prev === 0 ? slides.length - 1 : prev - 1
-        );
-
-    };
+    const highlights = [
+        {
+            icon: BadgePercent,
+            title: "Hasta 60% OFF",
+            description: "Melanie Te amo ",
+            color: "Morado mi amor "
+        },
+        {
+            icon: Truck,
+            title: "Envío gratis",
+            description: "En compras desde $99.900",
+            color: "turquoise"
+        },
+        {
+            icon: CreditCard,
+            title: "Paga como quieras",
+            description: "Tarjetas, PSE y más",
+            color: "turquoise"
+        },
+        {
+            icon: Gift,
+            title: "Nuevas ofertas cada día",
+            description: "No te las pierdas",
+            color: "orange"
+        }
+    ];
 
     return (
-
         <section className="hero">
 
             <div className="hero-container">
 
-                <div className="hero-left">
+                {/* =========================================
+                    TARJETAS PRINCIPALES
+                ========================================= */}
 
-                    <span className="hero-badge">
+                <div className="hero-categories">
 
-                        {slides[current].badge}
+                    {categories.map((category) => {
 
-                    </span>
+                        const IconOne = category.iconOne;
+                        const IconTwo = category.iconTwo;
 
-                    <h1>
+                        return (
+                            <article
+                                className={`hero-card ${category.className}`}
+                                key={category.id}
+                            >
 
-                        {slides[current].title}
+                                <div className="hero-card-content">
 
-                    </h1>
+                                    <h1>
+                                        {category.title}
+                                    </h1>
 
-                    <p>
+                                    <p>
+                                        {category.description}
+                                    </p>
 
-                        {slides[current].description}
+                                    <div className="hero-card-features">
 
-                    </p>
+                                        <div className="hero-feature">
 
-                    <div className="hero-buttons">
+                                            <span className="hero-feature-icon">
+                                                <IconOne size={17} />
+                                            </span>
 
-                        <button className="primary-btn">
+                                            <span>
+                                                {category.iconOneText}
+                                            </span>
 
-                            Comprar ahora
+                                        </div>
 
-                        </button>
+                                        <div className="hero-feature">
 
-                        <button className="secondary-btn">
+                                            <span className="hero-feature-icon">
+                                                <IconTwo size={17} />
+                                            </span>
 
-                            Ver ofertas
+                                            <span>
+                                                {category.iconTwoText}
+                                            </span>
 
-                        </button>
+                                        </div>
 
-                    </div>
+                                    </div>
+
+                                    <a
+                                        href={
+                                            category.id === "moda"
+                                                ? "/products?category=moda"
+                                                : category.id === "mascotas"
+                                                    ? "/products?category=mascotas"
+                                                    : "/products?category=familia"
+                                        }
+                                        className="hero-card-button"
+                                    >
+                                        {category.button}
+                                    </a>
+
+                                </div>
+
+                                <img
+                                    src={category.image}
+                                    alt={category.button}
+                                    className="hero-card-image"
+                                />
+
+                                <span className="hero-decoration hero-decoration-one" />
+                                <span className="hero-decoration hero-decoration-two" />
+
+                            </article>
+                        );
+                    })}
 
                 </div>
 
-                <div className="hero-right">
 
-                    <img
-                        src={slides[current].image}
-                        alt={slides[current].title}
-                    />
+                {/* =========================================
+                    BENEFICIOS
+                ========================================= */}
+
+                <div className="hero-benefits">
+
+                    {benefits.map((benefit, index) => {
+
+                        const Icon = benefit.icon;
+
+                        return (
+                            <div
+                                className="hero-benefit"
+                                key={benefit.title}
+                            >
+
+                                <span
+                                    className={`hero-benefit-icon hero-icon-${benefit.color}`}
+                                >
+                                    <Icon size={21} />
+                                </span>
+
+                                <div className="hero-benefit-text">
+
+                                    <strong>
+                                        {benefit.title}
+                                    </strong>
+
+                                    <span>
+                                        {benefit.description}
+                                    </span>
+
+                                </div>
+
+                            </div>
+                        );
+                    })}
 
                 </div>
 
-                <button
-                    className="hero-arrow left"
-                    onClick={prevSlide}
-                >
-                    <ChevronLeft />
-                </button>
 
-                <button
-                    className="hero-arrow right"
-                    onClick={nextSlide}
-                >
-                    <ChevronRight />
-                </button>
+                {/* =========================================
+                    DESTACADOS INFORMATIVOS
+                ========================================= */}
 
-            </div>
+                <div className="hero-highlights">
 
-            <div className="hero-dots">
+                    {highlights.map((highlight) => {
 
-                {slides.map((slide, index) => (
+                        const Icon = highlight.icon;
 
-                    <button
-                        key={slide.id}
-                        className={
-                            current === index
-                                ? "dot active"
-                                : "dot"
-                        }
-                        onClick={() => setCurrent(index)}
-                    />
+                        return (
+                            <a
+                                href="/offers"
+                                className="hero-highlight"
+                                key={highlight.title}
+                            >
 
-                ))}
+                                <span
+                                    className={`hero-highlight-icon hero-icon-${highlight.color}`}
+                                >
+                                    <Icon size={19} />
+                                </span>
+
+                                <div className="hero-highlight-text">
+
+                                    <strong>
+                                        {highlight.title}
+                                    </strong>
+
+                                    <span>
+                                        {highlight.description}
+                                    </span>
+
+                                </div>
+
+                                <ArrowRight
+                                    className="hero-highlight-arrow"
+                                    size={17}
+                                />
+
+                            </a>
+                        );
+                    })}
+
+                </div>
 
             </div>
 
         </section>
-
     );
-
 }
 
 export default Hero;

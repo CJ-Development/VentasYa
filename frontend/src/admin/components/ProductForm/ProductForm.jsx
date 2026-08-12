@@ -1,8 +1,8 @@
 import "./ProductForm.css";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
-import { Plus, Star, Trash2, X } from "lucide-react";
+import { Plus, Star, Trash2, X, HelpCircle } from "lucide-react";
 
 import {
     createProduct,
@@ -10,12 +10,15 @@ import {
     getCategories,
     getColors,
     getTallas,
+    createColor,
+    createTalla,
     createVariant,
     updateVariant,
     deleteVariant,
     addVariantImage,
     updateVariantImage,
     deleteVariantImage,
+    uploadVariantImage,
 } from "../../../services/adminService";
 
 const generarSlug = (texto) =>
@@ -45,9 +48,161 @@ const varianteVacia = {
     stock: 0,
     imagenes: [],
     nuevaImagen: "",
+    nuevoArchivo: null,
 };
 
 let tempCounter = 1;
+
+/* =====================================================
+   Componente pequeño: signo "?" con tooltip que aparece
+   al pasar el mouse o al hacer focus (sin librerías).
+===================================================== */
+
+function LabelHelp({ texto }) {
+    return (
+        <span
+            className="label-help"
+            tabIndex={0}
+            role="tooltip"
+            aria-label={texto}
+        >
+            ?
+            <span className="label-help-bubble">
+                {texto}
+            </span>
+        </span>
+    );
+}
+
+/* =====================================================
+   Mini-modal para crear un color o talla en línea.
+===================================================== */
+
+function MiniModalCrear({ tipo, onClose, onGuardado }) {
+    const [nombre, setNombre] = useState("");
+    const [hex, setHex] = useState("#384D48");
+    const [guardando, setGuardando] = useState(false);
+
+    const handleGuardar = async (e) => {
+        e.preventDefault();
+
+        if (!nombre.trim()) return;
+
+        setGuardando(true);
+
+        try {
+            const payload =
+                tipo === "color"
+                    ? { nombre: nombre.trim(), codigo_hex: hex }
+                    : { nombre: nombre.trim() };
+
+            const { data } =
+                tipo === "color"
+                    ? await createColor(payload)
+                    : await createTalla(payload);
+
+            onGuardado(data);
+            onClose();
+        } catch (err) {
+            console.error(err);
+            alert(
+                tipo === "color"
+                    ? "No se pudo crear el color."
+                    : "No se pudo crear la talla."
+            );
+        } finally {
+            setGuardando(false);
+        }
+    };
+
+    return (
+        <div
+            className="inline-modal-backdrop"
+            onClick={onClose}
+        >
+            <div
+                className="inline-modal"
+                onClick={(e) => e.stopPropagation()}
+            >
+                <div className="inline-modal-header">
+                    <h4>
+                        {tipo === "color"
+                            ? "Nuevo color"
+                            : "Nueva talla"}
+                    </h4>
+                    <button
+                        type="button"
+                        className="close-button"
+                        onClick={onClose}
+                    >
+                        <X size={16} />
+                    </button>
+                </div>
+
+                <form onSubmit={handleGuardar}>
+                    <div className="form-group">
+                        <label>
+                            Nombre
+                            <LabelHelp texto="Nombre descriptivo (ej. Rojo, M, 38)." />
+                        </label>
+                        <input
+                            type="text"
+                            value={nombre}
+                            onChange={(e) => setNombre(e.target.value)}
+                            placeholder={
+                                tipo === "color"
+                                    ? "Verde militar"
+                                    : "Talla 38"
+                            }
+                            autoFocus
+                            required
+                        />
+                    </div>
+
+                    {tipo === "color" && (
+                        <div className="form-group">
+                            <label>
+                                Color (HEX)
+                                <LabelHelp texto="Código hexadecimal del color. Sirve para mostrarlo en catálogos." />
+                            </label>
+                            <div className="hex-input">
+                                <input
+                                    type="color"
+                                    value={hex}
+                                    onChange={(e) => setHex(e.target.value)}
+                                />
+                                <input
+                                    type="text"
+                                    value={hex}
+                                    onChange={(e) => setHex(e.target.value)}
+                                    placeholder="#384D48"
+                                />
+                            </div>
+                        </div>
+                    )}
+
+                    <div className="form-buttons">
+                        <button
+                            type="button"
+                            className="cancel-button"
+                            onClick={onClose}
+                            disabled={guardando}
+                        >
+                            Cancelar
+                        </button>
+                        <button
+                            type="submit"
+                            className="save-button"
+                            disabled={guardando}
+                        >
+                            {guardando ? "Guardando..." : "Guardar"}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    );
+}
 
 function ProductForm({ product, onClose, onSaved }) {
 
@@ -69,8 +224,13 @@ function ProductForm({ product, onClose, onSaved }) {
 
     const [submitting, setSubmitting] = useState(false);
 
-    useEffect(() => {
+    const [errores, setErrores] = useState({});
 
+    const [modalCrear, setModalCrear] = useState(null);
+
+    const fileInputsRef = useRef({});
+
+    useEffect(() => {
         cargarListas();
 
         if (product) {
@@ -95,6 +255,7 @@ function ProductForm({ product, onClose, onSaved }) {
                     stock: v.stock ?? 0,
                     imagenes: v.imagenes || [],
                     nuevaImagen: "",
+                    nuevoArchivo: null,
                 }))
             );
 
@@ -149,6 +310,11 @@ function ProductForm({ product, onClose, onSaved }) {
             return next;
 
         });
+
+        // Limpiar error de ese campo al editar.
+        if (errores[name]) {
+            setErrores((prev) => ({ ...prev, [name]: null }));
+        }
 
     };
 
@@ -206,6 +372,32 @@ function ProductForm({ product, onClose, onSaved }) {
 
         );
 
+        setErrores((prev) => {
+            const variantesErr = { ...(prev.variantes || {}) };
+            delete variantesErr[index]?.[campo];
+            return { ...prev, variantes: variantesErr };
+        });
+
+    };
+
+    const handleArchivoChange = (index, file) => {
+        setVariantes((prev) =>
+            prev.map((v, i) =>
+                i === index
+                    ? { ...v, nuevoArchivo: file, nuevaImagen: "" }
+                    : v
+            )
+        );
+    };
+
+    const handleUrlChange = (index, url) => {
+        setVariantes((prev) =>
+            prev.map((v, i) =>
+                i === index
+                    ? { ...v, nuevaImagen: url, nuevoArchivo: null }
+                    : v
+            )
+        );
     };
 
     const agregarImagen = async (index) => {
@@ -213,52 +405,122 @@ function ProductForm({ product, onClose, onSaved }) {
         const variante = variantes[index];
 
         const url = variante.nuevaImagen.trim();
+        const archivo = variante.nuevoArchivo;
 
-        if (!url) return;
+        if (!url && !archivo) return;
 
         try {
 
-            if (variante.id_variante) {
-
-                const { data } = await addVariantImage(variante.id_variante, {
-                    imagen: url,
-                    principal: variante.imagenes.length === 0,
-                    orden: variante.imagenes.length + 1,
-                });
-
-                setVariantes((prev) =>
-
-                    prev.map((v, i) =>
-
-                        i === index
-                            ? { ...v, imagenes: [...v.imagenes, data], nuevaImagen: "" }
-                            : v
-
-                    )
-
+            if (archivo) {
+                // Subida real desde PC.
+                const fd = new FormData();
+                fd.append("archivo", archivo);
+                fd.append("principal", variante.imagenes.length === 0);
+                fd.append(
+                    "orden",
+                    String(variante.imagenes.length + 1)
                 );
 
+                if (variante.id_variante) {
+                    const { data } = await uploadVariantImage(
+                        variante.id_variante,
+                        fd
+                    );
+
+                    setVariantes((prev) =>
+                        prev.map((v, i) =>
+                            i === index
+                                ? {
+                                    ...v,
+                                    imagenes: [...v.imagenes, data],
+                                    nuevoArchivo: null,
+                                    nuevaImagen: "",
+                                }
+                                : v
+                        )
+                    );
+
+                    if (fileInputsRef.current[index]) {
+                        fileInputsRef.current[index].value = "";
+                    }
+                } else {
+                    // Pendiente: guardar al crear el producto.
+                    const previewUrl =
+                        URL.createObjectURL(archivo);
+
+                    setVariantes((prev) =>
+                        prev.map((v, i) =>
+                            i === index
+                                ? {
+                                    ...v,
+                                    nuevaImagen: "",
+                                    nuevoArchivo: null,
+                                    imagenes: [
+                                        ...v.imagenes,
+                                        {
+                                            imagen: previewUrl,
+                                            principal:
+                                                v.imagenes.length === 0,
+                                            pendiente: true,
+                                            archivo: archivo,
+                                        },
+                                    ],
+                                }
+                                : v
+                        )
+                    );
+
+                    if (fileInputsRef.current[index]) {
+                        fileInputsRef.current[index].value = "";
+                    }
+                }
             } else {
+                // Compatibilidad: pegar URL.
+                if (variante.id_variante) {
 
-                setVariantes((prev) =>
+                    const { data } = await addVariantImage(
+                        variante.id_variante,
+                        {
+                            imagen: url,
+                            principal: variante.imagenes.length === 0,
+                            orden: variante.imagenes.length + 1,
+                        }
+                    );
 
-                    prev.map((v, i) =>
+                    setVariantes((prev) =>
+                        prev.map((v, i) =>
+                            i === index
+                                ? {
+                                    ...v,
+                                    imagenes: [...v.imagenes, data],
+                                    nuevaImagen: "",
+                                }
+                                : v
+                        )
+                    );
 
-                        i === index
-                            ? {
-                                ...v,
-                                nuevaImagen: "",
-                                imagenes: [
-                                    ...v.imagenes,
-                                    { imagen: url, principal: v.imagenes.length === 0 },
-                                ],
-                            }
-                            : v
+                } else {
 
-                    )
+                    setVariantes((prev) =>
+                        prev.map((v, i) =>
+                            i === index
+                                ? {
+                                    ...v,
+                                    nuevaImagen: "",
+                                    imagenes: [
+                                        ...v.imagenes,
+                                        {
+                                            imagen: url,
+                                            principal:
+                                                v.imagenes.length === 0,
+                                        },
+                                    ],
+                                }
+                                : v
+                        )
+                    );
 
-                );
-
+                }
             }
 
         }
@@ -306,7 +568,9 @@ function ProductForm({ product, onClose, onSaved }) {
                 i === varianteIndex
                     ? {
                         ...v,
-                        imagenes: v.imagenes.filter((_, j) => j !== imagenIndex),
+                        imagenes: v.imagenes.filter(
+                            (_, j) => j !== imagenIndex
+                        ),
                     }
                     : v
 
@@ -326,11 +590,11 @@ function ProductForm({ product, onClose, onSaved }) {
 
         try {
 
-            // Caso 1: imagen ya persistida en backend → PUT directo (el backend
-            // desmarca automáticamente el resto de la misma variante).
             if (imagen.id_imagen) {
 
-                await updateVariantImage(imagen.id_imagen, { principal: true });
+                await updateVariantImage(imagen.id_imagen, {
+                    principal: true,
+                });
 
                 setVariantes((prev) =>
 
@@ -352,24 +616,25 @@ function ProductForm({ product, onClose, onSaved }) {
 
             } else {
 
-                // Caso 2: imagen pendiente (aún sin id_imagen) → primero hay
-                // que crear la variante para tener id_variante, luego POST.
                 if (!variante.id_variante) {
 
-                    alert("Guarda primero el producto para poder marcar la imagen principal.");
+                    alert(
+                        "Guarda primero el producto para poder marcar la imagen principal."
+                    );
 
                     return;
 
                 }
 
-                // POST de la nueva imagen como principal.
-                const { data: nueva } = await addVariantImage(variante.id_variante, {
-                    imagen: imagen.imagen,
-                    principal: true,
-                    orden: variante.imagenes.length + 1,
-                });
+                const { data: nueva } = await addVariantImage(
+                    variante.id_variante,
+                    {
+                        imagen: imagen.imagen,
+                        principal: true,
+                        orden: variante.imagenes.length + 1,
+                    }
+                );
 
-                // PUT sobre la variante existente que era principal → desmarcar.
                 const anteriorPrincipal = variante.imagenes.find(
                     (img) => img.principal && img.id_imagen
                 );
@@ -392,8 +657,6 @@ function ProductForm({ product, onClose, onSaved }) {
                                 imagenes: v.imagenes.map((img, j) => ({
                                     ...img,
                                     principal: j === imagenIndex,
-                                    // Reemplazar la imagen pendiente por la persistida
-                                    // en el índice clickeado.
                                     ...(j === imagenIndex ? nueva : {}),
                                 })),
                             }
@@ -417,26 +680,87 @@ function ProductForm({ product, onClose, onSaved }) {
 
     };
 
+    /* =====================================================
+       VALIDACIÓN INLINE
+    ====================================================== */
+
+    const validar = () => {
+        const nuevosErrores = { datos: {}, variantes: {} };
+
+        if (!datos.nombre.trim()) {
+            nuevosErrores.datos.nombre = "El nombre es obligatorio.";
+        }
+
+        if (!datos.categoria_id) {
+            nuevosErrores.datos.categoria_id =
+                "Selecciona una categoría.";
+        }
+
+        if (
+            datos.precio === "" ||
+            datos.precio === null ||
+            Number(datos.precio) <= 0
+        ) {
+            nuevosErrores.datos.precio = "Ingresa un precio mayor a 0.";
+        }
+
+        if (variantes.length === 0) {
+            nuevosErrores.variantesGlobal = "Agrega al menos una variante.";
+        }
+
+        const skusVistos = new Set();
+
+        variantes.forEach((v, i) => {
+            const err = {};
+
+            if (!v.color) err.color = "Selecciona un color.";
+            if (!v.talla) err.talla = "Selecciona una talla.";
+
+            if (!v.sku.trim()) {
+                err.sku = "El SKU es obligatorio.";
+            } else if (skusVistos.has(v.sku.trim())) {
+                err.sku = "SKU repetido en este producto.";
+            } else {
+                skusVistos.add(v.sku.trim());
+            }
+
+            if (v.stock === "" || v.stock === null || Number(v.stock) < 0) {
+                err.stock = "Stock inválido.";
+            }
+
+            if (Object.keys(err).length > 0) {
+                nuevosErrores.variantes[i] = err;
+            }
+        });
+
+        return nuevosErrores;
+    };
+
     const handleSubmit = async (e) => {
 
         e.preventDefault();
 
-        if (!datos.categoria_id) {
+        const nuevosErrores = validar();
 
-            alert("Selecciona una categoría.");
+        const tieneErrores =
+            Object.keys(nuevosErrores.datos).length > 0 ||
+            nuevosErrores.variantesGlobal ||
+            Object.keys(nuevosErrores.variantes).length > 0;
+
+        if (tieneErrores) {
+            setErrores(nuevosErrores);
+
+            // Si hay error en Datos, saltar a esa pestaña.
+            if (Object.keys(nuevosErrores.datos).length > 0) {
+                setTab("datos");
+            } else {
+                setTab("variantes");
+            }
 
             return;
-
         }
 
-        if (!datos.nombre.trim()) {
-
-            alert("El nombre es obligatorio.");
-
-            return;
-
-        }
-
+        setErrores({});
         setSubmitting(true);
 
         try {
@@ -487,7 +811,10 @@ function ProductForm({ product, onClose, onSaved }) {
 
                 } else {
 
-                    const { data } = await createVariant(productoId, variantePayload);
+                    const { data } = await createVariant(
+                        productoId,
+                        variantePayload
+                    );
 
                     varianteId = data.id_variante;
 
@@ -496,13 +823,27 @@ function ProductForm({ product, onClose, onSaved }) {
                 for (const img of v.imagenes) {
 
                     if (!img.id_imagen) {
+                        // Imagen pendiente (subida de archivo aún no enviada).
+                        if (img.archivo) {
+                            const fd = new FormData();
+                            fd.append("archivo", img.archivo);
+                            fd.append(
+                                "principal",
+                                String(Boolean(img.principal))
+                            );
+                            fd.append(
+                                "orden",
+                                String(v.imagenes.indexOf(img) + 1)
+                            );
 
-                        await addVariantImage(varianteId, {
-                            imagen: img.imagen,
-                            principal: img.principal || false,
-                            orden: v.imagenes.indexOf(img) + 1,
-                        });
-
+                            await uploadVariantImage(varianteId, fd);
+                        } else {
+                            await addVariantImage(varianteId, {
+                                imagen: img.imagen,
+                                principal: img.principal || false,
+                                orden: v.imagenes.indexOf(img) + 1,
+                            });
+                        }
                     }
 
                 }
@@ -519,11 +860,38 @@ function ProductForm({ product, onClose, onSaved }) {
 
             console.error(error);
 
-            const mensaje = error.response?.data
-                ? "No fue posible guardar el producto. Verifica los datos."
-                : "No fue posible conectar con el servidor.";
+            let mensaje = "No fue posible conectar con el servidor.";
 
-            alert(mensaje);
+            if (error.response?.data) {
+                const data = error.response.data;
+                if (typeof data === "string") {
+                    mensaje = data;
+                } else if (data.detail) {
+                    mensaje = data.detail;
+                } else {
+                    // Mostrar errores por campo del backend.
+                    const campos = Object.entries(data)
+                        .map(
+                            ([k, v]) =>
+                                `${k}: ${
+                                    Array.isArray(v)
+                                        ? v.join(", ")
+                                        : String(v)
+                                }`
+                        )
+                        .join(" | ");
+                    mensaje = campos || "No fue posible guardar el producto.";
+                }
+            }
+
+            setErrores({
+                backend: mensaje,
+                datos: {},
+                variantes: {},
+            });
+
+            // Si el error es de datos base, saltar a esa pestaña.
+            setTab("datos");
 
         }
 
@@ -535,6 +903,28 @@ function ProductForm({ product, onClose, onSaved }) {
 
     };
 
+    const onColorCreado = (nuevo) => {
+        setColores((prev) => [...prev, nuevo]);
+        // Auto-seleccionar el recién creado en todas las variantes.
+        setVariantes((prev) =>
+            prev.map((v) =>
+                !v.color ? { ...v, color: nuevo.id_color } : v
+            )
+        );
+    };
+
+    const onTallaCreada = (nuevo) => {
+        setTallas((prev) => [...prev, nuevo]);
+        setVariantes((prev) =>
+            prev.map((v) =>
+                !v.talla ? { ...v, talla: nuevo.id_talla } : v
+            )
+        );
+    };
+
+    const errDatos = errores.datos || {};
+    const errVars = errores.variantes || {};
+
     return (
 
         <div className="modal-overlay">
@@ -542,6 +932,7 @@ function ProductForm({ product, onClose, onSaved }) {
             <form
                 className="product-form"
                 onSubmit={handleSubmit}
+                noValidate
             >
 
                 <div className="modal-header">
@@ -615,11 +1006,31 @@ function ProductForm({ product, onClose, onSaved }) {
 
                     <>
 
+                        {errores.backend && (
+                            <div className="form-error-banner">
+                                <HelpCircle size={16} />
+                                <span>{errores.backend}</span>
+                            </div>
+                        )}
+
+                        {Object.keys(errDatos).length > 0 && (
+                            <div className="form-error-banner">
+                                <HelpCircle size={16} />
+                                <span>
+                                    Completa los campos marcados en rojo
+                                    antes de guardar.
+                                </span>
+                            </div>
+                        )}
+
                         <div className="form-grid">
 
                             <div className="form-group">
 
-                                <label>Nombre</label>
+                                <label>
+                                    Nombre
+                                    <LabelHelp texto="Nombre visible del producto para los clientes." />
+                                </label>
 
                                 <input
                                     type="text"
@@ -627,19 +1038,30 @@ function ProductForm({ product, onClose, onSaved }) {
                                     value={datos.nombre}
                                     onChange={handleDatosChange}
                                     placeholder="Nombre del producto"
+                                    className={errDatos.nombre ? "input-error" : ""}
                                     required
                                 />
+
+                                {errDatos.nombre && (
+                                    <span className="error-text">
+                                        {errDatos.nombre}
+                                    </span>
+                                )}
 
                             </div>
 
                             <div className="form-group">
 
-                                <label>Categoría</label>
+                                <label>
+                                    Categoría
+                                    <LabelHelp texto="Tipo de producto (Hombre, Mujer, Niño, etc.)." />
+                                </label>
 
                                 <select
                                     name="categoria_id"
                                     value={datos.categoria_id}
                                     onChange={handleDatosChange}
+                                    className={errDatos.categoria_id ? "input-error" : ""}
                                     required
                                 >
 
@@ -664,11 +1086,20 @@ function ProductForm({ product, onClose, onSaved }) {
 
                                 </select>
 
+                                {errDatos.categoria_id && (
+                                    <span className="error-text">
+                                        {errDatos.categoria_id}
+                                    </span>
+                                )}
+
                             </div>
 
                             <div className="form-group">
 
-                                <label>Precio</label>
+                                <label>
+                                    Precio
+                                    <LabelHelp texto="Precio en pesos colombianos (COP). Usa punto para decimales." />
+                                </label>
 
                                 <input
                                     type="number"
@@ -678,14 +1109,24 @@ function ProductForm({ product, onClose, onSaved }) {
                                     placeholder="0"
                                     min="0"
                                     step="0.01"
+                                    className={errDatos.precio ? "input-error" : ""}
                                     required
                                 />
+
+                                {errDatos.precio && (
+                                    <span className="error-text">
+                                        {errDatos.precio}
+                                    </span>
+                                )}
 
                             </div>
 
                             <div className="form-group">
 
-                                <label>Estado</label>
+                                <label>
+                                    Estado
+                                    <LabelHelp texto="Activo: visible en la tienda. Inactivo: oculto. Archivado: borrado lógico." />
+                                </label>
 
                                 <select
                                     name="estado"
@@ -705,7 +1146,10 @@ function ProductForm({ product, onClose, onSaved }) {
 
                         <div className="form-group">
 
-                            <label>Descripción</label>
+                            <label>
+                                Descripción
+                                <LabelHelp texto="Texto libre que verán los clientes en la página del producto." />
+                            </label>
 
                             <textarea
                                 rows="4"
@@ -719,7 +1163,10 @@ function ProductForm({ product, onClose, onSaved }) {
 
                         <div className="form-group">
 
-                            <label>Slug</label>
+                            <label>
+                                Slug
+                                <LabelHelp texto="Identificador único en la URL. Se genera automático desde el nombre." />
+                            </label>
 
                             <input
                                 type="text"
@@ -753,6 +1200,20 @@ function ProductForm({ product, onClose, onSaved }) {
 
                             </button>
 
+                            <button
+                                type="submit"
+                                className="save-button"
+                                disabled={submitting}
+                            >
+
+                                {submitting
+                                    ? "Guardando..."
+                                    : (modoEdicion
+                                        ? "Guardar cambios"
+                                        : "Guardar producto")}
+
+                            </button>
+
                         </div>
 
                     </>
@@ -769,6 +1230,20 @@ function ProductForm({ product, onClose, onSaved }) {
                             talla con su propio stock.
 
                         </p>
+
+                        {errores.backend && (
+                            <div className="form-error-banner">
+                                <HelpCircle size={16} />
+                                <span>{errores.backend}</span>
+                            </div>
+                        )}
+
+                        {errores.variantesGlobal && (
+                            <div className="form-error-banner">
+                                <HelpCircle size={16} />
+                                <span>{errores.variantesGlobal}</span>
+                            </div>
+                        )}
 
                         {variantes.length === 0 ? (
 
@@ -798,71 +1273,115 @@ function ProductForm({ product, onClose, onSaved }) {
 
                                 <tbody>
 
-                                    {variantes.map((v, i) => (
+                                    {variantes.map((v, i) => {
+
+                                        const errV = errVars[i] || {};
+
+                                        return (
 
                                         <tr key={v.tempId}>
 
                                             <td>
 
-                                                <select
-                                                    value={v.color}
-                                                    onChange={(e) =>
-                                                        handleVarianteChange(
-                                                            i,
-                                                            "color",
-                                                            e.target.value
-                                                        )
-                                                    }
-                                                >
+                                                <div className="select-with-add">
+                                                    <select
+                                                        value={v.color}
+                                                        onChange={(e) =>
+                                                            handleVarianteChange(
+                                                                i,
+                                                                "color",
+                                                                e.target.value
+                                                            )
+                                                        }
+                                                        className={errV.color ? "input-error" : ""}
+                                                    >
 
-                                                    <option value="">—</option>
+                                                        <option value="">—</option>
 
-                                                    {colores.map((c) => (
+                                                        {colores.map((c) => (
 
-                                                        <option
-                                                            key={c.id_color}
-                                                            value={c.id_color}
-                                                        >
+                                                            <option
+                                                                key={c.id_color}
+                                                                value={c.id_color}
+                                                            >
 
-                                                            {c.nombre}
+                                                                {c.nombre}
 
-                                                        </option>
+                                                            </option>
 
-                                                    ))}
+                                                        ))}
 
-                                                </select>
+                                                    </select>
+
+                                                    <button
+                                                        type="button"
+                                                        className="add-inline"
+                                                        title="Crear un nuevo color"
+                                                        onClick={() =>
+                                                            setModalCrear("color")
+                                                        }
+                                                    >
+                                                        +
+                                                    </button>
+                                                </div>
+
+                                                {errV.color && (
+                                                    <span className="error-text">
+                                                        {errV.color}
+                                                    </span>
+                                                )}
 
                                             </td>
 
                                             <td>
 
-                                                <select
-                                                    value={v.talla}
-                                                    onChange={(e) =>
-                                                        handleVarianteChange(
-                                                            i,
-                                                            "talla",
-                                                            e.target.value
-                                                        )
-                                                    }
-                                                >
+                                                <div className="select-with-add">
+                                                    <select
+                                                        value={v.talla}
+                                                        onChange={(e) =>
+                                                            handleVarianteChange(
+                                                                i,
+                                                                "talla",
+                                                                e.target.value
+                                                            )
+                                                        }
+                                                        className={errV.talla ? "input-error" : ""}
+                                                    >
 
-                                                    <option value="">—</option>
+                                                        <option value="">—</option>
 
-                                                    {tallas.map((t) => (
+                                                        {tallas.map((t) => (
 
-                                                        <option
-                                                            key={t.id_talla}
-                                                            value={t.id_talla}
-                                                        >
+                                                            <option
+                                                                key={t.id_talla}
+                                                                value={t.id_talla}
+                                                            >
 
-                                                            {t.nombre}
+                                                                {t.nombre}
 
-                                                        </option>
+                                                            </option>
 
-                                                    ))}
+                                                        ))}
 
-                                                </select>
+                                                    </select>
+
+                                                    <button
+                                                        type="button"
+                                                        className="add-inline"
+                                                        title="Crear una nueva talla"
+                                                        onClick={() =>
+                                                            setModalCrear("talla")
+                                                        }
+                                                    >
+                                                        +
+                                                    </button>
+                                                </div>
+
+                                                {errV.talla && (
+                                                    <span className="error-text">
+                                                        {errV.talla}
+                                                    </span>
+                                                )}
 
                                             </td>
 
@@ -879,7 +1398,14 @@ function ProductForm({ product, onClose, onSaved }) {
                                                         )
                                                     }
                                                     placeholder="SKU-001"
+                                                    className={errV.sku ? "input-error" : ""}
                                                 />
+
+                                                {errV.sku && (
+                                                    <span className="error-text">
+                                                        {errV.sku}
+                                                    </span>
+                                                )}
 
                                             </td>
 
@@ -896,7 +1422,14 @@ function ProductForm({ product, onClose, onSaved }) {
                                                             e.target.value
                                                         )
                                                     }
+                                                    className={errV.stock ? "input-error" : ""}
                                                 />
+
+                                                {errV.stock && (
+                                                    <span className="error-text">
+                                                        {errV.stock}
+                                                    </span>
+                                                )}
 
                                             </td>
 
@@ -916,7 +1449,7 @@ function ProductForm({ product, onClose, onSaved }) {
 
                                         </tr>
 
-                                    ))}
+                                    );})}
 
                                 </tbody>
 
@@ -958,6 +1491,20 @@ function ProductForm({ product, onClose, onSaved }) {
 
                             </button>
 
+                            <button
+                                type="submit"
+                                className="save-button"
+                                disabled={submitting}
+                            >
+
+                                {submitting
+                                    ? "Guardando..."
+                                    : (modoEdicion
+                                        ? "Guardar cambios"
+                                        : "Guardar producto")}
+
+                            </button>
+
                         </div>
 
                     </>
@@ -970,8 +1517,9 @@ function ProductForm({ product, onClose, onSaved }) {
 
                         <p className="tab-help">
 
-                            Pega la URL de cada imagen. La primera imagen de cada
-                            variante se marca como principal.
+                            Sube una imagen desde tu PC o pega una URL. La
+                            primera imagen de cada variante se marca como
+                            principal.
 
                         </p>
 
@@ -1081,21 +1629,32 @@ function ProductForm({ product, onClose, onSaved }) {
                                     <div className="image-input">
 
                                         <input
+                                            type="file"
+                                            accept="image/*"
+                                            ref={(el) => (fileInputsRef.current[i] = el)}
+                                            onChange={(e) =>
+                                                handleArchivoChange(
+                                                    i,
+                                                    e.target.files?.[0] || null
+                                                )
+                                            }
+                                        />
+
+                                        <span className="input-or">o</span>
+
+                                        <input
                                             type="url"
                                             placeholder="https://..."
                                             value={v.nuevaImagen}
                                             onChange={(e) =>
-                                                handleVarianteChange(
-                                                    i,
-                                                    "nuevaImagen",
-                                                    e.target.value
-                                                )
+                                                handleUrlChange(i, e.target.value)
                                             }
                                         />
 
                                         <button
                                             type="button"
                                             onClick={() => agregarImagen(i)}
+                                            disabled={!v.nuevoArchivo && !v.nuevaImagen.trim()}
                                         >
 
                                             <Plus size={16} />
@@ -1145,6 +1704,18 @@ function ProductForm({ product, onClose, onSaved }) {
                 )}
 
             </form>
+
+            {modalCrear && (
+                <MiniModalCrear
+                    tipo={modalCrear}
+                    onClose={() => setModalCrear(null)}
+                    onGuardado={
+                        modalCrear === "color"
+                            ? onColorCreado
+                            : onTallaCreada
+                    }
+                />
+            )}
 
         </div>
 

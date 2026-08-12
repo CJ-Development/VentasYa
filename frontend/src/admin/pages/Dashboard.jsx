@@ -5,8 +5,10 @@ import {
     ShoppingCart,
     Users,
     DollarSign,
+    ArrowUpRight,
     ArrowRight,
-    AlertTriangle
+    AlertTriangle,
+    RefreshCw
 } from "lucide-react";
 
 import { useEffect, useState } from "react";
@@ -15,68 +17,125 @@ import DashboardCard from "../components/DashboardCard";
 
 import api, { getLowStockVariants } from "../../services/api";
 
+
 const formatearPesos = (valor) => {
-    if (typeof valor !== "number" || Number.isNaN(valor)) return "$0";
+
+    if (
+        typeof valor !== "number" ||
+        Number.isNaN(valor)
+    ) {
+        return "$0";
+    }
+
     return `$${valor.toLocaleString("es-CO")}`;
+
 };
+
 
 function Dashboard() {
 
     const [stats, setStats] = useState({
+
         productos: null,
+
         pedidos: null,
+
         usuarios: null,
+
         ventasMes: null,
+
         ultimosPedidos: [],
+
         pocoStock: [],
+
     });
+
 
     const [loading, setLoading] = useState(true);
 
     const [error, setError] = useState(null);
 
+
     const cargarDatos = async () => {
 
         setLoading(true);
+
         setError(null);
+
 
         const inicioMes = new Date();
 
         inicioMes.setDate(1);
+
         inicioMes.setHours(0, 0, 0, 0);
+
 
         try {
 
-            const [productos, pedidos, usuarios, pocoStock] = await Promise.all([
+            const [
+                productos,
+                pedidos,
+                usuarios,
+                pocoStock
+            ] = await Promise.all([
+
                 api.get("products/"),
+
                 api.get("orders/"),
+
                 api.get("users/"),
+
                 getLowStockVariants(),
+
             ]);
+
 
             const compras = pedidos.data || [];
 
+
             const ventasMes = compras
-                .filter((compra) => new Date(compra.fecha_compra) >= inicioMes)
-                .reduce((acc, compra) => acc + Number(compra.total || 0), 0);
+
+                .filter(
+                    (compra) =>
+                        new Date(compra.fecha_compra) >= inicioMes
+                )
+
+                .reduce(
+                    (acc, compra) =>
+                        acc + Number(compra.total || 0),
+                    0
+                );
+
 
             setStats({
+
                 productos: productos.data?.length ?? 0,
+
                 pedidos: compras.length,
+
                 usuarios: usuarios.data?.length ?? 0,
+
                 ventasMes,
+
                 ultimosPedidos: compras.slice(0, 5),
+
                 pocoStock: pocoStock.data || [],
+
             });
 
         }
 
-        catch(err){
+
+        catch (err) {
 
             console.error(err);
-            setError("No fue posible cargar los datos del panel.");
+
+            setError(
+                "No fue posible cargar los datos del panel."
+            );
 
         }
+
 
         finally {
 
@@ -86,50 +145,108 @@ function Dashboard() {
 
     };
 
+
     useEffect(() => {
 
         cargarDatos();
 
     }, []);
 
+
+    const pedidosPendientes =
+        stats.ultimosPedidos.filter(
+            (p) => p.estado_compra === "pendiente"
+        ).length;
+
+
     const tarjetas = [
+
         {
-            icon: <Package size={28} />,
+
+            icon: <Package />,
+
             title: "Productos",
+
             value: stats.productos ?? "—",
-            extra: "Registrados en la tienda",
+
+            extra: "Productos registrados",
+
+            type: "products",
+
         },
+
         {
-            icon: <ShoppingCart size={28} />,
+
+            icon: <ShoppingCart />,
+
             title: "Pedidos",
+
             value: stats.pedidos ?? "—",
-            extra: `${stats.ultimosPedidos.filter((p) => p.estado_compra === "pendiente").length} pendientes`,
+
+            extra: `${pedidosPendientes} pendientes`,
+
+            type: "orders",
+
         },
+
         {
-            icon: <Users size={28} />,
+
+            icon: <Users />,
+
             title: "Usuarios",
+
             value: stats.usuarios ?? "—",
-            extra: "Cuentas activas",
+
+            extra: "Cuentas registradas",
+
+            type: "users",
+
         },
+
         {
-            icon: <DollarSign size={28} />,
+
+            icon: <DollarSign />,
+
             title: "Ventas",
-            value: formatearPesos(stats.ventasMes ?? 0),
-            extra: "Este mes",
+
+            value: formatearPesos(
+                stats.ventasMes ?? 0
+            ),
+
+            extra: "Ventas de este mes",
+
+            type: "sales",
+
         },
+
     ];
+
 
     if (loading) {
 
-        return <div className="dashboard">Cargando panel...</div>;
+        return (
+
+            <div className="dashboard-loading">
+
+                <RefreshCw size={22} />
+
+                Cargando panel...
+
+            </div>
+
+        );
 
     }
 
+
     return (
 
-        <div className="dashboard">
+        <main className="dashboard">
 
-            {/* ================= HEADER ================= */}
+
+            {/* =====================================
+                HEADER
+            ===================================== */}
 
             <section className="dashboard-header">
 
@@ -137,28 +254,30 @@ function Dashboard() {
 
                     <span className="dashboard-tag">
 
-                        Panel Administrativo
+                        Panel administrativo
 
                     </span>
 
+
                     <h1>
-
                         Resumen general
-
                     </h1>
 
+
                     <p>
-
-                        Administra productos, pedidos y usuarios de tu tienda desde un solo lugar.
-
+                        Gestiona y supervisa el funcionamiento
+                        de tu tienda desde un solo lugar.
                     </p>
 
                 </div>
+
 
                 <button
                     className="dashboard-button"
                     onClick={cargarDatos}
                 >
+
+                    <RefreshCw size={17} />
 
                     Actualizar
 
@@ -166,197 +285,366 @@ function Dashboard() {
 
             </section>
 
+
             {error && (
+
                 <div className="dashboard-error">
+
+                    <AlertTriangle size={18} />
+
                     {error}
+
                 </div>
+
             )}
 
-            {/* ================= TARJETAS ================= */}
+
+            {/* =====================================
+                TARJETAS
+            ===================================== */}
 
             <section className="dashboard-cards">
 
                 {tarjetas.map((tarjeta) => (
+
                     <DashboardCard
                         key={tarjeta.title}
                         icon={tarjeta.icon}
                         title={tarjeta.title}
                         value={tarjeta.value}
                         extra={tarjeta.extra}
+                        type={tarjeta.type}
                     />
+
                 ))}
 
             </section>
 
-            {/* ================= CONTENIDO ================= */}
+
+            {/* =====================================
+                CONTENIDO
+            ===================================== */}
 
             <section className="dashboard-grid">
 
-                {/* Últimos pedidos */}
+
+                {/* PEDIDOS */}
 
                 <div className="dashboard-panel">
 
                     <div className="panel-header">
 
-                        <h2>
+                        <div>
 
-                            Últimos pedidos
+                            <h2>
+                                Últimos pedidos
+                            </h2>
 
-                        </h2>
+                            <p>
+                                Actividad reciente de tu tienda
+                            </p>
 
-                        <button>
+                        </div>
+
+
+                        <button
+                            type="button"
+                            onClick={() =>
+                                window.location.href =
+                                    "/admin/orders"
+                            }
+                        >
 
                             Ver todos
 
-                            <ArrowRight size={18} />
+                            <ArrowRight size={17} />
 
                         </button>
 
                     </div>
 
-                    <table className="dashboard-table">
 
-                        <thead>
+                    <div className="table-wrapper">
 
-                            <tr>
+                        <table className="dashboard-table">
 
-                                <th>#</th>
-
-                                <th>Cliente</th>
-
-                                <th>Total</th>
-
-                                <th>Estado</th>
-
-                            </tr>
-
-                        </thead>
-
-                        <tbody>
-
-                            {stats.ultimosPedidos.length === 0 ? (
+                            <thead>
 
                                 <tr>
 
-                                    <td colSpan="4" style={{ textAlign: "center" }}>
+                                    <th>
+                                        Pedido
+                                    </th>
 
-                                        Aún no hay pedidos registrados.
+                                    <th>
+                                        Cliente
+                                    </th>
 
-                                    </td>
+                                    <th>
+                                        Total
+                                    </th>
+
+                                    <th>
+                                        Estado
+                                    </th>
 
                                 </tr>
 
-                            ) : (
-                                stats.ultimosPedidos.map((pedido) => {
+                            </thead>
 
-                                    const cliente = pedido.usuario_info
-                                        ? `${pedido.usuario_info.nombres} ${pedido.usuario_info.apellidos}`
-                                        : `Usuario #${pedido.usuario}`;
 
-                                    const estado = pedido.estado_compra || "pendiente";
+                            <tbody>
 
-                                    const claseEstado = {
-                                        pagado: "success",
-                                        pendiente: "warning",
-                                        enviado: "shipping",
-                                        entregado: "success",
-                                        cancelado: "danger",
-                                    }[estado] || "warning";
+                                {stats.ultimosPedidos.length === 0 ? (
 
-                                    return (
+                                    <tr>
 
-                                        <tr key={pedido.id_compra}>
+                                        <td
+                                            colSpan="4"
+                                            className="empty-table"
+                                        >
 
-                                            <td>#{pedido.id_compra}</td>
+                                            Aún no hay pedidos registrados.
 
-                                            <td>{cliente}</td>
+                                        </td>
 
-                                            <td>{formatearPesos(Number(pedido.total))}</td>
+                                    </tr>
 
-                                            <td>
+                                ) : (
 
-                                                <span className={`status ${claseEstado}`}>
+                                    stats.ultimosPedidos.map(
+                                        (pedido) => {
 
-                                                    {estado.charAt(0).toUpperCase() + estado.slice(1)}
+                                            const cliente =
+                                                pedido.usuario_info
 
-                                                </span>
+                                                    ? `${pedido.usuario_info.nombres} ${pedido.usuario_info.apellidos}`
 
-                                            </td>
+                                                    : `Usuario #${pedido.usuario}`;
 
-                                        </tr>
 
-                                    );
+                                            const estado =
+                                                pedido.estado_compra ||
+                                                "pendiente";
 
-                                })
-                            )}
 
-                        </tbody>
+                                            const claseEstado = {
 
-                    </table>
+                                                pagado: "success",
+
+                                                pendiente: "warning",
+
+                                                enviado: "shipping",
+
+                                                entregado: "success",
+
+                                                cancelado: "danger",
+
+                                            }[estado] || "warning";
+
+
+                                            return (
+
+                                                <tr
+                                                    key={
+                                                        pedido.id_compra
+                                                    }
+                                                >
+
+                                                    <td>
+
+                                                        <strong className="order-id">
+
+                                                            #{pedido.id_compra}
+
+                                                        </strong>
+
+                                                    </td>
+
+
+                                                    <td>
+
+                                                        <span className="client-name">
+
+                                                            {cliente}
+
+                                                        </span>
+
+                                                    </td>
+
+
+                                                    <td>
+
+                                                        <strong>
+
+                                                            {
+                                                                formatearPesos(
+                                                                    Number(
+                                                                        pedido.total
+                                                                    )
+                                                                )
+                                                            }
+
+                                                        </strong>
+
+                                                    </td>
+
+
+                                                    <td>
+
+                                                        <span
+                                                            className={
+                                                                `status ${claseEstado}`
+                                                            }
+                                                        >
+
+                                                            {
+                                                                estado
+                                                                    .charAt(0)
+                                                                    .toUpperCase()
+                                                                    +
+                                                                estado.slice(1)
+                                                            }
+
+                                                        </span>
+
+                                                    </td>
+
+                                                </tr>
+
+                                            );
+
+                                        }
+                                    )
+
+                                )}
+
+                            </tbody>
+
+                        </table>
+
+                    </div>
 
                 </div>
 
-                {/* Stock */}
 
-                <div className="dashboard-panel">
+
+                {/* STOCK */}
+
+                <div className="dashboard-panel stock-panel">
 
                     <div className="panel-header">
 
-                        <h2>
+                        <div>
 
-                            Poco stock
+                            <h2>
+                                Poco stock
+                            </h2>
 
-                        </h2>
+                            <p>
+                                Productos que requieren atención
+                            </p>
+
+                        </div>
 
                     </div>
+
 
                     <div className="stock-list">
 
                         {stats.pocoStock.length === 0 ? (
 
-                            <div className="stock-item">
+                            <div className="stock-empty">
+
+                                <div className="stock-empty-icon">
+
+                                    <Package size={20} />
+
+                                </div>
 
                                 <div>
 
-                                    <strong>Sin variantes con bajo stock</strong>
+                                    <strong>
+                                        Todo en orden
+                                    </strong>
 
-                                    <span>Todas las variantes tienen al menos 5 unidades.</span>
+                                    <span>
+                                        No hay variantes con bajo stock.
+                                    </span>
 
                                 </div>
 
                             </div>
 
                         ) : (
-                            stats.pocoStock.map((variante) => (
 
-                                <div
-                                    key={variante.id_variante}
-                                    className="stock-item"
-                                >
+                            stats.pocoStock.map(
+                                (variante) => (
 
-                                    <div>
+                                    <div
+                                        key={
+                                            variante.id_variante
+                                        }
+                                        className="stock-item"
+                                    >
 
-                                        <strong>
+                                        <div className="stock-product-icon">
 
-                                            {variante.producto_nombre}
+                                            <Package size={17} />
 
-                                        </strong>
+                                        </div>
 
-                                        <span>
 
-                                            SKU {variante.sku} — Quedan {variante.stock} unidades
+                                        <div className="stock-info">
 
-                                        </span>
+                                            <strong>
+
+                                                {
+                                                    variante.producto_nombre
+                                                }
+
+                                            </strong>
+
+                                            <span>
+
+                                                SKU {variante.sku}
+
+                                            </span>
+
+                                        </div>
+
+
+                                        <div
+                                            className={
+                                                `stock-number ${
+                                                    variante.stock <= 2
+                                                        ? "critical"
+                                                        : ""
+                                                }`
+                                            }
+                                        >
+
+                                            <strong>
+                                                {variante.stock}
+                                            </strong>
+
+                                            <span>
+                                                unidades
+                                            </span>
+
+                                        </div>
+
+
+                                        <AlertTriangle
+                                            size={18}
+                                            className="stock-warning"
+                                        />
 
                                     </div>
 
-                                    <AlertTriangle
-                                        color={variante.stock <= 2 ? "#dc2626" : "#d97706"}
-                                    />
+                                )
+                            )
 
-                                </div>
-
-                            ))
                         )}
 
                     </div>
@@ -365,10 +653,90 @@ function Dashboard() {
 
             </section>
 
-        </div>
+
+            {/* =====================================
+                RESUMEN INFERIOR
+            ===================================== */}
+
+            <section className="dashboard-bottom">
+
+                <div className="dashboard-bottom-card">
+
+                    <div className="bottom-icon">
+
+                        <ArrowUpRight size={20} />
+
+                    </div>
+
+                    <div>
+
+                        <span>
+                            Ventas del mes
+                        </span>
+
+                        <strong>
+                            {formatearPesos(
+                                stats.ventasMes ?? 0
+                            )}
+                        </strong>
+
+                    </div>
+
+                </div>
+
+
+                <div className="dashboard-bottom-card">
+
+                    <div className="bottom-icon">
+
+                        <ShoppingCart size={20} />
+
+                    </div>
+
+                    <div>
+
+                        <span>
+                            Pedidos registrados
+                        </span>
+
+                        <strong>
+                            {stats.pedidos ?? 0}
+                        </strong>
+
+                    </div>
+
+                </div>
+
+
+                <div className="dashboard-bottom-card">
+
+                    <div className="bottom-icon">
+
+                        <Users size={20} />
+
+                    </div>
+
+                    <div>
+
+                        <span>
+                            Usuarios
+                        </span>
+
+                        <strong>
+                            {stats.usuarios ?? 0}
+                        </strong>
+
+                    </div>
+
+                </div>
+
+            </section>
+
+        </main>
 
     );
 
 }
+
 
 export default Dashboard;

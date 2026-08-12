@@ -1,4 +1,5 @@
 import { Info, Sparkles, Tag, Flame, Crown, ArrowRight } from "lucide-react";
+import { Link } from "react-router-dom";
 import "./MegaMenu.css";
 
 /* =====================================================
@@ -8,21 +9,41 @@ import "./MegaMenu.css";
      destacado con CTA. Editable por el admin.
    - variant="ofertas":   promos, badges llamativos,
      gradiente y CTAs a /offers. Editable por el admin.
+
+   Cada item de menú tiene la forma { label, href, badge? }.
+   El href se resuelve a una ruta real para que React Router
+   monte la página correspondiente (/products, /hombre,
+   /categoria/<slug>, etc.). El componente MegaMenu no conoce
+   las rutas: solo renderiza {label, href}.
 ===================================================== */
+
+const itemHref = (label) => `/categoria/${label
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/\p{Diacritic}/gu, "")
+    .replace(/[^a-z0-9\s-]/g, "")
+    .trim()
+    .replace(/\s+/g, "-")}`;
+
+const toItem = (entry) =>
+    typeof entry === "string" ? { label: entry, href: itemHref(entry) } : { ...entry, href: entry.href || itemHref(entry.label) };
 
 const MENUS = {
     productos: {
         columns: [
             {
                 titulo: "Mujer",
+                href: "/mujer",
                 items: ["Vestidos", "Blusas", "Jeans", "Chaquetas", "Zapatos"],
             },
             {
                 titulo: "Hombre",
+                href: "/hombre",
                 items: ["Camisas", "Jeans", "Chaquetas", "Tenis", "Sudaderas"],
             },
             {
                 titulo: "Niños",
+                href: "/nino",
                 items: ["Niño", "Niña", "Bebés"],
             },
         ],
@@ -39,10 +60,10 @@ const MENUS = {
             {
                 titulo: "Flash 24h",
                 items: [
-                    { label: "Solo hoy", badge: "Hoy" },
-                    { label: "Últimas unidades", badge: "Stock" },
-                    { label: "Hasta 70% off", badge: "-70%" },
-                    { label: "Envío gratis", badge: "Free" },
+                    { label: "Solo hoy", href: "/offers", badge: "Hoy" },
+                    { label: "Últimas unidades", href: "/offers", badge: "Stock" },
+                    { label: "Hasta 70% off", href: "/offers", badge: "-70%" },
+                    { label: "Envío gratis", href: "/offers", badge: "Free" },
                 ],
             },
             {
@@ -85,21 +106,30 @@ function MegaMenu({ variant = "productos" }) {
             <div className="mega-menu-cols">
                 {data.columns.map((col) => (
                     <div className="mega-column" key={col.titulo}>
-                        <h3>
-                            {variant === "ofertas" && <Flame size={16} />}
-                            {col.titulo}
-                        </h3>
+                        {col.href ? (
+                            <Link to={col.href} className="mega-column-title">
+                                <h3>
+                                    {variant === "ofertas" && <Flame size={16} />}
+                                    {col.titulo}
+                                </h3>
+                            </Link>
+                        ) : (
+                            <h3>
+                                {variant === "ofertas" && <Flame size={16} />}
+                                {col.titulo}
+                            </h3>
+                        )}
                         {col.items.map((it, idx) => {
-                            const item = typeof it === "string" ? { label: it } : it;
+                            const item = toItem(it);
                             return (
-                                <a href="#" key={`${col.titulo}-${idx}`} className="mega-item">
+                                <Link to={item.href} key={`${col.titulo}-${idx}`} className="mega-item">
                                     <span>{item.label}</span>
                                     {item.badge && (
                                         <span className={`mega-badge mega-badge--${item.badge.toLowerCase().replace(/[^a-z0-9]/g, "")}`}>
                                             {item.badge}
                                         </span>
                                     )}
-                                </a>
+                                </Link>
                             );
                         })}
                     </div>

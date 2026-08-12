@@ -4,7 +4,17 @@ import api from "./api";
    PRODUCTOS
 =========================== */
 
-export const getProducts = () => api.get("/products/");
+export const getProducts = (params = {}) => {
+    const { signal, ...filters } = params || {};
+    const config = {};
+    if (Object.keys(filters).length > 0) {
+        config.params = filters;
+    }
+    if (signal) {
+        config.signal = signal;
+    }
+    return api.get("/products/", config);
+};
 
 export const getProduct = (id) => api.get(`/products/${id}/`);
 
@@ -44,11 +54,42 @@ export const updateVariantImage = (imageId, data) =>
 export const deleteVariantImage = (imageId) =>
     api.delete(`/products/imagenes/${imageId}/`);
 
+/* Subida de imagen con archivo (multipart/form-data). */
+
+export const uploadVariantImage = (variantId, formData) =>
+    api.post(
+        `/products/variantes/${variantId}/imagenes/`,
+        formData,
+        {
+            headers: {
+                "Content-Type": "multipart/form-data",
+            },
+        },
+    );
+
 /* Colores y tallas */
 
 export const getColors = () => api.get("/products/colores/");
 
+export const createColor = (data) =>
+    api.post("/products/colores/", data);
+
+export const updateColor = (id, data) =>
+    api.put(`/products/colores/${id}/`, data);
+
+export const deleteColor = (id) =>
+    api.delete(`/products/colores/${id}/`);
+
 export const getTallas = () => api.get("/products/tallas/");
+
+export const createTalla = (data) =>
+    api.post("/products/tallas/", data);
+
+export const updateTalla = (id, data) =>
+    api.put(`/products/tallas/${id}/`, data);
+
+export const deleteTalla = (id) =>
+    api.delete(`/products/tallas/${id}/`);
 
 
 /* ===========================

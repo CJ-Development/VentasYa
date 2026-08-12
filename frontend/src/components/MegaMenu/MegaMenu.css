@@ -1,335 +1,709 @@
 @import "../../styles/base/variables.css";
 
-.mega-menu{
+/* =========================================================
+   MEGA MENU
+========================================================= */
+
+.mega-menu {
     position: absolute;
+
     top: 100%;
     left: 0;
 
-    width: 100%;
+    width: min(1180px, 92vw);
 
-    background: var(--white);
-    padding: 36px 44px 50px;
+    background: #FFFFFF;
+
+    padding:
+        28px 30px 24px;
 
     display: grid;
 
-    grid-template-columns: 3fr 1.2fr;
-    grid-template-rows: 1fr auto;
-    gap: 36px 40px;
+    grid-template-columns:
+        minmax(0, 2.4fr)
+        minmax(280px, 1fr);
 
-    border: 1px solid var(--border);
-    border-top: 3px solid var(--primary);
-    border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+    grid-template-rows:
+        auto
+        auto;
 
-    box-shadow: var(--shadow-md);
+    gap:
+        26px 30px;
 
-    z-index: var(--z-dropdown);
+    border:
+        1px solid #E5E7EB;
 
-    animation: fadeMenu .3s ease;
+    border-top:
+        3px solid #0EA5B5;
+
+    border-radius:
+        0
+        0
+        18px
+        18px;
+
+    box-shadow:
+        0 25px 55px rgba(31, 41, 55, 0.13);
+
+    z-index: 1200;
+
+    animation:
+        fadeMenu
+        0.25s ease;
 }
 
-/* ====== VARIANTE OFERTAS ====== */
-.mega-menu--ofertas{
-    border-top-color: #E53935;
+/* =========================================================
+   OFERTAS
+========================================================= */
+
+.mega-menu--ofertas {
+    border-top-color: #FF7A00;
+
     background:
-        radial-gradient(circle at top right, rgba(229,57,53,0.07), transparent 50%),
-        var(--white);
+        radial-gradient(
+            circle at top right,
+            rgba(255, 122, 0, 0.07),
+            transparent 45%
+        ),
+        #FFFFFF;
 }
 
-.mega-menu-cols{
+/* =========================================================
+   COLUMNAS
+========================================================= */
+
+.mega-menu-cols {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 40px;
+
+    grid-template-columns:
+        repeat(3, 1fr);
+
+    gap: 32px;
 }
 
-.mega-column{
+/* =========================================================
+   COLUMNA
+========================================================= */
+
+.mega-column {
     display: flex;
+
     flex-direction: column;
-    gap: 12px;
+
+    gap: 5px;
 }
 
-.mega-column h3{
+/* =========================================================
+   TÍTULO COLUMNA
+========================================================= */
+
+.mega-column h3 {
     position: relative;
 
-    color: var(--primary);
-    font-size: 17px;
-    font-weight: var(--fw-semibold);
+    color: #1F2937;
+
+    font-size: 13px;
+
+    font-weight: 800;
+
     text-transform: uppercase;
+
     letter-spacing: 0.5px;
 
     display: flex;
+
     align-items: center;
-    gap: 8px;
+
+    gap: 7px;
 
     margin-bottom: 8px;
-    padding-bottom: 8px;
+
+    padding-bottom: 10px;
+
+    border-bottom:
+        1px solid #F0F1F2;
 }
 
-.mega-menu--ofertas .mega-column h3{
-    color: #C62828;
-}
-
-.mega-column h3::after{
+.mega-column h3::after {
     content: "";
 
     position: absolute;
+
     left: 0;
-    bottom: 0;
+    bottom: -1px;
 
-    width: 40px;
-    height: 3px;
+    width: 32px;
+    height: 2px;
 
-    background: var(--accent);
+    background: #0EA5B5;
+
     border-radius: 999px;
 }
 
-.mega-item{
+.mega-menu--ofertas .mega-column h3 {
+    color: #1F2937;
+}
+
+.mega-menu--ofertas .mega-column h3::after {
+    background: #FF7A00;
+}
+
+/* =========================================================
+   ITEMS
+========================================================= */
+
+.mega-item {
     position: relative;
 
     display: flex;
+
     align-items: center;
     justify-content: space-between;
 
-    color: var(--secondary);
-    text-decoration: none;
+    min-height: 34px;
 
-    font-size: 15px;
-    font-weight: var(--fw-regular);
+    color: #6B7280;
 
-    padding: 8px 12px;
-    border-radius: var(--radius-sm);
+    font-size: 13px;
 
-    transition: all var(--transition);
+    font-weight: 500;
+
+    padding:
+        6px 10px;
+
+    border-radius: 8px;
+
+    transition:
+        background 0.22s ease,
+        color 0.22s ease,
+        transform 0.22s ease,
+        padding-left 0.22s ease;
 }
 
-.mega-item:hover{
-    color: var(--primary);
+.mega-item:hover {
+    color: #0EA5B5;
 
-    background: var(--background);
+    background: #E8F7F8;
 
-    padding-left: 18px;
+    padding-left: 14px;
 
-    transform: translateX(4px);
+    transform: translateX(2px);
 }
 
-.mega-item::before{
+/* Indicador lateral */
+
+.mega-item::before {
     content: "";
 
     position: absolute;
+
     left: 0;
     top: 50%;
 
-    width: 4px;
+    width: 3px;
     height: 0;
 
-    background: var(--primary);
+    background: #0EA5B5;
 
-    border-radius: 10px;
-
-    transform: translateY(-50%);
-    transition: .25s;
-}
-
-.mega-item:hover::before{
-    height: 70%;
-}
-
-/* ====== BADGES (ofertas) ====== */
-.mega-badge{
-    font-size: 11px;
-    font-weight: 700;
-    padding: 3px 8px;
     border-radius: 999px;
-    background: #FFE0E0;
-    color: #C62828;
+
+    transform:
+        translateY(-50%);
+
+    transition:
+        height 0.2s ease;
+}
+
+.mega-item:hover::before {
+    height: 55%;
+}
+
+/* =========================================================
+   ITEMS OFERTAS
+========================================================= */
+
+.mega-menu--ofertas .mega-item:hover {
+    color: #FF7A00;
+
+    background: #FFF1E8;
+}
+
+.mega-menu--ofertas .mega-item::before {
+    background: #FF7A00;
+}
+
+/* =========================================================
+   BADGES
+========================================================= */
+
+.mega-badge {
+    display: inline-flex;
+
+    align-items: center;
+    justify-content: center;
+
+    min-width: 34px;
+
+    font-size: 9px;
+
+    font-weight: 800;
+
+    line-height: 1;
+
+    padding:
+        4px 7px;
+
+    border-radius: 999px;
+
+    background: #FFE7E0;
+
+    color: #FF6B6B;
+
     text-transform: uppercase;
-    letter-spacing: 0.5px;
+
+    letter-spacing: 0.3px;
+
     margin-left: 8px;
 }
+
+/* Badges principales */
 
 .mega-badge--70,
 .mega-badge--hoy,
 .mega-badge--free,
-.mega-badge--stock{
-    background: #E53935;
-    color: #fff;
+.mega-badge--stock {
+    background: #FF6B6B;
+
+    color: #FFFFFF;
 }
 
-/* ====== PANEL DESTACADO ====== */
-.mega-menu-panel{
-    grid-row: 1 / span 1;
+/* =========================================================
+   PANEL DESTACADO
+========================================================= */
+
+.mega-menu-panel {
+    grid-row:
+        1 / span 1;
+
     display: flex;
+
     flex-direction: column;
-    gap: 16px;
+
+    gap: 12px;
 }
 
-.mega-panel-head{
-    background: linear-gradient(160deg, #F4F7F5 0%, #E8F0EA 100%);
-    border-radius: 18px;
-    padding: 22px 22px 24px;
-    height: 100%;
+/* =========================================================
+   PANEL PRINCIPAL
+========================================================= */
+
+.mega-panel-head {
+    background:
+        linear-gradient(
+            145deg,
+            #EAF6F8 0%,
+            #F7FBFB 100%
+        );
+
+    border:
+        1px solid #E1F0F2;
+
+    border-radius: 16px;
+
+    padding:
+        20px;
+
+    min-height: 215px;
+
     display: flex;
+
     flex-direction: column;
-    gap: 10px;
+
+    gap: 9px;
+
+    overflow: hidden;
+
+    position: relative;
 }
 
-.mega-menu--ofertas .mega-panel-head{
-    background: linear-gradient(160deg, #FFE9E5 0%, #FFD2C9 100%);
+.mega-panel-head::after {
+    content: "";
+
+    position: absolute;
+
+    width: 110px;
+    height: 110px;
+
+    right: -35px;
+    bottom: -40px;
+
+    border-radius: 50%;
+
+    background:
+        rgba(14, 165, 181, 0.08);
+
+    pointer-events: none;
 }
 
-.mega-panel-tag{
+/* =========================================================
+   PANEL OFERTAS
+========================================================= */
+
+.mega-menu--ofertas .mega-panel-head {
+    background:
+        linear-gradient(
+            145deg,
+            #FFF0EB 0%,
+            #FFF9F7 100%
+        );
+
+    border-color:
+        #FFE0D6;
+}
+
+/* =========================================================
+   TAG
+========================================================= */
+
+.mega-panel-tag {
     display: inline-flex;
+
     align-items: center;
+
     gap: 6px;
-    background: #fff;
-    padding: 5px 12px;
-    border-radius: 999px;
-    font-size: 12px;
-    font-weight: 700;
-    color: var(--primary);
+
     width: fit-content;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.06);
-}
 
-.mega-menu--ofertas .mega-panel-tag{
-    color: #C62828;
-}
+    background: #FFFFFF;
 
-.mega-panel-head h4{
-    font-size: 22px;
+    padding:
+        5px 10px;
+
+    border-radius: 999px;
+
+    font-size: 10px;
+
     font-weight: 800;
+
+    color: #0EA5B5;
+
+    box-shadow:
+        0 3px 10px rgba(31, 41, 55, 0.06);
+}
+
+.mega-menu--ofertas .mega-panel-tag {
+    color: #FF6B6B;
+}
+
+/* =========================================================
+   TÍTULO PANEL
+========================================================= */
+
+.mega-panel-head h4 {
+    position: relative;
+
+    z-index: 1;
+
+    font-size: 19px;
+
+    font-weight: 800;
+
     line-height: 1.2;
-    color: var(--secondary);
-    margin-top: 4px;
+
+    color: #1F2937;
+
+    margin-top: 3px;
 }
 
-.mega-menu--ofertas .mega-panel-head h4{
-    color: #2E1A18;
-}
+/* =========================================================
+   DESCRIPCIÓN
+========================================================= */
 
-.mega-panel-head p{
-    font-size: 14px;
-    line-height: 1.5;
-    color: #5A6361;
-    flex: 1;
-}
+.mega-panel-head p {
+    position: relative;
 
-.mega-panel-cta{
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    padding: 10px 18px;
-    background: var(--primary);
-    color: #fff;
-    border-radius: 999px;
-    font-size: 14px;
-    font-weight: 700;
-    text-decoration: none;
-    width: fit-content;
-    transition: .25s;
-}
+    z-index: 1;
 
-.mega-menu--ofertas .mega-panel-cta{
-    background: #E53935;
-}
-
-.mega-panel-cta:hover{
-    transform: translateX(4px);
-    filter: brightness(0.95);
-}
-
-.mega-panel-extras{
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 10px;
-}
-
-.mega-mini{
-    background: #fff;
-    border: 1px solid var(--border);
-    border-radius: 14px;
-    padding: 12px;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-
-.mega-mini svg{
-    color: #E53935;
-    flex-shrink: 0;
-}
-
-.mega-mini strong{
-    display: block;
-    font-size: 13px;
-    color: var(--secondary);
-}
-
-.mega-mini small{
-    display: block;
-    font-size: 11px;
-    color: #888;
-}
-
-/* ====== NOTA ADMIN ====== */
-.mega-menu-note{
-    grid-column: 1 / -1;
-    display: flex;
-    align-items: center;
-    gap: 8px;
     font-size: 12px;
-    color: #7A8482;
-    background: #F4F7F5;
-    padding: 10px 14px;
-    border-radius: 10px;
-    border-left: 3px solid var(--primary);
+
+    line-height: 1.55;
+
+    color: #6B7280;
+
+    flex: 1;
+
+    max-width: 310px;
 }
 
-.mega-menu--ofertas .mega-menu-note{
-    background: #FFF5F3;
-    border-left-color: #E53935;
+/* =========================================================
+   CTA
+========================================================= */
+
+.mega-panel-cta {
+    position: relative;
+
+    z-index: 2;
+
+    display: inline-flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    gap: 7px;
+
+    width: fit-content;
+
+    padding:
+        9px 15px;
+
+    background: #0EA5B5;
+
+    color: #FFFFFF;
+
+    border-radius: 999px;
+
+    font-size: 11px;
+
+    font-weight: 800;
+
+    transition:
+        background 0.22s ease,
+        transform 0.22s ease,
+        box-shadow 0.22s ease;
 }
 
-.mega-menu-note svg{
-    color: var(--primary);
+.mega-menu--ofertas .mega-panel-cta {
+    background: #FF7A00;
+}
+
+.mega-panel-cta:hover {
+    background: #087F8C;
+
+    transform:
+        translateX(3px);
+
+    box-shadow:
+        0 7px 18px rgba(14, 165, 181, 0.20);
+}
+
+.mega-menu--ofertas .mega-panel-cta:hover {
+    background: #E96900;
+
+    box-shadow:
+        0 7px 18px rgba(255, 122, 0, 0.20);
+}
+
+/* =========================================================
+   EXTRAS
+========================================================= */
+
+.mega-panel-extras {
+    display: grid;
+
+    grid-template-columns:
+        1fr 1fr;
+
+    gap: 8px;
+}
+
+.mega-mini {
+    background: #FFFFFF;
+
+    border:
+        1px solid #E5E7EB;
+
+    border-radius: 12px;
+
+    padding:
+        10px;
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 8px;
+
+    transition:
+        border-color 0.2s ease,
+        transform 0.2s ease,
+        box-shadow 0.2s ease;
+}
+
+.mega-mini:hover {
+    border-color:
+        rgba(255, 122, 0, 0.30);
+
+    transform:
+        translateY(-2px);
+
+    box-shadow:
+        0 6px 15px rgba(31, 41, 55, 0.06);
+}
+
+.mega-mini svg {
+    color: #FF7A00;
+
     flex-shrink: 0;
 }
 
-.mega-menu--ofertas .mega-menu-note svg{
-    color: #E53935;
+.mega-mini strong {
+    display: block;
+
+    font-size: 11px;
+
+    color: #1F2937;
 }
 
-/* ====== ANIMACIÓN ====== */
-@keyframes fadeMenu{
-    from{
+.mega-mini small {
+    display: block;
+
+    font-size: 9px;
+
+    color: #9CA3AF;
+
+    margin-top: 2px;
+}
+
+/* =========================================================
+   NOTA ADMINISTRADOR
+========================================================= */
+
+.mega-menu-note {
+    grid-column:
+        1 / -1;
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 7px;
+
+    font-size: 10px;
+
+    color: #9CA3AF;
+
+    background: #F9FAFB;
+
+    padding:
+        8px 11px;
+
+    border-radius: 8px;
+
+    border-left:
+        2px solid #0EA5B5;
+}
+
+.mega-menu--ofertas .mega-menu-note {
+    background: #FFF9F7;
+
+    border-left-color:
+        #FF7A00;
+}
+
+.mega-menu-note svg {
+    color: #0EA5B5;
+
+    flex-shrink: 0;
+}
+
+.mega-menu--ofertas .mega-menu-note svg {
+    color: #FF7A00;
+}
+
+/* =========================================================
+   ANIMACIÓN
+========================================================= */
+
+@keyframes fadeMenu {
+
+    from {
         opacity: 0;
-        transform: translateY(18px);
+
+        transform:
+            translateY(8px);
     }
-    to{
+
+    to {
         opacity: 1;
-        transform: translateY(0);
+
+        transform:
+            translateY(0);
     }
 }
 
-/* ====== RESPONSIVE ====== */
-@media (max-width: 1100px){
-    .mega-menu{
-        grid-template-columns: 1fr;
-        padding: 28px 24px 30px;
+/* =========================================================
+   RESPONSIVE 1100
+========================================================= */
+
+@media (max-width: 1100px) {
+
+    .mega-menu {
+        width: min(900px, 90vw);
+
+        grid-template-columns:
+            1fr;
+
+        padding:
+            24px;
     }
-    .mega-menu-cols{
-        grid-template-columns: repeat(3, 1fr);
-        gap: 24px;
+
+    .mega-menu-cols {
+        grid-template-columns:
+            repeat(3, 1fr);
+
+        gap: 22px;
     }
-    .mega-menu-panel{
-        order: 2;
+
+    .mega-menu-panel {
+        grid-row: auto;
     }
 }
 
-@media (max-width: 700px){
-    .mega-menu-cols{
-        grid-template-columns: 1fr 1fr;
+/* =========================================================
+   RESPONSIVE 800
+========================================================= */
+
+@media (max-width: 800px) {
+
+    .mega-menu {
+        width: 90vw;
+
+        left: -10px;
     }
-    .mega-menu-panel{
+
+    .mega-menu-cols {
+        grid-template-columns:
+            repeat(2, 1fr);
+    }
+}
+
+/* =========================================================
+   RESPONSIVE 600
+========================================================= */
+
+@media (max-width: 600px) {
+
+    .mega-menu {
+        padding:
+            20px;
+    }
+
+    .mega-menu-cols {
+        grid-template-columns:
+            1fr 1fr;
+
+        gap: 18px;
+    }
+
+    .mega-menu-panel {
         display: none;
+    }
+
+    .mega-menu-note {
+        display: none;
+    }
+
+    .mega-item {
+        font-size: 12px;
     }
 }

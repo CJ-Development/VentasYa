@@ -1,187 +1,213 @@
-/*=========================================
-        DASHBOARD CARD
-=========================================*/
+/* =========================================================
+   DASHBOARD CARD
+========================================================= */
 
-.dashboard-card{
+.dashboard-card {
+    background: #FFFFFF;
 
-    background:#D8D4D5;
+    border-radius: 18px;
 
-    border-radius:22px;
+    padding: 22px;
 
-    padding:28px;
+    border: 1px solid #E5E7EB;
 
-    border:1px solid rgba(56,77,72,.08);
+    display: flex;
 
-    display:flex;
+    flex-direction: column;
 
-    flex-direction:column;
+    justify-content: space-between;
 
-    justify-content:space-between;
+    min-height: 175px;
 
-    transition:.30s ease;
+    transition: all 0.25s ease;
 
-    cursor:pointer;
+    cursor: pointer;
 
-    position:relative;
+    position: relative;
 
-    overflow:hidden;
+    overflow: hidden;
 
+    box-shadow: 0 5px 18px rgba(16, 42, 67, 0.045);
 }
 
-.dashboard-card::before{
+/* =========================================================
+   LÍNEA LATERAL
+========================================================= */
 
-    content:"";
+.dashboard-card::before {
+    content: "";
 
-    position:absolute;
+    position: absolute;
 
-    top:0;
+    top: 0;
+    left: 0;
 
-    left:0;
+    width: 3px;
+    height: 100%;
 
-    width:6px;
+    background: #0EA5B5;
 
-    height:100%;
-
-    background:#384D48;
-
-    transition:.30s;
-
+    transition: 0.25s ease;
 }
 
-.dashboard-card:hover{
+.dashboard-card:hover {
+    transform: translateY(-4px);
 
-    transform:translateY(-6px);
+    border-color: #D5E8EA;
 
-    border-color:#384D48;
-
-    background:#ECEAEA;
-
+    box-shadow: 0 10px 25px rgba(16, 42, 67, 0.08);
 }
 
-.dashboard-card:hover::before{
-
-    width:10px;
-
+.dashboard-card:hover::before {
+    width: 5px;
 }
 
-/*=========================================
-            PARTE SUPERIOR
-=========================================*/
+/* =========================================================
+   COLORES DIFERENTES POR TARJETA
+========================================================= */
 
-.card-top{
-
-    display:flex;
-
-    align-items:center;
-
-    gap:18px;
-
-    margin-bottom:25px;
-
+/* Productos */
+.dashboard-card:nth-child(1)::before {
+    background: #0EA5B5;
 }
 
-.card-icon{
-
-    width:62px;
-
-    height:62px;
-
-    border-radius:18px;
-
-    background:#384D48;
-
-    color:white;
-
-    display:flex;
-
-    align-items:center;
-
-    justify-content:center;
-
-    flex-shrink:0;
-
+/* Pedidos */
+.dashboard-card:nth-child(2)::before {
+    background: #FF7A2F;
 }
 
-.card-icon svg{
-
-    width:28px;
-
-    height:28px;
-
+/* Usuarios */
+.dashboard-card:nth-child(3)::before {
+    background: #65B96A;
 }
 
-.card-title{
-
-    font-size:1rem;
-
-    font-weight:600;
-
-    color:#6E7271;
-
+/* Ventas */
+.dashboard-card:nth-child(4)::before {
+    background: #062C3B;
 }
 
-/*=========================================
-            PARTE INFERIOR
-=========================================*/
+/* =========================================================
+   PARTE SUPERIOR
+========================================================= */
 
-.card-body{
+.card-top {
+    display: flex;
 
-    display:flex;
+    align-items: center;
 
-    flex-direction:column;
+    gap: 14px;
 
-    gap:8px;
-
+    margin-bottom: 18px;
 }
 
-.card-body h2{
+.card-icon {
+    width: 56px;
+    height: 56px;
 
-    font-size:2.4rem;
+    border-radius: 16px;
 
-    color:#384D48;
+    display: flex;
 
-    margin:0;
+    align-items: center;
 
-    font-weight:700;
+    justify-content: center;
 
-    line-height:1;
-
+    flex-shrink: 0;
 }
 
-.card-body p{
+/* Producto */
+.dashboard-card:nth-child(1) .card-icon {
+    background: #E8F7F8;
 
-    margin:0;
-
-    color:#6E7271;
-
-    font-size:.95rem;
-
+    color: #0EA5B5;
 }
 
-/*=========================================
-            RESPONSIVE
-=========================================*/
+/* Pedido */
+.dashboard-card:nth-child(2) .card-icon {
+    background: #FFF0E7;
 
-@media(max-width:768px){
-
-.dashboard-card{
-
-    padding:22px;
-
+    color: #FF7A2F;
 }
 
-.card-icon{
+/* Usuarios */
+.dashboard-card:nth-child(3) .card-icon {
+    background: #ECF8ED;
 
-    width:55px;
-
-    height:55px;
-
+    color: #65B96A;
 }
 
-.card-body h2{
+/* Ventas */
+.dashboard-card:nth-child(4) .card-icon {
+    background: #E8F1F4;
 
-    font-size:2rem;
-
+    color: #062C3B;
 }
 
+.card-icon svg {
+    width: 27px;
+
+    height: 27px;
+}
+
+.card-title {
+    font-size: 0.92rem;
+
+    font-weight: 600;
+
+    color: #64748B;
+}
+
+/* =========================================================
+   PARTE INFERIOR
+========================================================= */
+
+.card-body {
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 5px;
+}
+
+.card-body h2 {
+    font-size: 2rem;
+
+    color: #102A43;
+
+    margin: 0;
+
+    font-weight: 750;
+
+    line-height: 1.1;
+}
+
+.card-body p {
+    margin: 0;
+
+    color: #64748B;
+
+    font-size: 0.78rem;
+}
+
+/* =========================================================
+   RESPONSIVE
+========================================================= */
+
+@media (max-width: 768px) {
+
+    .dashboard-card {
+        padding: 20px;
+
+        min-height: 155px;
+    }
+
+    .card-icon {
+        width: 52px;
+
+        height: 52px;
+    }
+
+    .card-body h2 {
+        font-size: 1.8rem;
+    }
 }

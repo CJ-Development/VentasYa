@@ -1,77 +1,438 @@
+import {
+    ShoppingBag,
+    Tag,
+    Star,
+    Grid2X2,
+    Users,
+    BriefcaseBusiness,
+    ShieldCheck,
+    FileText,
+    CircleHelp,
+    Truck,
+    RotateCcw,
+    MessagesSquare,
+    Phone,
+    Mail,
+    MapPin
+} from "lucide-react";
+
+
 import "./Footer.css";
+
 import logo from "../../../assets/icons/Frame 1.png";
 
+
 function Footer() {
+
     return (
-        <footer className="footer">
+
+        <footer className="site-footer">
+            {/* =====================================================
+            FONDO NAVY (empieza justo debajo de la onda, no antes)
+            ===================================================== */}
+
+            <div
+            className="footer-bg"
+            aria-hidden="true"
+            ></div>
+
+
+            {/* =====================================================
+            ONDAS SUPERIORES
+            ===================================================== */}
+
+            <div
+            className="footer-waves"
+            aria-hidden="true"
+            >
+
+            <svg
+                viewBox="0 0 1440 200"
+                preserveAspectRatio="none"
+                width="100%"
+                height="100%"
+            >
+
+                <path
+                    d="M0,60 C300,130 400,-20 720,30 C1040,80 1140,130 1440,70 L1440,200 L0,200 Z"
+                    fill="#0EA5B5"
+                />
+
+                <path
+                    d="M0,90 C300,160 400,10 720,60 C1040,110 1140,160 1440,100 L1440,200 L0,200 Z"
+                    fill="#102A3A"
+                />
+
+            </svg>
+
+            </div>
+            {/* =====================================================
+                CONTENIDO PRINCIPAL
+            ===================================================== */}
 
             <div className="footer-container">
 
-                <div className="footer-grid">
 
-                    <div className="footer-brand">
+                {/* =================================================
+                    MARCA
+                ================================================= */}
 
-                        <img src={logo} alt="VentasYa" className="footer-logo" />
+                <div className="footer-brand">
 
-                        <p>
-                            En VentasYa encontrarás productos de calidad para tu hogar,
-                            tecnología, moda y mucho más, con envíos rápidos a toda Colombia.
-                        </p>
+                    <div className="footer-logo">
+
+                        <img
+                            src={logo}
+                            alt="VentasYa"
+                        />
 
                     </div>
 
-                    <div className="footer-column">
-                        <h3>Comprar</h3>
 
-                        <a href="#">Productos</a>
-                        <a href="#">Ofertas</a>
-                        <a href="#">Novedades</a>
-                        <a href="#">Categorías</a>
-                    </div>
+                    <p className="footer-description">
 
-                    <div className="footer-column">
-                        <h3>Empresa</h3>
+                        En VentasYa encontrarás productos de
+                        calidad para tu hogar, tecnología, moda
+                        y mucho más, con envíos rápidos a
+                        toda Colombia.
 
-                        <a href="#">Nosotros</a>
-                        <a href="#">Trabaja con nosotros</a>
-                        <a href="#">Política de privacidad</a>
-                        <a href="#">Términos y condiciones</a>
-                    </div>
+                    </p>
 
-                    <div className="footer-column">
-                        <h3>Ayuda</h3>
 
-                        <a href="#">Centro de ayuda</a>
-                        <a href="#">Envíos</a>
-                        <a href="#">Cambios y devoluciones</a>
-                        <a href="#">Preguntas frecuentes</a>
-                    </div>
+                    {/* =================================================
+                        REDES SOCIALES
+                    ================================================= */}
 
-                    <div className="footer-column">
-                        <h3>Contacto</h3>
+                    <div className="footer-socials">
 
-                        <p>📞 +57 300 123 4567</p>
-                        <p>✉ contacto@ventasya.com</p>
-                        <p>📍 Colombia</p>
+                        <a
+                            href="#"
+                            className="footer-social"
+                            aria-label="Facebook"
+                        >
+                        </a>
+
+
+                        <a
+                            href="#"
+                            className="footer-social"
+                            aria-label="Instagram"
+                        >
+                        </a>
+
+
+                        <a
+                            href="#"
+                            className="footer-social"
+                            aria-label="WhatsApp"
+                        >
+                        </a>
+
+
+                        <a
+                            href="#"
+                            className="footer-social"
+                            aria-label="TikTok"
+                        >
+                        </a>
 
                     </div>
 
                 </div>
 
-                <div className="footer-divider"></div>
 
-                <div className="footer-bottom">
+                {/* =================================================
+                    COMPRAR
+                ================================================= */}
+
+                <div className="footer-column">
+
+                    <h3>
+                        Comprar
+                    </h3>
+
+                    <span className="footer-title-line"></span>
+
+
+                    <a href="/products">
+
+                        <ShoppingBag />
+
+                        <span>
+                            Productos
+                        </span>
+
+                    </a>
+
+
+                    <a href="/ofertas">
+
+                        <Tag />
+
+                        <span>
+                            Ofertas
+                        </span>
+
+                    </a>
+
+
+                    <a href="/new">
+
+                        <Star />
+
+                        <span>
+                            Novedades
+                        </span>
+
+                    </a>
+
+
+                    <a href="/categorias">
+
+                        <Grid2X2 />
+
+                        <span>
+                            Categorías
+                        </span>
+
+                    </a>
+
+                </div>
+
+
+                {/* =================================================
+                    EMPRESA
+                ================================================= */}
+
+                <div className="footer-column">
+
+                    <h3>
+                        Empresa
+                    </h3>
+
+                    <span className="footer-title-line"></span>
+
+
+                    <a href="/nosotros">
+
+                        <Users />
+
+                        <span>
+                            Nosotros
+                        </span>
+
+                    </a>
+
+
+                    <a href="/trabaja-con-nosotros">
+
+                        <BriefcaseBusiness />
+
+                        <span>
+                            Trabaja con nosotros
+                        </span>
+
+                    </a>
+
+
+                    <a href="/politica-privacidad">
+
+                        <ShieldCheck />
+
+                        <span>
+                            Política de privacidad
+                        </span>
+
+                    </a>
+
+
+                    <a href="/terminos">
+
+                        <FileText />
+
+                        <span>
+                            Términos y condiciones
+                        </span>
+
+                    </a>
+
+                </div>
+
+
+                {/* =================================================
+                    AYUDA
+                ================================================= */}
+
+                <div className="footer-column">
+
+                    <h3>
+                        Ayuda
+                    </h3>
+
+                    <span className="footer-title-line"></span>
+
+
+                    <a href="/ayuda">
+
+                        <CircleHelp />
+
+                        <span>
+                            Centro de ayuda
+                        </span>
+
+                    </a>
+
+
+                    <a href="/envios">
+
+                        <Truck />
+
+                        <span>
+                            Envíos
+                        </span>
+
+                    </a>
+
+
+                    <a href="/cambios">
+
+                        <RotateCcw />
+
+                        <span>
+                            Cambios y devoluciones
+                        </span>
+
+                    </a>
+
+
+                    <a href="/preguntas">
+
+                        <MessagesSquare />
+
+                        <span>
+                            Preguntas frecuentes
+                        </span>
+
+                    </a>
+
+                </div>
+
+
+                {/* =================================================
+                    CONTACTO
+                ================================================= */}
+
+                <div className="footer-column footer-contact">
+
+                    <h3>
+                        Contacto
+                    </h3>
+
+                    <span className="footer-title-line"></span>
+
+
+                    <a href="tel:+573001234567">
+
+                        <Phone />
+
+                        <span>
+                            +57 300 123 4567
+                        </span>
+
+                    </a>
+
+
+                    <a href="mailto:contacto@ventasya.com">
+
+                        <Mail />
+
+                        <span>
+                            contacto@ventasya.com
+                        </span>
+
+                    </a>
+
+
+                    <div className="footer-contact-item">
+
+                        <MapPin />
+
+                        <span>
+                            Colombia
+                        </span>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            {/* =====================================================
+                PARTE INFERIOR
+            ===================================================== */}
+
+            <div className="footer-bottom">
+
+                <div className="footer-bottom-container">
+
+
+                    {/* COPYRIGHT */}
 
                     <p>
                         © 2026 VentasYa. Todos los derechos reservados.
                     </p>
 
-                    <div className="footer-payments">
 
-                        <span>Visa</span>
-                        <span>Mastercard</span>
-                        <span>PSE</span>
-                        <span>Nequi</span>
+                    {/* =================================================
+                        MÉTODOS DE PAGO
+                    ================================================= */}
+
+                    <div className="payment-methods">
+
+
+                        {/* VISA */}
+
+                        <div
+                            className="payment-card payment-visa"
+                            aria-label="Visa"
+                        >
+                            VISA
+                        </div>
+
+
+                        {/* MASTERCARD */}
+
+                        <div
+                            className="payment-card payment-mastercard"
+                            aria-label="Mastercard"
+                        >
+
+                            <span className="mastercard-circle red"></span>
+
+                            <span className="mastercard-circle yellow"></span>
+
+                        </div>
+
+
+                        {/* PSE */}
+
+                        <div
+                            className="payment-card payment-pse"
+                            aria-label="PSE"
+                        >
+                            PSE
+                        </div>
+
+
+                        {/* NEQUI */}
+
+                        <div
+                            className="payment-card payment-nequi"
+                            aria-label="Nequi"
+                        >
+                            Nequi
+                        </div>
 
                     </div>
 
@@ -80,7 +441,9 @@ function Footer() {
             </div>
 
         </footer>
+
     );
+
 }
 
 export default Footer;
