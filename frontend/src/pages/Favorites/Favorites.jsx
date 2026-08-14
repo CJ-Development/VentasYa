@@ -23,6 +23,7 @@ import ProductDetail from "../Products/ProductDetail/ProductDetail";
 import NoImage from "../../assets/images/no-image.png";
 
 import "./Favorites.css";
+import { useNotification } from "../../components/Notifications/NotificationProvider";
 
 const formatearPesos = (valor) => {
 
@@ -38,6 +39,8 @@ function Favorites() {
 
     const { usuario } = useAuth();
 
+    const { success, error: showError } = useNotification();
+
     const [favoritos, setFavoritos] = useState([]);
 
     const [loading, setLoading] = useState(true);
@@ -50,7 +53,7 @@ function Favorites() {
 
     const cargarFavoritos = async () => {
 
-        if (!usuario?.id_usuario) {
+        if (!usuario?.id) {
 
             setLoading(false);
 
@@ -62,7 +65,7 @@ function Favorites() {
 
             setLoading(true);
 
-            const { data } = await getMyFavorites(usuario.id_usuario);
+            const { data } = await getMyFavorites();
 
             setFavoritos(Array.isArray(data) ? data : []);
 
@@ -88,7 +91,7 @@ function Favorites() {
 
         cargarFavoritos();
 
-    }, [usuario?.id_usuario]);
+    }, [usuario?.id]);
 
     const quitarFavorito = async (fav) => {
 
@@ -106,7 +109,7 @@ function Favorites() {
 
             console.error(err);
 
-            alert("No se pudo quitar el favorito.");
+            showError("No se pudo quitar el favorito");
 
         } finally {
 
@@ -136,7 +139,7 @@ function Favorites() {
 
             try {
 
-                await addFavorite(usuario.id_usuario, productoId);
+                await addFavorite(productoId);
 
                 await cargarFavoritos();
 

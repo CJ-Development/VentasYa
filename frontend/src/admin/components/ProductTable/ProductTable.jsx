@@ -17,7 +17,7 @@ import {
     getCategories,
 } from "../../../services/adminService";
 
-const PLACEHOLDER = "https://via.placeholder.com/80?text=Sin+imagen";
+const PLACEHOLDER = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80' viewBox='0 0 80 80'%3E%3Crect width='80' height='80' fill='%23e5e7eb'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-family='Arial, sans-serif' font-size='10' fill='%236b7280'%3ESin imagen%3C/text%3E%3C/svg%3E";
 
 function obtenerPrimeraImagen(producto) {
 

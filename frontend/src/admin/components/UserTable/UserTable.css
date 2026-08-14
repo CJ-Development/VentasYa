@@ -6,7 +6,7 @@
 
     padding:30px;
 
-    box-shadow:var(--shadow-md);
+    box-shadow:0 15px 35px rgba(0,0,0,.08);
 
 }
 
@@ -38,7 +38,7 @@
 
 .table-header input:focus{
 
-    border-color:var(--primary);
+    border-color:#1a5d3c;
 
 }
 
@@ -62,7 +62,7 @@ th{
 
     text-align:left;
 
-    color:var(--secondary);
+    color:#1a5d3c;
 
 }
 
@@ -92,7 +92,7 @@ td{
 
     border-radius:8px;
 
-    background:var(--primary);
+    background:#1a5d3c;
 
     color:white;
 
@@ -102,6 +102,6 @@ td{
 
 .actions button:hover{
 
-    background:var(--secondary);
+    background:#2d6a4f;
 
 }

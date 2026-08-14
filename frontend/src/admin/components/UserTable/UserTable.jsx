@@ -15,10 +15,7 @@ import {
     deleteUser,
 } from "../../../services/adminService";
 
-const ROLES = [
-    { id: 1, nombre: "Cliente" },
-    { id: 2, nombre: "Administrador" },
-];
+
 
 const ESTADOS = ["activo", "inactivo"];
 
@@ -76,7 +73,7 @@ function UserTable({ refreshKey, onAction }) {
 
         try {
 
-            const { data } = await getUser(usuario.id_usuario);
+            const { data } = await getUser(usuario.id);
 
             setEditTarget(data);
 
@@ -90,7 +87,7 @@ function UserTable({ refreshKey, onAction }) {
                 fecha_nacimiento: data.fecha_nacimiento || "",
                 telefono: data.telefono || "",
                 estado: data.estado || "activo",
-                rol: data.rol || 1,
+                es_administrador: data.es_administrador || false,
 
             });
 
@@ -132,10 +129,10 @@ function UserTable({ refreshKey, onAction }) {
 
         try {
 
-            await updateUser(editTarget.id_usuario, {
+            await updateUser(editTarget.id, {
 
                 ...editForm,
-                rol: Number(editForm.rol),
+                es_administrador: Boolean(editForm.es_administrador),
 
             });
 
@@ -275,9 +272,9 @@ function UserTable({ refreshKey, onAction }) {
 
                         usuariosFiltrados.map((usuario) => (
 
-                            <tr key={usuario.id_usuario}>
+                            <tr key={usuario.id}>
 
-                                <td>{usuario.id_usuario}</td>
+                                <td>{usuario.id}</td>
 
                                 <td>
 
@@ -291,7 +288,7 @@ function UserTable({ refreshKey, onAction }) {
 
                                 <td>
 
-                                    {usuario.rol === 2
+                                    {usuario.es_administrador
 
                                         ? "Administrador"
 
@@ -314,7 +311,7 @@ function UserTable({ refreshKey, onAction }) {
                                     <button
                                         className="delete"
                                         title="Eliminar"
-                                        onClick={() => eliminarUsuario(usuario.id_usuario)}
+                                        onClick={() => eliminarUsuario(usuario.id)}
                                     >
                                         <Trash2 size={18} />
                                     </button>
@@ -462,19 +459,16 @@ function UserTable({ refreshKey, onAction }) {
 
                                 <div className="form-group">
 
-                                    <label>Rol</label>
+                                    <label>Administrador</label>
 
                                     <select
-                                        name="rol"
-                                        value={editForm.rol}
+                                        name="es_administrador"
+                                        value={editForm.es_administrador}
                                         onChange={handleEditChange}
                                     >
 
-                                        {ROLES.map((rol) => (
-                                            <option key={rol.id} value={rol.id}>
-                                                {rol.nombre}
-                                            </option>
-                                        ))}
+                                        <option value="false">No</option>
+                                        <option value="true">Sí</option>
 
                                     </select>
 

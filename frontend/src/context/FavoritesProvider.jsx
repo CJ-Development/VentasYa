@@ -41,7 +41,7 @@ function FavoritesProvider({ children }) {
         }
         try {
             setLoading(true);
-            const { data } = await getMyFavorites(uid);
+            const { data } = await getMyFavorites();
             setFavoritos(Array.isArray(data) ? data : []);
         } catch (err) {
             console.error("FavoritesProvider.cargar:", err);
@@ -52,12 +52,12 @@ function FavoritesProvider({ children }) {
     }, []);
 
     useEffect(() => {
-        const uid = usuario?.id_usuario || null;
+        const uid = usuario?.id || null;
         if (lastUserIdRef.current !== uid) {
             lastUserIdRef.current = uid;
             cargar(uid);
         }
-    }, [usuario?.id_usuario, cargar]);
+    }, [usuario?.id, cargar]);
 
     // Set de ids de productos favoritos para consultas rápidas
     const idsFavoritos = useMemo(() => {
@@ -91,7 +91,7 @@ function FavoritesProvider({ children }) {
     );
 
     const toggle = useCallback(async (productoId) => {
-        if (!usuario?.id_usuario) {
+        if (!usuario?.id) {
             return { ok: false, reason: "no-auth" };
         }
         const existente = favoritoDe(productoId);
@@ -104,17 +104,17 @@ function FavoritesProvider({ children }) {
                 await removeFavorite(existente.id_favorito);
                 return { ok: true, action: "removed" };
             } else {
-                await addFavorite(usuario.id_usuario, productoId);
-                await cargar(usuario.id_usuario);
+                await addFavorite(productoId);
+                await cargar(usuario.id);
                 return { ok: true, action: "added" };
             }
         } catch (err) {
             console.error("FavoritesProvider.toggle:", err);
             // Revertir cargando de nuevo
-            await cargar(usuario.id_usuario);
+            await cargar(usuario.id);
             return { ok: false, error: err };
         }
-    }, [usuario?.id_usuario, favoritoDe, cargar]);
+    }, [usuario?.id, favoritoDe, cargar]);
 
     const value = useMemo(
         () => ({
@@ -123,9 +123,9 @@ function FavoritesProvider({ children }) {
             isFavorite,
             favoritoDe,
             toggle,
-            recargar: () => cargar(usuario?.id_usuario),
+            recargar: () => cargar(usuario?.id),
         }),
-        [favoritos, loading, isFavorite, favoritoDe, toggle, cargar, usuario?.id_usuario]
+        [favoritos, loading, isFavorite, favoritoDe, toggle, cargar, usuario?.id]
     );
 
     return (

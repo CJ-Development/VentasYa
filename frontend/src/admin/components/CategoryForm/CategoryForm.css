@@ -64,7 +64,7 @@
 
 .modal-header h2{
 
-    color:var(--secondary);
+    color:#1a5d3c;
 
     font-size:1.8rem;
 
@@ -74,7 +74,7 @@
 
 .modal-header p{
 
-    color:var(--text-light);
+    color:#6E7271;
 
     font-size:.95rem;
 
@@ -148,7 +148,7 @@
 
     font-weight:600;
 
-    color:var(--secondary);
+    color:#1a5d3c;
 
 }
 
@@ -190,9 +190,9 @@
 
 .form-group textarea:focus{
 
-    border-color:var(--primary);
+    border-color:#1a5d3c;
 
-    box-shadow:0 0 0 4px rgba(51,103,105,.12);
+    box-shadow:0 0 0 4px rgba(26,93,60,.12);
 
 }
 
@@ -252,7 +252,7 @@ input[type="file"]{
 
 .save-button{
 
-    background:var(--primary);
+    background:#1a5d3c;
 
     color:#fff;
 
@@ -268,11 +268,17 @@ input[type="file"]{
 
     transition:.25s;
 
+    box-shadow:0 4px 12px rgba(26,93,60,0.3);
+
 }
 
 .save-button:hover{
 
-    background:var(--secondary);
+    background:#0f4a2e;
+
+    transform:translateY(-1px);
+
+    box-shadow:0 6px 16px rgba(26,93,60,0.4);
 
 }
 

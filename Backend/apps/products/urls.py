@@ -7,11 +7,11 @@ from .views import (
     LowStockVariantesView,
     ColorListView,
     ColorDetalleView,
-    TallaListView,
-    TallaDetalleView,
-    VariantesPorProductoView,
-    VarianteDetalleView,
-    ImagenesPorVarianteView,
+    ColorVariantListView,
+    ColorVariantDetailView,
+    SizeVariantListView,
+    SizeVariantDetailView,
+    ImagenesPorColorVariantView,
     ImagenDetalleView,
 )
 
@@ -29,16 +29,24 @@ urlpatterns = [
         ProductoReactivarView.as_view()
     ),
     path(
-        "<int:id>/variantes/",
-        VariantesPorProductoView.as_view()
+        "<int:id>/colores/",
+        ColorVariantListView.as_view()
     ),
     path(
-        "variantes/<int:variante_id>/",
-        VarianteDetalleView.as_view()
+        "colores/<int:variante_id>/",
+        ColorVariantDetailView.as_view()
     ),
     path(
-        "variantes/<int:variante_id>/imagenes/",
-        ImagenesPorVarianteView.as_view()
+        "colores/<int:color_variant_id>/tallas/",
+        SizeVariantListView.as_view()
+    ),
+    path(
+        "tallas/<int:size_variant_id>/",
+        SizeVariantDetailView.as_view()
+    ),
+    path(
+        "colores/<int:color_variant_id>/imagenes/",
+        ImagenesPorColorVariantView.as_view()
     ),
     path(
         "imagenes/<int:imagen_id>/",
@@ -49,20 +57,12 @@ urlpatterns = [
         LowStockVariantesView.as_view()
     ),
     path(
-        "colores/",
+        "colores-global/",
         ColorListView.as_view()
     ),
     path(
-        "colores/<int:id>/",
+        "colores-global/<int:id>/",
         ColorDetalleView.as_view()
-    ),
-    path(
-        "tallas/",
-        TallaListView.as_view()
-    ),
-    path(
-        "tallas/<int:id>/",
-        TallaDetalleView.as_view()
     ),
 ]
 

@@ -18,7 +18,7 @@ class MetodoPagoCatalogoSerializer(serializers.Serializer):
     MetodoPago de orders para mantener una sola fuente.
     """
 
-    id = serializers.IntegerField()
+    id = serializers.IntegerField(source="id_metodo_pago")
     tipo = serializers.CharField()
     detalle = serializers.CharField(allow_blank=True, allow_null=True)
 

@@ -4,7 +4,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from apps.products.models import Variante
+from apps.products.models import SizeVariant
 
 from .models import ItemCarrito
 from .serializers import CarritoSerializer, ItemCarritoSerializer
@@ -47,7 +47,7 @@ class CarritoView(APIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        variante = get_object_or_404(Variante, id_variante=variante_id)
+        variante = get_object_or_404(SizeVariant, id_size_variant=variante_id)
 
         carrito = CarritoService.obtener(request.user)
 

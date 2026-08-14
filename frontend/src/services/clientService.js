@@ -4,12 +4,11 @@ import api from "./api";
    CARRITO
 =========================== */
 
-export const getMyCart = (usuarioId) =>
-    api.get(`/cart/?usuario_id=${usuarioId}`);
+export const getMyCart = () =>
+    api.get(`/cart/`);
 
-export const addToCart = (usuarioId, varianteId, cantidad = 1) =>
+export const addToCart = (varianteId, cantidad = 1) =>
     api.post(`/cart/`, {
-        usuario_id: usuarioId,
         variante_id: varianteId,
         cantidad,
     });
@@ -25,8 +24,8 @@ export const removeFromCart = (itemId) =>
    PEDIDOS (cliente)
 =========================== */
 
-export const getMyOrders = (usuarioId) =>
-    api.get(`/orders/mis-pedidos/?usuario_id=${usuarioId}`);
+export const getMyOrders = () =>
+    api.get(`/orders/mis-pedidos/`);
 
 export const getOrderDetail = (id) =>
     api.get(`/orders/${id}/`);
@@ -44,11 +43,11 @@ export const getOffers = () =>
    FAVORITOS
 =========================== */
 
-export const getMyFavorites = (usuarioId) =>
-    api.get(`/favorites/?usuario_id=${usuarioId}`);
+export const getMyFavorites = () =>
+    api.get(`/favorites/`);
 
-export const addFavorite = (usuarioId, productoId) =>
-    api.post(`/favorites/`, { usuario_id: usuarioId, producto_id: productoId });
+export const addFavorite = (productoId) =>
+    api.post(`/favorites/`, { producto_id: productoId });
 
 export const removeFavorite = (idFavorito) =>
     api.delete(`/favorites/${idFavorito}/`);
@@ -58,8 +57,11 @@ export const removeFavorite = (idFavorito) =>
    USUARIO (perfil / settings)
 =========================== */
 
-export const updateMyProfile = (id, data) =>
-    api.put(`/users/${id}/`, data);
+export const getMyProfile = () =>
+    api.get(`/users/me/`);
 
-export const changePassword = (id, data) =>
-    api.post(`/users/${id}/cambiar-password/`, data);
+export const updateMyProfile = (data) =>
+    api.put(`/users/me/`, data);
+
+export const changePassword = (data) =>
+    api.post(`/users/me/cambiar-password/`, data);

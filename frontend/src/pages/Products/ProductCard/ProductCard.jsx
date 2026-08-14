@@ -212,7 +212,7 @@ function ProductCard({ product, onSelect }) {
             producto_slug: product.slug,
 
 
-            producto_precio: product.precio,
+            producto_precio: variante.precio_con_descuento || variante.precio,
 
 
             color:
@@ -401,27 +401,28 @@ function ProductCard({ product, onSelect }) {
 
                 <div className="product-price">
 
-                    {product.precio_anterior && (
-
-                        <span className="old-price">
-
-                            $
-                            {Number(
-                                product.precio_anterior
-                            ).toLocaleString("es-CO")}
-
+                    {product.oferta_activa && (
+                        <span className="offer-badge">
+                            {product.oferta_activa.tipo_descuento === 'porcentaje'
+                                ? `-${product.oferta_activa.valor}%`
+                                : `-$${Number(product.oferta_activa.valor).toLocaleString('es-CO')}`}
                         </span>
-
                     )}
 
+                    {product.oferta_activa && (
+                        <span className="old-price">
+                            $
+                            {Number(
+                                product.precio
+                            ).toLocaleString("es-CO")}
+                        </span>
+                    )}
 
                     <span className="current-price">
-
                         $
                         {Number(
                             product.precio
                         ).toLocaleString("es-CO")}
-
                     </span>
 
                 </div>

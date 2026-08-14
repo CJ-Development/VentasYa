@@ -11,8 +11,10 @@ function AuthProvider({ children }) {
     useEffect(() => {
 
         const usuarioGuardado = localStorage.getItem("usuario");
+        const accessToken = localStorage.getItem("access");
 
-        if (usuarioGuardado) {
+        // Solo restaurar sesión si hay usuario Y token
+        if (usuarioGuardado && accessToken) {
 
             setUsuario(JSON.parse(usuarioGuardado));
 
@@ -23,13 +25,22 @@ function AuthProvider({ children }) {
     }, []);
 
     const login = (data) => {
+        // Guardar tokens JWT
+        if (data.access) {
+            localStorage.setItem("access", data.access);
+        }
+        if (data.refresh) {
+            localStorage.setItem("refresh", data.refresh);
+        }
 
+        // Guardar datos del usuario
+        const usuarioData = data.usuario || data;
         localStorage.setItem(
             "usuario",
-            JSON.stringify(data)
+            JSON.stringify(usuarioData)
         );
 
-        setUsuario(data);
+        setUsuario(usuarioData);
 
     };
 
@@ -42,6 +53,8 @@ function AuthProvider({ children }) {
     const logout = () => {
 
         localStorage.removeItem("usuario");
+        localStorage.removeItem("access");
+        localStorage.removeItem("refresh");
 
         setUsuario(null);
 

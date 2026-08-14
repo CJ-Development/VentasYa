@@ -14,7 +14,6 @@ from .serializers import (
     LoginSerializer,
     PerfilUpdateSerializer,
     RegisterSerializer,
-    UsuarioAdminUpdateSerializer,
     UsuarioSerializer,
 )
 from .services import UserService
@@ -133,41 +132,25 @@ class UsuarioDetalleView(APIView):
 
     def get(self, request, id):
         usuario = get_object_or_404(Usuario, id_usuario=id)
-
         return Response(UsuarioSerializer(usuario).data)
 
     def put(self, request, id):
         usuario = get_object_or_404(Usuario, id_usuario=id)
-
-        serializer = UsuarioAdminUpdateSerializer(
-            usuario,
-            data=request.data,
-            partial=True,
-        )
+        serializer = PerfilUpdateSerializer(usuario, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
-        usuario = serializer.save()
-
-        # `estado` es la vista de negocio de `is_active`.
-        usuario.is_active = usuario.estado == "activo"
-        usuario.save(update_fields=["is_active"])
-
+        serializer.save()
         return Response(UsuarioSerializer(usuario).data)
 
     def delete(self, request, id):
         usuario = get_object_or_404(Usuario, id_usuario=id)
-
         if usuario.pk == request.user.pk:
             return Response(
                 {"detail": "No puedes desactivar tu propia cuenta."},
                 status=status.HTTP_400_BAD_REQUEST,
             )
-
-        # Baja lógica: conserva el histórico de compras del usuario.
-        usuario.estado = "inactivo"
         usuario.is_active = False
-        usuario.save(update_fields=["estado", "is_active"])
-
-        return Response({"estado": "inactivo"}, status=status.HTTP_200_OK)
+        usuario.save(update_fields=["is_active"])
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 class DireccionView(APIView):

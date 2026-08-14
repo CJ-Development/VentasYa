@@ -5,28 +5,28 @@ from .models import Carrito, ItemCarrito
 
 class ItemCarritoSerializer(serializers.ModelSerializer):
 
-    variante_id = serializers.IntegerField(source="variante.id_variante", read_only=True)
+    size_variant_id = serializers.IntegerField(source="size_variant.id_size_variant", read_only=True)
 
-    sku = serializers.CharField(source="variante.sku", read_only=True)
+    sku = serializers.CharField(source="size_variant.sku", read_only=True)
 
-    stock = serializers.IntegerField(source="variante.stock", read_only=True)
+    stock = serializers.IntegerField(source="size_variant.stock", read_only=True)
 
-    producto_id = serializers.IntegerField(source="variante.producto.id_producto", read_only=True)
+    producto_id = serializers.IntegerField(source="size_variant.color_variant.producto.id_producto", read_only=True)
 
-    producto_nombre = serializers.CharField(source="variante.producto.nombre", read_only=True)
+    producto_nombre = serializers.CharField(source="size_variant.color_variant.producto.nombre", read_only=True)
 
-    producto_slug = serializers.CharField(source="variante.producto.slug", read_only=True)
+    producto_slug = serializers.CharField(source="size_variant.color_variant.producto.slug", read_only=True)
 
     producto_precio = serializers.DecimalField(
-        source="variante.producto.precio",
+        source="size_variant.precio",
         max_digits=10,
         decimal_places=2,
         read_only=True,
     )
 
-    color = serializers.CharField(source="variante.color.nombre", read_only=True)
+    color = serializers.CharField(source="size_variant.color_variant.color.nombre", read_only=True)
 
-    talla = serializers.CharField(source="variante.talla.nombre", read_only=True)
+    talla = serializers.CharField(source="size_variant.talla", read_only=True)
 
     imagen = serializers.SerializerMethodField()
 
@@ -36,7 +36,7 @@ class ItemCarritoSerializer(serializers.ModelSerializer):
 
         fields = [
             "id_item",
-            "variante_id",
+            "size_variant_id",
             "sku",
             "stock",
             "producto_id",
@@ -51,12 +51,12 @@ class ItemCarritoSerializer(serializers.ModelSerializer):
 
     def get_imagen(self, obj):
 
-        principal = obj.variante.imagenproducto_set.filter(principal=True).first()
+        principal = obj.size_variant.color_variant.imagenproducto_set.filter(principal=True).first()
 
         if principal:
             return principal.imagen
 
-        primera = obj.variante.imagenproducto_set.order_by("orden", "id_imagen").first()
+        primera = obj.size_variant.color_variant.imagenproducto_set.order_by("orden", "id_imagen").first()
 
         return primera.imagen if primera else None
 

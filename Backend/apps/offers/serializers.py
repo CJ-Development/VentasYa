@@ -3,7 +3,13 @@ from rest_framework import serializers
 from .models import Oferta
 
 from apps.products.models import Producto
-from apps.products.serializers import ProductoSerializer
+
+
+class ProductoOfertaSerializer(serializers.ModelSerializer):
+    """Serializer simplificado para evitar importación circular"""
+    class Meta:
+        model = Producto
+        fields = ["id_producto", "nombre", "precio"]
 
 
 class OfertaSerializer(serializers.ModelSerializer):
@@ -16,7 +22,7 @@ class OfertaSerializer(serializers.ModelSerializer):
         write_only=True,
     )
 
-    producto_detalle = ProductoSerializer(source="producto", read_only=True)
+    producto_detalle = ProductoOfertaSerializer(source="producto", read_only=True)
 
     class Meta:
         model = Oferta

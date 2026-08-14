@@ -41,7 +41,7 @@ function UserMenu() {
         );
     }
 
-    const esAdmin = usuario.rol === 2;
+    const esAdmin = usuario.es_administrador;
 
     /* ==========================================
        USUARIO AUTENTICADO — ADMIN (rol === 2)

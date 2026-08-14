@@ -17,7 +17,7 @@ function AdminRoute({ children }) {
 
     }
 
-    if (usuario.rol !== 2) {
+    if (!usuario.es_administrador) {
 
         return <Navigate to="/" replace />;
 

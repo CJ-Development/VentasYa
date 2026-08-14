@@ -10,7 +10,7 @@
 
 .page-header h1{
 
-    color:var(--secondary);
+    color:#1a5d3c;
 
     margin-bottom:8px;
 
@@ -18,6 +18,6 @@
 
 .page-header p{
 
-    color:var(--text-light);
+    color:#6E7271;
 
 }

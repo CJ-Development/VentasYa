@@ -69,7 +69,7 @@ function CartProvider({ children }) {
 
             setLoading(true);
 
-            const { data } = await getMyCart(uid);
+            const { data } = await getMyCart();
 
             const lista = (data && data.items) || [];
 
@@ -107,7 +107,7 @@ function CartProvider({ children }) {
 
     useEffect(() => {
 
-        const uid = usuario?.id_usuario || null;
+        const uid = usuario?.id || null;
 
         // Solo recargar si cambia el id de usuario (login/logout)
         if (lastUserIdRef.current !== uid) {
@@ -118,7 +118,7 @@ function CartProvider({ children }) {
 
         }
 
-    }, [usuario?.id_usuario, cargar]);
+    }, [usuario?.id, cargar]);
 
     /* =====================================================
        AGREGAR
@@ -126,7 +126,7 @@ function CartProvider({ children }) {
 
     const addItem = useCallback(async (payload) => {
 
-        const uid = usuario?.id_usuario;
+        const uid = usuario?.id;
 
         if (!uid) {
 
@@ -143,7 +143,7 @@ function CartProvider({ children }) {
 
         try {
 
-            await addToCart(uid, payload.variante_id, payload.cantidad || 1);
+            await addToCart(payload.variante_id, payload.cantidad || 1);
 
             // Refrescar desde backend para tener la info completa
             await cargar(uid);
@@ -160,7 +160,7 @@ function CartProvider({ children }) {
 
         }
 
-    }, [usuario?.id_usuario, cargar]);
+    }, [usuario?.id, cargar]);
 
     /* =====================================================
        ACTUALIZAR CANTIDAD
@@ -168,7 +168,7 @@ function CartProvider({ children }) {
 
     const updateQty = useCallback(async (item, nuevaCantidad) => {
 
-        const uid = usuario?.id_usuario;
+        const uid = usuario?.id;
 
         const qty = Math.max(1, Number(nuevaCantidad || 1));
 
@@ -209,7 +209,7 @@ function CartProvider({ children }) {
 
         }
 
-    }, [usuario?.id_usuario, cargar]);
+    }, [usuario?.id, cargar]);
 
     /* =====================================================
        ELIMINAR
@@ -217,7 +217,7 @@ function CartProvider({ children }) {
 
     const removeItem = useCallback(async (item) => {
 
-        const uid = usuario?.id_usuario;
+        const uid = usuario?.id;
 
         // Optimista
         setItems((prev) => prev.filter((it) => !esMismoItem(it, item)));
@@ -250,7 +250,7 @@ function CartProvider({ children }) {
 
         }
 
-    }, [usuario?.id_usuario, cargar]);
+    }, [usuario?.id, cargar]);
 
     /* =====================================================
        LIMPIAR
@@ -258,7 +258,7 @@ function CartProvider({ children }) {
 
     const clear = useCallback(async () => {
 
-        const uid = usuario?.id_usuario;
+        const uid = usuario?.id;
 
         if (!uid) {
 
@@ -288,7 +288,7 @@ function CartProvider({ children }) {
 
         setItems([]);
 
-    }, [usuario?.id_usuario, items]);
+    }, [usuario?.id, items]);
 
     /* =====================================================
        SYNC AL LOGIN — sube items locales al backend
@@ -314,7 +314,7 @@ function CartProvider({ children }) {
 
             try {
 
-                await addToCart(uid, it.variante_id, it.cantidad || 1);
+                await addToCart(it.variante_id, it.cantidad || 1);
 
                 count++;
 
