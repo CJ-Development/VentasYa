@@ -4,6 +4,7 @@ from .views import (
     ProductoView,
     ProductoDetalleView,
     ProductoReactivarView,
+    ProductoCrearCompletoView,
     LowStockVariantesView,
     ColorListView,
     ColorDetalleView,
@@ -16,53 +17,88 @@ from .views import (
 )
 
 urlpatterns = [
+    # Productos
+    path(
+        "crear-completo/",
+        ProductoCrearCompletoView.as_view(),
+        name="producto-crear-completo"
+    ),
+
     path(
         "",
-        ProductoView.as_view()
+        ProductoView.as_view(),
+        name="productos"
     ),
+
     path(
         "<int:id>/",
-        ProductoDetalleView.as_view()
+        ProductoDetalleView.as_view(),
+        name="producto-detalle"
     ),
+
     path(
         "<int:id>/reactivar/",
-        ProductoReactivarView.as_view()
+        ProductoReactivarView.as_view(),
+        name="producto-reactivar"
     ),
+
+    # Variantes de color
     path(
-        "<int:id>/colores/",
-        ColorVariantListView.as_view()
+        "<int:producto_id>/colores/",
+        ColorVariantListView.as_view(),
+        name="producto-colores"
     ),
+
     path(
         "colores/<int:variante_id>/",
-        ColorVariantDetailView.as_view()
+        ColorVariantDetailView.as_view(),
+        name="color-variante-detalle"
     ),
+
+    # Tallas
     path(
         "colores/<int:color_variant_id>/tallas/",
-        SizeVariantListView.as_view()
+        SizeVariantListView.as_view(),
+        name="color-tallas"
     ),
+
     path(
         "tallas/<int:size_variant_id>/",
-        SizeVariantDetailView.as_view()
+        SizeVariantDetailView.as_view(),
+        name="talla-variante-detalle"
     ),
+
+    # Imágenes
     path(
         "colores/<int:color_variant_id>/imagenes/",
-        ImagenesPorColorVariantView.as_view()
+        ImagenesPorColorVariantView.as_view(),
+        name="color-imagenes"
     ),
+
     path(
         "imagenes/<int:imagen_id>/",
-        ImagenDetalleView.as_view()
+        ImagenDetalleView.as_view(),
+        name="imagen-detalle"
     ),
+
+    # Stock
     path(
         "low-stock/",
-        LowStockVariantesView.as_view()
+        LowStockVariantesView.as_view(),
+        name="low-stock"
     ),
+
+    # Catálogo de colores
     path(
         "colores-global/",
-        ColorListView.as_view()
+        ColorListView.as_view(),
+        name="colores-global"
     ),
+
     path(
         "colores-global/<int:id>/",
-        ColorDetalleView.as_view()
+        ColorDetalleView.as_view(),
+        name="color-global-detalle"
     ),
 ]
 

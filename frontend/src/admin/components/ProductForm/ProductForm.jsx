@@ -1,1756 +1,1164 @@
+import { useEffect, useMemo, useState } from "react";
+import {
+    X,
+    Plus,
+    Trash2,
+    Upload,
+    ChevronLeft,
+    ChevronRight,
+} from "lucide-react";
+
 import "./ProductForm.css";
 
-import { useEffect, useRef, useState } from "react";
-
-import { Plus, Star, Trash2, X, HelpCircle } from "lucide-react";
-
 import {
-    createProduct,
-    updateProduct,
     getCategories,
     getColors,
-    createColor,
-    createVariant,
-    updateVariant,
-    deleteVariant,
-    addVariantImage,
-    updateVariantImage,
-    deleteVariantImage,
-    uploadVariantImage,
-    getVariants,
+    crearProductoCompleto,
+    updateProduct,
 } from "../../../services/adminService";
 
-// Tallas estándar de Colombia
-const TALLAS_COLOMBIA = [
-    "XS", "S", "M", "L", "XL", "XXL", "XXXL",
-    "26", "28", "30", "32", "34", "36", "38", "40", "42", "44", "46"
-];
+const MAX_IMAGES = 3;
 
-const generarSlug = (texto) =>
-    texto
-        .toLowerCase()
-        .trim()
-        .normalize("NFD")
-        .replace(/[̀-ͯ]/g, "")
-        .replace(/[^a-z0-9\s-]/g, "")
-        .replace(/\s+/g, "-")
-        .replace(/-+/g, "-");
+const SIZES = ["XS", "S", "M", "L", "XL", "XXL", "Única"];
 
-const estadoInicialDatos = {
+const INITIAL_FORM = {
     nombre: "",
     categoria_id: "",
     descripcion: "",
     precio: "",
     estado: "activo",
+    variantes: [],
 };
 
-const colorVariantVacia = {
-    tempId: 0,
-    id_variante: null,
-    color: "",
+const newVariant = () => ({
+    id: crypto.randomUUID(),
+    color_id: "",
+    tallas: [],
     imagenes: [],
-    size_variants: [],  // Array de {talla, stock, sku}
+});
+
+const newSize = (talla) => ({
+    id: crypto.randomUUID(),
+    talla,
+    stock: 0,
+    sku: "",
+});
+
+const DIACRITICS = /[̀-ͯ]/g;
+
+const slugify = (text) =>
+    text
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(DIACRITICS, "")
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/^-|-$/g, "")
+        .slice(0, 50);
+
+const generateSku = (name, color, size) => {
+    const product = slugify(name)
+        .replace(/-/g, "")
+        .slice(0, 8)
+        .toUpperCase();
+
+    const colorCode =
+        color?.nombre
+            ?.normalize("NFD")
+            .replace(DIACRITICS, "")
+            .replace(/[^a-zA-Z0-9]/g, "")
+            .slice(0, 4)
+            .toUpperCase() || "CLR";
+
+    const sizeCode = String(size || "UNI")
+        .replace(/\s/g, "")
+        .toUpperCase();
+
+    return `${product}-${colorCode}-${sizeCode}-${Math.random()
+        .toString(36)
+        .slice(2, 6)
+        .toUpperCase()}`;
 };
 
-let tempCounter = 1;
+const buildVariantesFromProduct = (product) => {
+    if (!product?.color_variants) return [];
 
-/* =====================================================
-   Componente pequeño: signo "?" con tooltip que aparece
-   al pasar el mouse o al hacer focus (sin librerías).
-===================================================== */
-
-function LabelHelp({ texto }) {
-    return (
-        <span
-            className="label-help"
-            tabIndex={0}
-            role="tooltip"
-            aria-label={texto}
-        >
-            ?
-            <span className="label-help-bubble">
-                {texto}
-            </span>
-        </span>
-    );
-}
-
-/* =====================================================
-   Mini-modal para crear un color o talla en línea.
-===================================================== */
-
-function MiniModalCrear({ tipo, onClose, onGuardado }) {
-    const [nombre, setNombre] = useState("");
-    const [hex, setHex] = useState("#384D48");
-    const [guardando, setGuardando] = useState(false);
-
-    const handleGuardar = async (e) => {
-        e.preventDefault();
-
-        if (!nombre.trim()) return;
-
-        setGuardando(true);
-
-        try {
-            const payload =
-                tipo === "color"
-                    ? { nombre: nombre.trim(), codigo_hex: hex }
-                    : { nombre: nombre.trim() };
-
-            const { data } =
-                tipo === "color"
-                    ? await createColor(payload)
-                    : await createTalla(payload);
-
-            onGuardado(data);
-            onClose();
-        } catch (err) {
-            console.error(err);
-            alert(
-                tipo === "color"
-                    ? "No se pudo crear el color."
-                    : "No se pudo crear la talla."
-            );
-        } finally {
-            setGuardando(false);
-        }
-    };
-
-    return (
-        <div
-            className="inline-modal-backdrop"
-            onClick={onClose}
-        >
-            <div
-                className="inline-modal"
-                onClick={(e) => e.stopPropagation()}
-            >
-                <div className="inline-modal-header">
-                    <h4>
-                        {tipo === "color"
-                            ? "Nuevo color"
-                            : "Nueva talla"}
-                    </h4>
-                    <button
-                        type="button"
-                        className="close-button"
-                        onClick={onClose}
-                    >
-                        <X size={16} />
-                    </button>
-                </div>
-
-                <form onSubmit={handleGuardar}>
-                    <div className="form-group">
-                        <label>
-                            Nombre
-                            <LabelHelp texto="Nombre descriptivo (ej. Rojo, M, 38)." />
-                        </label>
-                        <input
-                            type="text"
-                            value={nombre}
-                            onChange={(e) => setNombre(e.target.value)}
-                            placeholder={
-                                tipo === "color"
-                                    ? "Verde militar"
-                                    : "Talla 38"
-                            }
-                            autoFocus
-                            required
-                        />
-                    </div>
-
-                    {tipo === "color" && (
-                        <div className="form-group">
-                            <label>
-                                Color (HEX)
-                                <LabelHelp texto="Código hexadecimal del color. Sirve para mostrarlo en catálogos." />
-                            </label>
-                            <div className="hex-input">
-                                <input
-                                    type="color"
-                                    value={hex}
-                                    onChange={(e) => setHex(e.target.value)}
-                                />
-                                <input
-                                    type="text"
-                                    value={hex}
-                                    onChange={(e) => setHex(e.target.value)}
-                                    placeholder="#384D48"
-                                />
-                            </div>
-                        </div>
-                    )}
-
-                    <div className="form-buttons">
-                        <button
-                            type="button"
-                            className="cancel-button"
-                            onClick={onClose}
-                            disabled={guardando}
-                        >
-                            Cancelar
-                        </button>
-                        <button
-                            type="submit"
-                            className="save-button"
-                            disabled={guardando}
-                        >
-                            {guardando ? "Guardando..." : "Guardar"}
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    );
-}
+    return product.color_variants.map((variant) => ({
+        id: crypto.randomUUID(),
+        color_id: variant.color?.id_color ?? "",
+        tallas: (variant.size_variants || []).map((size) => ({
+            id: crypto.randomUUID(),
+            talla: size.talla || "",
+            stock: size.stock ?? 0,
+            sku: size.sku || "",
+        })),
+        imagenes: (variant.imagenes || []).map((image) => ({
+            id: crypto.randomUUID(),
+            file: null,
+            preview: image.imagen,
+            principal: !!image.principal,
+            existing: true,
+        })),
+    }));
+};
 
 function ProductForm({ product, onClose, onSaved }) {
+    const isEdit = Boolean(product?.id_producto);
 
-    const modoEdicion = Boolean(product);
-
-    const [tab, setTab] = useState("datos");
-
+    const [form, setForm] = useState(INITIAL_FORM);
     const [categories, setCategories] = useState([]);
+    const [colors, setColors] = useState([]);
 
-    const [colores, setColores] = useState([]);
+    const [step, setStep] = useState(1);
+    const [loading, setLoading] = useState(true);
+    const [saving, setSaving] = useState(false);
+    const [error, setError] = useState("");
+    const [errors, setErrors] = useState({});
 
-    const [tallas, setTallas] = useState(TALLAS_COLOMBIA.map((nombre, index) => ({ id: index, nombre })));
+    const slug = useMemo(() => slugify(form.nombre), [form.nombre]);
 
-    const [datos, setDatos] = useState(estadoInicialDatos);
-
-    const [slug, setSlug] = useState("");
-
-    const [colorVariants, setColorVariants] = useState([]);
-
-    const [submitting, setSubmitting] = useState(false);
-
-    const [errores, setErrores] = useState({});
-
-    const [modalCrear, setModalCrear] = useState(null);
-
-    const fileInputsRef = useRef({});
-
-    useEffect(() => {
-        cargarListas();
-
-        if (product) {
-
-            setDatos({
-                nombre: product.nombre || "",
-                categoria_id: product.categoria?.id_categoria ?? "",
-                descripcion: product.descripcion || "",
-                precio: product.precio ?? "",
-                estado: product.estado || "activo",
-            });
-
-            setSlug(product.slug || "");
-
-            // Cargar color variants
-            setColorVariants(
-                (product.color_variants || []).map((cv) => ({
-                    tempId: tempCounter++,
-                    id_variante: cv.id_variante,
-                    color: cv.color?.id_color ? String(cv.color.id_color) : "",
-                    imagenes: cv.imagenes || [],
-                    size_variants: (cv.size_variants || []).map((sv) => ({
-                        id_size_variant: sv.id_size_variant,
-                        talla: sv.talla || "",
-                        stock: sv.stock ?? 0,
-                        sku: sv.sku || "",
-                    })),
-                }))
-            );
-
-        } else {
-
-            setDatos(estadoInicialDatos);
-            setSlug("");
-            setColorVariants([]);
-
-        }
-
-    }, [product]);
-
-    const cargarListas = async () => {
-
+    async function loadInitialData() {
         try {
-
-            const [cats, cols] = await Promise.all([
+            const [categoriesResponse, colorsResponse] = await Promise.all([
                 getCategories(),
                 getColors(),
             ]);
 
-            setCategories(cats.data);
-            setColores(cols.data);
-
-        }
-
-        catch (error) {
-
-            console.error(error);
-
-        }
-
-    };
-
-    const handleDatosChange = (e) => {
-
-        const { name, value } = e.target;
-
-        setDatos((prev) => {
-
-            const next = { ...prev, [name]: value };
-
-            if (name === "nombre") {
-
-                setSlug(generarSlug(value));
-
-            }
-
-            return next;
-
-        });
-
-        // Limpiar error de ese campo al editar.
-        if (errores[name]) {
-            setErrores((prev) => ({ ...prev, [name]: null }));
-        }
-
-    };
-
-    const agregarColorVariant = () => {
-        setColorVariants((prev) => [
-            ...prev,
-            {
-                ...colorVariantVacia,
-                tempId: tempCounter++,
-            },
-        ]);
-    };
-
-    const eliminarColorVariant = async (index) => {
-        const colorVariant = colorVariants[index];
-
-        if (colorVariant.id_variante) {
-            const confirmar = window.confirm(
-                "¿Eliminar este color y sus imágenes/tallas?"
-            );
-            if (!confirmar) return;
-
-            try {
-                // TODO: Implementar deleteColorVariant en adminService
-                // await deleteColorVariant(colorVariant.id_variante);
-            } catch (err) {
-                console.error(err);
-                alert("No se pudo eliminar el color.");
-                return;
-            }
-        }
-
-        setColorVariants((prev) => prev.filter((_, i) => i !== index));
-    };
-
-    const handleColorVariantChange = (index, campo, valor) => {
-        setColorVariants((prev) =>
-            prev.map((cv, i) => (i === index ? { ...cv, [campo]: valor } : cv))
-        );
-        setErrores((prev) => {
-            const colorVariantsErr = { ...(prev.color_variants || {}) };
-            delete colorVariantsErr[index]?.[campo];
-            return { ...prev, color_variants: colorVariantsErr };
-        });
-    };
-
-    const agregarSizeVariant = (colorIndex) => {
-        setColorVariants((prev) =>
-            prev.map((cv, i) => {
-                if (i === colorIndex) {
-                    return {
-                        ...cv,
-                        size_variants: [
-                            ...cv.size_variants,
-                            { id_size_variant: null, talla: "", stock: 0, sku: "" }
-                        ]
-                    };
-                }
-                return cv;
-            })
-        );
-    };
-
-    const eliminarSizeVariant = (colorIndex, sizeIndex) => {
-        setColorVariants((prev) =>
-            prev.map((cv, i) => {
-                if (i === colorIndex) {
-                    return {
-                        ...cv,
-                        size_variants: cv.size_variants.filter((_, j) => j !== sizeIndex)
-                    };
-                }
-                return cv;
-            })
-        );
-    };
-
-    const handleSizeVariantChange = (colorIndex, sizeIndex, campo, valor) => {
-        setColorVariants((prev) =>
-            prev.map((cv, i) => {
-                if (i === colorIndex) {
-                    return {
-                        ...cv,
-                        size_variants: cv.size_variants.map((sv, j) =>
-                            j === sizeIndex ? { ...sv, [campo]: valor } : sv
-                        )
-                    };
-                }
-                return cv;
-            })
-        );
-    };
-
-    const handleArchivoChange = (index, file) => {
-        setVariantes((prev) =>
-            prev.map((v, i) =>
-                i === index
-                    ? { ...v, nuevoArchivo: file, nuevaImagen: "" }
-                    : v
-            )
-        );
-    };
-
-    const handleUrlChange = (index, url) => {
-        setVariantes((prev) =>
-            prev.map((v, i) =>
-                i === index
-                    ? { ...v, nuevaImagen: url, nuevoArchivo: null }
-                    : v
-            )
-        );
-    };
-
-    const agregarImagen = async (index) => {
-
-        const variante = variantes[index];
-
-        const url = variante.nuevaImagen.trim();
-        const archivo = variante.nuevoArchivo;
-
-        if (!url && !archivo) return;
-
-        try {
-
-            if (archivo) {
-                // Subida real desde PC.
-                const fd = new FormData();
-                fd.append("archivo", archivo);
-                fd.append("principal", variante.imagenes.length === 0);
-                fd.append(
-                    "orden",
-                    String(variante.imagenes.length + 1)
-                );
-
-                if (variante.id_variante) {
-                    const { data } = await uploadVariantImage(
-                        variante.id_variante,
-                        fd
-                    );
-
-                    setVariantes((prev) =>
-                        prev.map((v, i) =>
-                            i === index
-                                ? {
-                                    ...v,
-                                    imagenes: [...v.imagenes, data],
-                                    nuevoArchivo: null,
-                                    nuevaImagen: "",
-                                }
-                                : v
-                        )
-                    );
-
-                    if (fileInputsRef.current[index]) {
-                        fileInputsRef.current[index].value = "";
-                    }
-                } else {
-                    // Pendiente: guardar al crear el producto.
-                    const previewUrl =
-                        URL.createObjectURL(archivo);
-
-                    setVariantes((prev) =>
-                        prev.map((v, i) =>
-                            i === index
-                                ? {
-                                    ...v,
-                                    nuevaImagen: "",
-                                    nuevoArchivo: null,
-                                    imagenes: [
-                                        ...v.imagenes,
-                                        {
-                                            imagen: previewUrl,
-                                            principal:
-                                                v.imagenes.length === 0,
-                                            pendiente: true,
-                                            archivo: archivo,
-                                        },
-                                    ],
-                                }
-                                : v
-                        )
-                    );
-
-                    if (fileInputsRef.current[index]) {
-                        fileInputsRef.current[index].value = "";
-                    }
-                }
-            } else {
-                // Compatibilidad: pegar URL.
-                if (variante.id_variante) {
-
-                    const { data } = await addVariantImage(
-                        variante.id_variante,
-                        {
-                            imagen: url,
-                            principal: variante.imagenes.length === 0,
-                            orden: variante.imagenes.length + 1,
-                        }
-                    );
-
-                    setVariantes((prev) =>
-                        prev.map((v, i) =>
-                            i === index
-                                ? {
-                                    ...v,
-                                    imagenes: [...v.imagenes, data],
-                                    nuevaImagen: "",
-                                }
-                                : v
-                        )
-                    );
-
-                } else {
-
-                    setVariantes((prev) =>
-                        prev.map((v, i) =>
-                            i === index
-                                ? {
-                                    ...v,
-                                    nuevaImagen: "",
-                                    imagenes: [
-                                        ...v.imagenes,
-                                        {
-                                            imagen: url,
-                                            principal:
-                                                v.imagenes.length === 0,
-                                        },
-                                    ],
-                                }
-                                : v
-                        )
-                    );
-
-                }
-            }
-
-        }
-
-        catch (err) {
-
-            console.error(err);
-
-            alert("No se pudo agregar la imagen.");
-
-        }
-
-    };
-
-    const eliminarImagen = async (varianteIndex, imagenIndex) => {
-
-        const variante = variantes[varianteIndex];
-
-        const imagen = variante.imagenes[imagenIndex];
-
-        if (imagen.id_imagen) {
-
-            try {
-
-                await deleteVariantImage(imagen.id_imagen);
-
-            }
-
-            catch (err) {
-
-                console.error(err);
-
-                alert("No se pudo eliminar la imagen.");
-
-                return;
-
-            }
-
-        }
-
-        setVariantes((prev) =>
-
-            prev.map((v, i) =>
-
-                i === varianteIndex
-                    ? {
-                        ...v,
-                        imagenes: v.imagenes.filter(
-                            (_, j) => j !== imagenIndex
-                        ),
-                    }
-                    : v
-
-            )
-
-        );
-
-    };
-
-    const marcarPrincipal = async (varianteIndex, imagenIndex) => {
-
-        const variante = variantes[varianteIndex];
-
-        const imagen = variante.imagenes[imagenIndex];
-
-        if (imagen.principal) return;
-
-        try {
-
-            if (imagen.id_imagen) {
-
-                await updateVariantImage(imagen.id_imagen, {
-                    principal: true,
+            setCategories(categoriesResponse.data || []);
+            setColors(colorsResponse.data || []);
+
+            if (isEdit && product) {
+                setForm({
+                    nombre: product.nombre || "",
+                    categoria_id: product.categoria?.id_categoria ?? "",
+                    descripcion: product.descripcion || "",
+                    precio: product.precio ?? "",
+                    estado: product.estado || "activo",
+                    variantes: buildVariantesFromProduct(product),
                 });
-
-                setVariantes((prev) =>
-
-                    prev.map((v, i) =>
-
-                        i === varianteIndex
-                            ? {
-                                ...v,
-                                imagenes: v.imagenes.map((img, j) => ({
-                                    ...img,
-                                    principal: j === imagenIndex,
-                                })),
-                            }
-                            : v
-
-                    )
-
-                );
-
-            } else {
-
-                if (!variante.id_variante) {
-
-                    alert(
-                        "Guarda primero el producto para poder marcar la imagen principal."
-                    );
-
-                    return;
-
-                }
-
-                const { data: nueva } = await addVariantImage(
-                    variante.id_variante,
-                    {
-                        imagen: imagen.imagen,
-                        principal: true,
-                        orden: variante.imagenes.length + 1,
-                    }
-                );
-
-                const anteriorPrincipal = variante.imagenes.find(
-                    (img) => img.principal && img.id_imagen
-                );
-
-                if (anteriorPrincipal) {
-
-                    await updateVariantImage(anteriorPrincipal.id_imagen, {
-                        principal: false,
-                    });
-
-                }
-
-                setVariantes((prev) =>
-
-                    prev.map((v, i) =>
-
-                        i === varianteIndex
-                            ? {
-                                ...v,
-                                imagenes: v.imagenes.map((img, j) => ({
-                                    ...img,
-                                    principal: j === imagenIndex,
-                                    ...(j === imagenIndex ? nueva : {}),
-                                })),
-                            }
-                            : v
-
-                    )
-
-                );
-
             }
-
-        }
-
-        catch (err) {
-
+        } catch (err) {
             console.error(err);
+            setError("No fue posible cargar categorías y colores.");
+        } finally {
+            setLoading(false);
+        }
+    }
 
-            alert("No se pudo marcar la imagen como principal.");
+    useEffect(() => {
+        const run = async () => {
+            await loadInitialData();
+        };
+        run();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
+    function updateField(field, value) {
+        setForm((prev) => ({
+            ...prev,
+            [field]: value,
+        }));
+
+        setErrors((prev) => ({
+            ...prev,
+            [field]: "",
+        }));
+    }
+
+    function addColor() {
+        setForm((prev) => ({
+            ...prev,
+            variantes: [...prev.variantes, newVariant()],
+        }));
+    }
+
+    function removeColor(id) {
+        setForm((prev) => ({
+            ...prev,
+            variantes: prev.variantes.filter((v) => v.id !== id),
+        }));
+    }
+
+    function updateColor(variantId, colorId) {
+        setForm((prev) => ({
+            ...prev,
+            variantes: prev.variantes.map((variant) =>
+                variant.id === variantId
+                    ? { ...variant, color_id: colorId }
+                    : variant
+            ),
+        }));
+    }
+
+    function addSize(variantId, talla) {
+        setForm((prev) => ({
+            ...prev,
+            variantes: prev.variantes.map((variant) => {
+                if (variant.id !== variantId) return variant;
+
+                if (variant.tallas.some((size) => size.talla === talla)) {
+                    return variant;
+                }
+
+                const color = colors.find(
+                    (item) =>
+                        Number(item.id_color) === Number(variant.color_id)
+                );
+
+                const size = newSize(talla);
+
+                size.sku = generateSku(
+                    prev.nombre,
+                    color,
+                    talla
+                );
+
+                return {
+                    ...variant,
+                    tallas: [...variant.tallas, size],
+                };
+            }),
+        }));
+    }
+
+    function removeSize(variantId, sizeId) {
+        setForm((prev) => ({
+            ...prev,
+            variantes: prev.variantes.map((variant) =>
+                variant.id === variantId
+                    ? {
+                          ...variant,
+                          tallas: variant.tallas.filter(
+                              (size) => size.id !== sizeId
+                          ),
+                      }
+                    : variant
+            ),
+        }));
+    }
+
+    function updateSize(variantId, sizeId, field, value) {
+        setForm((prev) => ({
+            ...prev,
+            variantes: prev.variantes.map((variant) =>
+                variant.id === variantId
+                    ? {
+                          ...variant,
+                          tallas: variant.tallas.map((size) =>
+                              size.id === sizeId
+                                  ? {
+                                        ...size,
+                                        [field]:
+                                            field === "stock"
+                                                ? Math.max(
+                                                      0,
+                                                      Number(value)
+                                                  )
+                                                : value,
+                                    }
+                                  : size
+                          ),
+                      }
+                    : variant
+            ),
+        }));
+    }
+
+    function addImage(variantId, file) {
+        if (!file) return;
+
+        setForm((prev) => ({
+            ...prev,
+            variantes: prev.variantes.map((variant) => {
+                if (variant.id !== variantId) return variant;
+
+                if (variant.imagenes.length >= MAX_IMAGES) {
+                    return variant;
+                }
+
+                return {
+                    ...variant,
+                    imagenes: [
+                        ...variant.imagenes,
+                        {
+                            id: crypto.randomUUID(),
+                            file,
+                            preview: URL.createObjectURL(file),
+                            principal:
+                                variant.imagenes.length === 0,
+                        },
+                    ],
+                };
+            }),
+        }));
+    }
+
+    function removeImage(variantId, imageId) {
+        setForm((prev) => ({
+            ...prev,
+            variantes: prev.variantes.map((variant) => {
+                if (variant.id !== variantId) return variant;
+
+                const images = variant.imagenes.filter(
+                    (image) => image.id !== imageId
+                );
+
+                if (
+                    images.length > 0 &&
+                    !images.some((image) => image.principal)
+                ) {
+                    images[0].principal = true;
+                }
+
+                return {
+                    ...variant,
+                    imagenes: images,
+                };
+            }),
+        }));
+    }
+
+    function setPrincipal(variantId, imageId) {
+        setForm((prev) => ({
+            ...prev,
+            variantes: prev.variantes.map((variant) =>
+                variant.id === variantId
+                    ? {
+                          ...variant,
+                          imagenes: variant.imagenes.map((image) => ({
+                              ...image,
+                              principal: image.id === imageId,
+                          })),
+                      }
+                    : variant
+            ),
+        }));
+    }
+
+    function validateBasic() {
+        const nextErrors = {};
+
+        if (!form.nombre.trim()) {
+            nextErrors.nombre = "El nombre es obligatorio.";
         }
 
-    };
-
-    /* =====================================================
-       VALIDACIÓN INLINE
-    ====================================================== */
-
-    const validar = () => {
-        const nuevosErrores = { datos: {}, variantes: {} };
-
-        if (!datos.nombre || !datos.nombre.trim()) {
-            nuevosErrores.datos.nombre = "El nombre del producto es obligatorio.";
+        if (!form.categoria_id) {
+            nextErrors.categoria_id = "Selecciona una categoría.";
         }
 
-        if (!datos.categoria_id) {
-            nuevosErrores.datos.categoria_id = "Debes seleccionar una categoría.";
+        if (!form.descripcion.trim()) {
+            nextErrors.descripcion = "La descripción es obligatoria.";
         }
 
-        if (!datos.descripcion || !datos.descripcion.trim()) {
-            nuevosErrores.datos.descripcion = "La descripción del producto es obligatoria.";
+        if (!form.precio || Number(form.precio) <= 0) {
+            nextErrors.precio = "El precio debe ser mayor que 0.";
         }
 
-        if (
-            datos.precio === "" ||
-            datos.precio === null ||
-            datos.precio === undefined ||
-            Number(datos.precio) <= 0
-        ) {
-            nuevosErrores.datos.precio = "El precio debe ser mayor a 0.";
+        setErrors(nextErrors);
+        return Object.keys(nextErrors).length === 0;
+    }
+
+    function validateVariants() {
+        const nextErrors = {};
+        const usedColors = new Set();
+        const usedSkus = new Set();
+
+        if (!form.variantes.length) {
+            nextErrors.general = "Agrega al menos un color.";
         }
 
-        if (variantes.length === 0) {
-            nuevosErrores.variantesGlobal = "Debes agregar al menos una variante (color + talla + SKU + stock).";
-        }
-
-        const skusVistos = new Set();
-
-        // Validar color variants
-        colorVariants.forEach((cv, i) => {
-            const err = {};
-
-            if (!cv.color) {
-                err.color = "Selecciona un color para esta variante.";
+        form.variantes.forEach((variant) => {
+            if (!variant.color_id) {
+                nextErrors[variant.id] = "Selecciona un color.";
+                return;
             }
 
-            // Validar size variants (tallas)
-            cv.size_variants.forEach((sv, j) => {
-                const svErr = {};
-                
-                if (!sv.talla || !sv.talla.trim()) {
-                    svErr.talla = "La talla es obligatoria.";
+            if (usedColors.has(Number(variant.color_id))) {
+                nextErrors[variant.id] = "Este color ya fue agregado.";
+            }
+
+            usedColors.add(Number(variant.color_id));
+
+            if (!variant.tallas.length) {
+                nextErrors[variant.id] = "Agrega al menos una talla.";
+            }
+
+            variant.tallas.forEach((size) => {
+                if (!size.sku) {
+                    nextErrors[size.id] = "El SKU es obligatorio.";
                 }
-                
-                if (!sv.sku || !sv.sku.trim()) {
-                    svErr.sku = "El SKU es obligatorio.";
-                } else if (skusVistos.has(sv.sku.trim())) {
-                    svErr.sku = "Este SKU ya está en uso.";
-                } else {
-                    skusVistos.add(sv.sku.trim());
+
+                if (usedSkus.has(size.sku)) {
+                    nextErrors[size.id] = "El SKU está repetido.";
                 }
-                
-                if (sv.stock === "" || sv.stock === null || sv.stock === undefined || Number(sv.stock) < 0) {
-                    svErr.stock = "El stock debe ser un número positivo.";
-                }
-                
-                if (Object.keys(svErr).length > 0) {
-                    if (!err.size_variants) err.size_variants = {};
-                    err.size_variants[j] = svErr;
-                }
+
+                usedSkus.add(size.sku);
             });
+        });
 
-            if (cv.size_variants.length === 0) {
-                err.size_variants = "Debes agregar al menos una talla.";
-            }
+        setErrors(nextErrors);
+        return Object.keys(nextErrors).length === 0;
+    }
 
-            if (Object.keys(err).length > 0) {
-                nuevosErrores.color_variants[i] = err;
+    function validateImages() {
+        const nextErrors = {};
+
+        form.variantes.forEach((variant) => {
+            if (!variant.imagenes.length) {
+                nextErrors[variant.id] =
+                    "Cada color debe tener al menos una imagen.";
             }
         });
 
-        return nuevosErrores;
-    };
+        setErrors(nextErrors);
+        return Object.keys(nextErrors).length === 0;
+    }
 
-    const handleSubmit = async (e) => {
+    function nextStep() {
+        setError("");
 
-        e.preventDefault();
+        if (step === 1 && validateBasic()) {
+            setStep(2);
+        } else if (step === 2 && validateVariants()) {
+            setStep(3);
+        }
+    }
 
-        const nuevosErrores = validar();
+    function previousStep() {
+        setError("");
+        setStep((current) => Math.max(1, current - 1));
+    }
 
-        const tieneErrores =
-            Object.keys(nuevosErrores.datos).length > 0 ||
-            nuevosErrores.variantesGlobal ||
-            Object.keys(nuevosErrores.variantes).length > 0;
+    function buildPayload() {
+        return {
+            nombre: form.nombre.trim(),
+            slug,
+            categoria_id: Number(form.categoria_id),
+            descripcion: form.descripcion.trim(),
+            precio: Number(form.precio),
+            estado: form.estado,
+            variantes: form.variantes.map((variant) => ({
+                color_id: Number(variant.color_id),
+                tallas: variant.tallas.map((size) => ({
+                    talla: size.talla,
+                    stock: Number(size.stock),
+                    sku: size.sku,
+                })),
+            })),
+        };
+    }
 
-        if (tieneErrores) {
-            setErrores(nuevosErrores);
+    async function handleSubmit(event) {
+        event.preventDefault();
+        setError("");
 
-            // Si hay error en Datos, saltar a esa pestaña.
-            if (Object.keys(nuevosErrores.datos).length > 0) {
-                setTab("datos");
-            } else {
-                setTab("variantes");
-            }
-
+        if (!validateBasic()) {
+            setStep(1);
             return;
         }
 
-        setErrores({});
-        setSubmitting(true);
+        if (!validateVariants()) {
+            setStep(2);
+            return;
+        }
+
+        if (!validateImages()) {
+            setStep(3);
+            return;
+        }
+
+        setSaving(true);
 
         try {
-
-            let productoId = product?.id_producto;
-
-            // Preparar color variants para enviar junto con el producto
-            const colorVariantsPayload = colorVariants.map(cv => {
-                const imagenesPayload = cv.imagenes.map(img => ({
-                    imagen: img.imagen || null,
-                    principal: img.principal || false,
-                    orden: cv.imagenes.indexOf(img) + 1,
-                }));
-                
-                const sizeVariantsPayload = cv.size_variants.map(sv => ({
-                    talla: sv.talla,
-                    stock: Number(sv.stock),
-                    sku: sv.sku,
-                    precio: Number(datos.precio),
-                }));
-                
-                return {
-                    color: cv.color ? Number(cv.color) : null,
-                    imagenes: imagenesPayload,
-                    size_variants_data: sizeVariantsPayload,
+            if (isEdit) {
+                const payload = {
+                    nombre: form.nombre.trim(),
+                    slug,
+                    categoria_id: Number(form.categoria_id),
+                    descripcion: form.descripcion.trim(),
+                    precio: Number(form.precio),
+                    estado: form.estado,
                 };
+
+                await updateProduct(product.id_producto, payload);
+
+                if (onSaved) {
+                    await onSaved();
+                }
+
+                onClose();
+                return;
+            }
+
+            const payload = buildPayload();
+            const formData = new FormData();
+
+            formData.append(
+                "data",
+                JSON.stringify(payload)
+            );
+
+            form.variantes.forEach((variant, variantIndex) => {
+                variant.imagenes.forEach((image, imageIndex) => {
+                    if (image.file) {
+                        formData.append(
+                            `imagen_${variantIndex}_${imageIndex}`,
+                            image.file
+                        );
+                    }
+                });
             });
 
-            const payloadProducto = {
-                nombre: datos.nombre,
-                categoria_id: Number(datos.categoria_id),
-                descripcion: datos.descripcion,
-                precio: Number(datos.precio),
-                slug: slug || generarSlug(datos.nombre),
-                estado: datos.estado,
-                color_variants_data: colorVariantsPayload,
-            };
+            await crearProductoCompleto(formData);
 
-            console.log("Enviando producto completo con variantes:", payloadProducto);
-
-            if (modoEdicion) {
-
-                await updateProduct(product.id_producto, payloadProducto);
-
-            } else {
-
-                const { data } = await createProduct(payloadProducto);
-
-                productoId = data.id_producto;
-
-                // Necesitamos obtener las variantes creadas para asignarles imágenes
-                const { data: variantesCreadas } = await getVariants(productoId);
-
-                // Mapear las variantes creadas con las del formulario
-                for (let i = 0; i < variantes.length; i++) {
-                    if (variantesCreadas[i]) {
-                        variantes[i].id_variante = variantesCreadas[i].id_variante;
-                    }
-                }
-
+            if (onSaved) {
+                await onSaved();
             }
-
-            // Procesar imágenes de las variantes
-            for (const v of variantes) {
-                const varianteId = v.id_variante;
-                if (!varianteId) continue;
-
-                for (const img of v.imagenes) {
-
-                    if (!img.id_imagen) {
-                        // Imagen pendiente (subida de archivo aún no enviada).
-                        if (img.archivo) {
-                            const fd = new FormData();
-                            fd.append("archivo", img.archivo);
-                            fd.append(
-                                "principal",
-                                String(Boolean(img.principal))
-                            );
-                            fd.append(
-                                "orden",
-                                String(v.imagenes.indexOf(img) + 1)
-                            );
-
-                            await uploadVariantImage(varianteId, fd);
-                        } else {
-                            await addVariantImage(varianteId, {
-                                imagen: img.imagen,
-                                principal: img.principal || false,
-                                orden: v.imagenes.indexOf(img) + 1,
-                            });
-                        }
-                    }
-
-                }
-            }
-
-            if (onSaved) await onSaved();
 
             onClose();
+        } catch (err) {
+            console.error("Error creando producto:", err);
 
-        }
+            const data = err?.response?.data;
 
-        catch (error) {
-
-            console.error("Error completo:", error);
-            console.error("Respuesta del servidor:", error.response?.data);
-
-            let mensaje = "No fue posible conectar con el servidor.";
-
-            if (error.response?.data) {
-                const data = error.response.data;
-                if (typeof data === "string") {
-                    mensaje = data;
-                } else if (data.detail) {
-                    mensaje = data.detail;
-                } else {
-                    // Mostrar errores por campo del backend.
-                    const campos = Object.entries(data)
-                        .map(
-                            ([k, v]) =>
-                                `${k}: ${
-                                    Array.isArray(v)
-                                        ? v.join(", ")
-                                        : String(v)
-                                }`
-                        )
-                        .join(" | ");
-                    mensaje = campos || "No fue posible guardar el producto.";
-                }
+            if (data?.detail) {
+                setError(data.detail);
+            } else if (typeof data === "object") {
+                setError(
+                    "No fue posible crear el producto. Revisa los datos enviados."
+                );
+            } else {
+                setError("No fue posible conectar con el servidor.");
             }
-
-            setErrores({
-                backend: mensaje,
-                datos: {},
-                variantes: {},
-            });
-
-            // Si el error es de datos base, saltar a esa pestaña.
-            setTab("datos");
-
+        } finally {
+            setSaving(false);
         }
+    }
 
-        finally {
-
-            setSubmitting(false);
-
-        }
-
-    };
-
-    const onColorCreado = (nuevo) => {
-        setColores((prev) => [...prev, nuevo]);
-        // Auto-seleccionar el recién creado en todas las variantes.
-        setVariantes((prev) =>
-            prev.map((v) =>
-                !v.color ? { ...v, color: nuevo.id_color } : v
-            )
+    if (loading) {
+        return (
+            <div className="modal-overlay">
+                <div className="product-form-loading">
+                    Cargando formulario...
+                </div>
+            </div>
         );
-    };
-
-    const onTallaCreada = (nuevo) => {
-        setTallas((prev) => [...prev, nuevo]);
-        setVariantes((prev) =>
-            prev.map((v) =>
-                !v.talla ? { ...v, talla: nuevo.id_talla } : v
-            )
-        );
-    };
-
-    const errDatos = errores.datos || {};
-    const errVars = errores.variantes || {};
+    }
 
     return (
-
         <div className="modal-overlay">
-
             <form
                 className="product-form"
                 onSubmit={handleSubmit}
                 noValidate
             >
-
-                <div className="modal-header">
-
+                <header className="product-form-header">
                     <div>
-
                         <h2>
-
-                            {modoEdicion ? "Editar producto" : "Nuevo producto"}
-
+                            {isEdit ? "Editar producto" : "Nuevo producto"}
                         </h2>
-
                         <p>
-
-                            {modoEdicion
+                            {isEdit
                                 ? "Modifica la información del producto."
-                                : "Completa los datos, variantes e imágenes."}
-
+                                : "Crea el producto, sus variantes e imágenes."}
                         </p>
-
                     </div>
 
                     <button
                         type="button"
-                        className="close-button"
+                        className="product-form-close"
                         onClick={onClose}
-                        disabled={submitting}
+                        disabled={saving}
                     >
-
                         <X size={20} />
-
                     </button>
+                </header>
 
-                </div>
+                <nav className="product-form-tabs">
+                    {["Datos", "Variantes", "Imágenes"].map(
+                        (label, index) => (
+                            <button
+                                key={label}
+                                type="button"
+                                className={step === index + 1 ? "active" : ""}
+                                onClick={() => {
+                                    if (index + 1 === 1) setStep(1);
 
-                <div className="tabs">
+                                    if (
+                                        index + 1 === 2 &&
+                                        validateBasic()
+                                    ) {
+                                        setStep(2);
+                                    }
 
-                    <button
-                        type="button"
-                        className={tab === "datos" ? "tab active" : "tab"}
-                        onClick={() => setTab("datos")}
-                    >
+                                    if (
+                                        index + 1 === 3 &&
+                                        validateBasic() &&
+                                        validateVariants()
+                                    ) {
+                                        setStep(3);
+                                    }
+                                }}
+                            >
+                                {index + 1}. {label}
+                            </button>
+                        )
+                    )}
+                </nav>
 
-                        Datos
+                {error && (
+                    <div className="product-form-error">
+                        {error}
+                    </div>
+                )}
 
-                    </button>
-
-                    <button
-                        type="button"
-                        className={tab === "variantes" ? "tab active" : "tab"}
-                        onClick={() => setTab("variantes")}
-                    >
-
-                        Variantes ({variantes.length})
-
-                    </button>
-
-                    <button
-                        type="button"
-                        className={tab === "imagenes" ? "tab active" : "tab"}
-                        onClick={() => setTab("imagenes")}
-                    >
-
-                        Imágenes
-
-                    </button>
-
-                </div>
-
-                {tab === "datos" && (
-
-                    <>
-
-                        {errores.backend && (
-                            <div className="form-error-banner">
-                                <HelpCircle size={16} />
-                                <span>{errores.backend}</span>
-                            </div>
-                        )}
-
-                        {Object.keys(errDatos).length > 0 && (
-                            <div className="form-error-banner">
-                                <HelpCircle size={16} />
-                                <span>
-                                    Completa los campos marcados en rojo
-                                    antes de guardar.
-                                </span>
-                            </div>
-                        )}
-
-                        <div className="form-grid">
-
-                            <div className="form-group">
-
-                                <label>
-                                    Nombre
-                                    <LabelHelp texto="Nombre visible del producto para los clientes." />
-                                </label>
-
-                                <input
-                                    type="text"
-                                    name="nombre"
-                                    value={datos.nombre}
-                                    onChange={handleDatosChange}
-                                    placeholder="Nombre del producto"
-                                    className={errDatos.nombre ? "input-error" : ""}
-                                    required
-                                />
-
-                                {errDatos.nombre && (
-                                    <span className="error-text">
-                                        {errDatos.nombre}
-                                    </span>
-                                )}
-
+                <div className="product-form-body">
+                    {step === 1 && (
+                        <section className="form-step">
+                            <div className="form-section-title">
+                                <h3>Información básica</h3>
+                                <p>
+                                    Datos generales del producto.
+                                </p>
                             </div>
 
-                            <div className="form-group">
-
-                                <label>
-                                    Categoría
-                                    <LabelHelp texto="Tipo de producto (Hombre, Mujer, Niño, etc.)." />
-                                </label>
-
-                                <select
-                                    name="categoria_id"
-                                    value={datos.categoria_id}
-                                    onChange={handleDatosChange}
-                                    className={errDatos.categoria_id ? "input-error" : ""}
-                                    required
+                            <div className="form-grid">
+                                <Field
+                                    label="Nombre"
+                                    error={errors.nombre}
+                                    full
                                 >
+                                    <input
+                                        value={form.nombre}
+                                        onChange={(e) =>
+                                            updateField(
+                                                "nombre",
+                                                e.target.value
+                                            )
+                                        }
+                                        placeholder="Ej. Camiseta Oversize"
+                                    />
+                                </Field>
 
-                                    <option value="">
-
-                                        Seleccione una categoría
-
-                                    </option>
-
-                                    {categories.map((c) => (
-
-                                        <option
-                                            key={c.id_categoria}
-                                            value={c.id_categoria}
-                                        >
-
-                                            {c.nombre}
-
+                                <Field
+                                    label="Categoría"
+                                    error={errors.categoria_id}
+                                >
+                                    <select
+                                        value={form.categoria_id}
+                                        onChange={(e) =>
+                                            updateField(
+                                                "categoria_id",
+                                                e.target.value
+                                            )
+                                        }
+                                    >
+                                        <option value="">
+                                            Seleccionar categoría
                                         </option>
 
-                                    ))}
+                                        {categories.map((category) => (
+                                            <option
+                                                key={category.id_categoria}
+                                                value={category.id_categoria}
+                                            >
+                                                {category.nombre}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </Field>
 
-                                </select>
-
-                                {errDatos.categoria_id && (
-                                    <span className="error-text">
-                                        {errDatos.categoria_id}
-                                    </span>
-                                )}
-
-                            </div>
-
-                            <div className="form-group">
-
-                                <label>
-                                    Precio
-                                    <LabelHelp texto="Precio en pesos colombianos (COP). Usa punto para decimales." />
-                                </label>
-
-                                <input
-                                    type="number"
-                                    name="precio"
-                                    value={datos.precio}
-                                    onChange={handleDatosChange}
-                                    placeholder="0"
-                                    min="0"
-                                    step="0.01"
-                                    className={errDatos.precio ? "input-error" : ""}
-                                    required
-                                />
-
-                                {errDatos.precio && (
-                                    <span className="error-text">
-                                        {errDatos.precio}
-                                    </span>
-                                )}
-
-                            </div>
-
-                            <div className="form-group">
-
-                                <label>
-                                    Estado
-                                    <LabelHelp texto="Activo: visible en la tienda. Inactivo: oculto." />
-                                </label>
-
-                                <select
-                                    name="estado"
-                                    value={datos.estado}
-                                    onChange={handleDatosChange}
+                                <Field
+                                    label="Precio"
+                                    error={errors.precio}
                                 >
+                                    <input
+                                        type="number"
+                                        min="0"
+                                        value={form.precio}
+                                        onChange={(e) =>
+                                            updateField(
+                                                "precio",
+                                                e.target.value
+                                            )
+                                        }
+                                        placeholder="89900"
+                                    />
+                                </Field>
 
-                                    <option value="activo">Activo</option>
-                                    <option value="inactivo">Inactivo</option>
+                                <Field
+                                    label="Descripción"
+                                    error={errors.descripcion}
+                                    full
+                                >
+                                    <textarea
+                                        rows="5"
+                                        value={form.descripcion}
+                                        onChange={(e) =>
+                                            updateField(
+                                                "descripcion",
+                                                e.target.value
+                                            )
+                                        }
+                                        placeholder="Describe el producto..."
+                                    />
+                                </Field>
 
-                                </select>
-
+                                <Field label="Slug" full>
+                                    <input value={slug} readOnly />
+                                    <small>
+                                        Se genera automáticamente.
+                                    </small>
+                                </Field>
                             </div>
 
-                        </div>
-
-                        <div className="form-group">
-
-                            <label>
-                                Descripción
-                                <LabelHelp texto="Texto libre que verán los clientes en la página del producto." />
-                            </label>
-
-                            <textarea
-                                rows="4"
-                                name="descripcion"
-                                value={datos.descripcion}
-                                onChange={handleDatosChange}
-                                placeholder="Descripción del producto"
+                            <Navigation
+                                next={nextStep}
+                                saving={saving}
                             />
-
-                        </div>
-
-                        <div className="form-group">
-
-                            <label>
-                                Slug
-                                <LabelHelp texto="Identificador único en la URL. Se genera automático desde el nombre." />
-                            </label>
-
-                            <input
-                                type="text"
-                                value={slug}
-                                readOnly
-                                placeholder="se-genera-desde-el-nombre"
-                            />
-
-                        </div>
-
-                        <div className="form-buttons">
-
-                            <button
-                                type="button"
-                                className="cancel-button"
-                                onClick={onClose}
-                                disabled={submitting}
-                            >
-
-                                Cancelar
-
-                            </button>
-
-                            <button
-                                type="button"
-                                className="next-button"
-                                onClick={() => setTab("variantes")}
-                            >
-
-                                Siguiente: Variantes
-
-                            </button>
-
-                        </div>
-
-                    </>
-
-                )}
-
-                {tab === "variantes" && (
-
-                    <>
-
-                        <p className="tab-help">
-
-                            Cada variante es una combinación específica de color y
-                            talla con su propio stock.
-
-                        </p>
-
-                        {errores.backend && (
-                            <div className="form-error-banner">
-                                <HelpCircle size={16} />
-                                <span>{errores.backend}</span>
-                            </div>
-                        )}
-
-                        {errores.variantesGlobal && (
-                            <div className="form-error-banner">
-                                <HelpCircle size={16} />
-                                <span>{errores.variantesGlobal}</span>
-                            </div>
-                        )}
-
-                        {variantes.length === 0 ? (
-
-                            <p className="empty-state">
-
-                                Aún no agregaste variantes.
-
-                            </p>
-
-                        ) : (
-
-                            <table className="variants-table">
-
-                                <thead>
-
-                                    <tr>
-
-                                        <th>
-                                            Color
-                                            <LabelHelp texto="Color de la variante (ej: Rojo, Azul, Negro)." />
-                                        </th>
-                                        <th>
-                                            Talla
-                                            <LabelHelp texto="Talla disponible (puedes seleccionar varias)." />
-                                        </th>
-                                        <th>
-                                            SKU
-                                            <LabelHelp texto="Código único de identificación del producto." />
-                                        </th>
-                                        <th>
-                                            Stock
-                                            <LabelHelp texto="Cantidad disponible en inventario." />
-                                        </th>
-                                        <th></th>
-
-                                    </tr>
-
-                                </thead>
-
-                                <tbody>
-
-                                    {variantes.map((v, i) => {
-
-                                        const errV = errVars[i] || {};
-
-                                        return (
-
-                                        <tr key={v.tempId}>
-
-                                            <td>
-
-                                                <div className="select-with-add">
-                                                    <select
-                                                        value={v.color}
-                                                        onChange={(e) =>
-                                                            handleVarianteChange(
-                                                                i,
-                                                                "color",
-                                                                e.target.value
-                                                            )
-                                                        }
-                                                        className={errV.color ? "input-error" : ""}
-                                                    >
-
-                                                        <option value="">—</option>
-
-                                                        {colores.map((c) => (
-
-                                                            <option
-                                                                key={c.id_color}
-                                                                value={c.id_color}
-                                                            >
-
-                                                                {c.nombre}
-
-                                                            </option>
-
-                                                        ))}
-
-                                                    </select>
-
-                                                    <button
-                                                        type="button"
-                                                        className="add-inline"
-                                                        title="Crear un nuevo color"
-                                                        onClick={() =>
-                                                            setModalCrear("color")
-                                                        }
-                                                    >
-                                                        +
-                                                    </button>
-                                                </div>
-
-                                                {errV.color && (
-                                                    <span className="error-text">
-                                                        {errV.color}
-                                                    </span>
-                                                )}
-
-                                            </td>
-
-                                            <td>
-
-                                                <div className="talla-buttons">
-                                                    {tallas.map((t) => (
-                                                        <button
-                                                            key={t.id}
-                                                            type="button"
-                                                            className={`talla-button ${v.tallas.includes(t.nombre) ? 'active' : ''}`}
-                                                            onClick={() => {
-                                                                const tallasActuales = [...v.tallas];
-                                                                if (tallasActuales.includes(t.nombre)) {
-                                                                    handleVarianteChange(
-                                                                        i,
-                                                                        "tallas",
-                                                                        tallasActuales.filter(nombre => nombre !== t.nombre)
-                                                                    );
-                                                                } else {
-                                                                    handleVarianteChange(
-                                                                        i,
-                                                                        "tallas",
-                                                                        [...tallasActuales, t.nombre]
-                                                                    );
-                                                                }
-                                                            }}
-                                                        >
-                                                            {t.nombre}
-                                                        </button>
-                                                    ))}
-                                                </div>
-
-                                                {errV.tallas && (
-                                                    <span className="error-text">
-                                                        {errV.tallas}
-                                                    </span>
-                                                )}
-
-                                            </td>
-
-                                            <td>
-
-                                                <input
-                                                    type="text"
-                                                    value={v.sku}
-                                                    onChange={(e) =>
-                                                        handleVarianteChange(
-                                                            i,
-                                                            "sku",
-                                                            e.target.value
-                                                        )
-                                                    }
-                                                    placeholder="SKU-001"
-                                                    className={errV.sku ? "input-error" : ""}
-                                                />
-
-                                                {errV.sku && (
-                                                    <span className="error-text">
-                                                        {errV.sku}
-                                                    </span>
-                                                )}
-
-                                            </td>
-
-                                            <td>
-
-                                                <input
-                                                    type="number"
-                                                    value={v.stock}
-                                                    min="0"
-                                                    onChange={(e) =>
-                                                        handleVarianteChange(
-                                                            i,
-                                                            "stock",
-                                                            e.target.value
-                                                        )
-                                                    }
-                                                    className={errV.stock ? "input-error" : ""}
-                                                />
-
-                                                {errV.stock && (
-                                                    <span className="error-text">
-                                                        {errV.stock}
-                                                    </span>
-                                                )}
-
-                                            </td>
-
-                                            <td>
-
-                                                <button
-                                                    type="button"
-                                                    className="delete-row"
-                                                    onClick={() => eliminarVariante(i)}
-                                                >
-
-                                                    <Trash2 size={16} />
-
-                                                </button>
-
-                                            </td>
-
-                                        </tr>
-
-                                    );})}
-
-                                </tbody>
-
-                            </table>
-
-                        )}
-
-                        <button
-                            type="button"
-                            className="add-row"
-                            onClick={agregarVariante}
-                        >
-
-                            <Plus size={16} />
-                            Agregar variante
-
-                        </button>
-
-                        <div className="form-buttons">
-
-                            <button
-                                type="button"
-                                className="cancel-button"
-                                onClick={() => setTab("datos")}
-                                disabled={submitting}
-                            >
-
-                                Volver
-
-                            </button>
-
-                            <button
-                                type="button"
-                                className="next-button"
-                                onClick={() => setTab("imagenes")}
-                            >
-
-                                Siguiente: Imágenes
-
-                            </button>
-
-                        </div>
-
-                    </>
-
-                )}
-
-                {tab === "imagenes" && (
-
-                    <>
-
-                        <p className="tab-help">
-
-                            Sube una imagen desde tu PC o pega una URL. La
-                            primera imagen de cada variante se marca como
-                            principal.
-
-                        </p>
-
-                        {variantes.length === 0 ? (
-
-                            <p className="empty-state">
-
-                                Primero agrega al menos una variante en la pestaña
-                                anterior.
-
-                            </p>
-
-                        ) : (
-
-                            variantes.map((v, i) => (
-
-                                <div key={v.tempId} className="image-section">
-
-                                    <h4>
-
-                                        Variante #{i + 1} —{" "}
-
-                                        {colores.find((c) => c.id_color === Number(v.color))?.nombre || "?"}
-                                        {" / "}
-                                        {tallas.find((t) => t.id_talla === Number(v.talla))?.nombre || "?"}
-
-                                    </h4>
-
-                                    {v.imagenes.length > 0 && (
-
-                                        <div className="image-grid">
-
-                                            {v.imagenes.map((img, j) => (
-
-                                                <div
-                                                    key={j}
-                                                    className={
-                                                        "image-card"
-                                                        + (img.principal ? " image-card--principal" : "")
-                                                    }
-                                                >
-
-                                                    <img
-                                                        src={img.imagen}
-                                                        alt={`img-${j}`}
-                                                        onError={(e) => {
-                                                            e.currentTarget.src =
-                                                                "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80' viewBox='0 0 80 80'%3E%3Crect width='80' height='80' fill='%23fee2e2'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-family='Arial, sans-serif' font-size='10' fill='%23dc2626'%3EError%3C/text%3E%3C/svg%3E";
-                                                        }}
-                                                    />
-
-                                                    {img.principal && (
-
-                                                        <span className="principal-badge">
-
-                                                            <Star size={11} fill="currentColor" />
-                                                            Principal
-
-                                                        </span>
-
-                                                    )}
-
-                                                    <div className="image-card-actions">
-
-                                                        <button
-                                                            type="button"
-                                                            className={
-                                                                "star-button"
-                                                                + (img.principal ? " star-button--active" : "")
-                                                            }
-                                                            title={
-                                                                img.principal
-                                                                    ? "Imagen principal"
-                                                                    : "Marcar como principal"
-                                                            }
-                                                            onClick={() => marcarPrincipal(i, j)}
-                                                        >
-
-                                                            <Star
-                                                                size={14}
-                                                                fill={img.principal ? "currentColor" : "none"}
-                                                            />
-
-                                                        </button>
-
-                                                        <button
-                                                            type="button"
-                                                            className="delete-button"
-                                                            title="Eliminar imagen"
-                                                            onClick={() => eliminarImagen(i, j)}
-                                                        >
-
-                                                            <Trash2 size={14} />
-
-                                                        </button>
-
-                                                    </div>
-
-                                                </div>
-
-                                            ))}
-
-                                        </div>
-
-                                    )}
-
-                                    <div className="image-input">
-
-                                        <input
-                                            type="file"
-                                            accept="image/*"
-                                            ref={(el) => (fileInputsRef.current[i] = el)}
-                                            onChange={(e) =>
-                                                handleArchivoChange(
-                                                    i,
-                                                    e.target.files?.[0] || null
-                                                )
-                                            }
-                                        />
-
-                                        <span className="input-or">o</span>
-
-                                        <input
-                                            type="url"
-                                            placeholder="https://..."
-                                            value={v.nuevaImagen}
-                                            onChange={(e) =>
-                                                handleUrlChange(i, e.target.value)
-                                            }
-                                        />
-
-                                        <button
-                                            type="button"
-                                            onClick={() => agregarImagen(i)}
-                                            disabled={!v.nuevoArchivo && !v.nuevaImagen.trim()}
-                                        >
-
-                                            <Plus size={16} />
-                                            Agregar
-
-                                        </button>
-
-                                    </div>
-
+                        </section>
+                    )}
+
+                    {step === 2 && (
+                        <section className="form-step">
+                            <div className="form-section-title">
+                                <div>
+                                    <h3>Colores y tallas</h3>
+                                    <p>
+                                        Cada color puede tener sus propias
+                                        tallas y stock.
+                                    </p>
                                 </div>
 
-                            ))
+                                <button
+                                    type="button"
+                                    className="btn-secondary"
+                                    onClick={addColor}
+                                >
+                                    <Plus size={17} />
+                                    Agregar color
+                                </button>
+                            </div>
 
-                        )}
+                            {errors.general && (
+                                <div className="variant-error">
+                                    {errors.general}
+                                </div>
+                            )}
 
-                        <div className="form-buttons">
+                            {!form.variantes.length ? (
+                                <div className="empty-state">
+                                    <p>
+                                        Todavía no has agregado colores.
+                                    </p>
 
-                            <button
-                                type="button"
-                                className="cancel-button"
-                                onClick={() => setTab("variantes")}
-                                disabled={submitting}
-                            >
+                                    <button
+                                        type="button"
+                                        className="btn-primary"
+                                        onClick={addColor}
+                                    >
+                                        <Plus size={17} />
+                                        Agregar color
+                                    </button>
+                                </div>
+                            ) : (
+                                <div className="color-variants">
+                                    {form.variantes.map(
+                                        (variant, index) => {
+                                            const color = colors.find(
+                                                (item) =>
+                                                    Number(item.id_color) ===
+                                                    Number(variant.color_id)
+                                            );
 
-                                Volver
+                                            return (
+                                                <article
+                                                    className="color-variant-card"
+                                                    key={variant.id}
+                                                >
+                                                    <div className="color-variant-header">
+                                                        <strong>
+                                                            Color {index + 1}
+                                                            {color &&
+                                                                ` — ${color.nombre}`}
+                                                        </strong>
 
-                            </button>
+                                                        <button
+                                                            type="button"
+                                                            className="icon-danger"
+                                                            onClick={() =>
+                                                                removeColor(
+                                                                    variant.id
+                                                                )
+                                                            }
+                                                        >
+                                                            <Trash2 size={17} />
+                                                        </button>
+                                                    </div>
 
-                            <button
-                                type="submit"
-                                className="save-button"
-                                disabled={submitting}
-                            >
+                                                    <div className="form-field">
+                                                        <label>
+                                                            Color
+                                                        </label>
 
-                                {submitting
-                                    ? "Guardando..."
-                                    : (modoEdicion
-                                        ? "Guardar cambios"
-                                        : "Guardar producto")}
+                                                        <select
+                                                            value={
+                                                                variant.color_id
+                                                            }
+                                                            onChange={(e) =>
+                                                                updateColor(
+                                                                    variant.id,
+                                                                    e.target
+                                                                        .value
+                                                                )
+                                                            }
+                                                        >
+                                                            <option value="">
+                                                                Seleccionar
+                                                            </option>
 
-                            </button>
+                                                            {colors.map(
+                                                                (color) => (
+                                                                    <option
+                                                                        key={
+                                                                            color.id_color
+                                                                        }
+                                                                        value={
+                                                                            color.id_color
+                                                                        }
+                                                                    >
+                                                                        {
+                                                                            color.nombre
+                                                                        }
+                                                                    </option>
+                                                                )
+                                                            )}
+                                                        </select>
+                                                    </div>
 
-                        </div>
+                                                    {errors[variant.id] && (
+                                                        <div className="variant-error">
+                                                            {
+                                                                errors[
+                                                                    variant.id
+                                                                ]
+                                                            }
+                                                        </div>
+                                                    )}
 
-                    </>
+                                                    <div className="sizes-section">
+                                                        <strong>
+                                                            Tallas
+                                                        </strong>
 
-                )}
+                                                        <div className="size-buttons">
+                                                            {SIZES.map(
+                                                                (size) => (
+                                                                    <button
+                                                                        key={
+                                                                            size
+                                                                        }
+                                                                        type="button"
+                                                                        onClick={() =>
+                                                                            addSize(
+                                                                                variant.id,
+                                                                                size
+                                                                            )
+                                                                        }
+                                                                    >
+                                                                        + {size}
+                                                                    </button>
+                                                                )
+                                                            )}
+                                                        </div>
 
+                                                        {variant.tallas.map(
+                                                            (size) => (
+                                                                <div
+                                                                    className="size-row"
+                                                                    key={
+                                                                        size.id
+                                                                    }
+                                                                >
+                                                                    <span>
+                                                                        {
+                                                                            size.talla
+                                                                        }
+                                                                    </span>
+
+                                                                    <input
+                                                                        type="number"
+                                                                        min="0"
+                                                                        value={
+                                                                            size.stock
+                                                                        }
+                                                                        onChange={(
+                                                                            e
+                                                                        ) =>
+                                                                            updateSize(
+                                                                                variant.id,
+                                                                                size.id,
+                                                                                "stock",
+                                                                                e
+                                                                                    .target
+                                                                                    .value
+                                                                            )
+                                                                        }
+                                                                    />
+
+                                                                    <input
+                                                                        value={
+                                                                            size.sku
+                                                                        }
+                                                                        readOnly
+                                                                    />
+
+                                                                    <button
+                                                                        type="button"
+                                                                        className="icon-danger"
+                                                                        onClick={() =>
+                                                                            removeSize(
+                                                                                variant.id,
+                                                                                size.id
+                                                                            )
+                                                                        }
+                                                                    >
+                                                                        <Trash2
+                                                                            size={
+                                                                                16
+                                                                            }
+                                                                        />
+                                                                    </button>
+                                                                </div>
+                                                            )
+                                                        )}
+                                                    </div>
+                                                </article>
+                                            );
+                                        }
+                                    )}
+                                </div>
+                            )}
+
+                            <Navigation
+                                back={previousStep}
+                                next={nextStep}
+                                saving={saving}
+                            />
+                        </section>
+                    )}
+
+                    {step === 3 && (
+                        <section className="form-step">
+                            <div className="form-section-title">
+                                <h3>Imágenes</h3>
+                                <p>
+                                    Máximo {MAX_IMAGES} imágenes por color.
+                                </p>
+                            </div>
+
+                            <div className="image-variants">
+                                {form.variantes.map((variant, index) => {
+                                    const color = colors.find(
+                                        (item) =>
+                                            Number(item.id_color) ===
+                                            Number(variant.color_id)
+                                    );
+
+                                    return (
+                                        <article
+                                            className="image-variant"
+                                            key={variant.id}
+                                        >
+                                            <div className="image-variant-header">
+                                                <strong>
+                                                    {color?.nombre ||
+                                                        `Color ${index + 1}`}
+                                                </strong>
+
+                                                <span>
+                                                    {variant.imagenes.length}/
+                                                    {MAX_IMAGES}
+                                                </span>
+                                            </div>
+
+                                            <div className="image-grid">
+                                                {variant.imagenes.map(
+                                                    (image) => (
+                                                        <div
+                                                            className={
+                                                                image.principal
+                                                                    ? "image-item principal"
+                                                                    : "image-item"
+                                                            }
+                                                            key={image.id}
+                                                        >
+                                                            <img
+                                                                src={
+                                                                    image.preview
+                                                                }
+                                                                alt={
+                                                                    color?.nombre ||
+                                                                    "Producto"
+                                                                }
+                                                            />
+
+                                                            {image.principal && (
+                                                                <span className="principal-badge">
+                                                                    Principal
+                                                                </span>
+                                                            )}
+
+                                                            <div className="image-actions">
+                                                                {!image.principal && (
+                                                                    <button
+                                                                        type="button"
+                                                                        onClick={() =>
+                                                                            setPrincipal(
+                                                                                variant.id,
+                                                                                image.id
+                                                                            )
+                                                                        }
+                                                                    >
+                                                                        Principal
+                                                                    </button>
+                                                                )}
+
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() =>
+                                                                        removeImage(
+                                                                            variant.id,
+                                                                            image.id
+                                                                        )
+                                                                    }
+                                                                >
+                                                                    <Trash2
+                                                                        size={
+                                                                            15
+                                                                        }
+                                                                    />
+                                                                </button>
+                                                            </div>
+                                                        </div>
+                                                    )
+                                                )}
+
+                                                {variant.imagenes.length <
+                                                    MAX_IMAGES && (
+                                                    <label className="image-upload">
+                                                        <Upload size={24} />
+
+                                                        <span>
+                                                            Agregar imagen
+                                                        </span>
+
+                                                        <input
+                                                            type="file"
+                                                            accept="image/*"
+                                                            hidden
+                                                            onChange={(e) => {
+                                                                addImage(
+                                                                    variant.id,
+                                                                    e.target
+                                                                        .files?.[0]
+                                                                );
+
+                                                                e.target.value =
+                                                                    "";
+                                                            }}
+                                                        />
+                                                    </label>
+                                                )}
+                                            </div>
+                                        </article>
+                                    );
+                                })}
+                            </div>
+
+                            {errors &&
+                                Object.keys(errors).some(
+                                    (key) =>
+                                        form.variantes.some(
+                                            (variant) =>
+                                                variant.id === key
+                                        )
+                                ) && (
+                                    <div className="variant-error">
+                                        Todos los colores deben tener al
+                                        menos una imagen.
+                                    </div>
+                                )}
+
+                            <Navigation
+                                back={previousStep}
+                                submit
+                                saving={saving}
+                                isEdit={isEdit}
+                            />
+                        </section>
+                    )}
+                </div>
             </form>
+        </div>
+    );
+}
 
-            {modalCrear && (
-                <MiniModalCrear
-                    tipo={modalCrear}
-                    onClose={() => setModalCrear(null)}
-                    onGuardado={
-                        modalCrear === "color"
-                            ? onColorCreado
-                            : onTallaCreada
-                    }
-                />
+function Field({ label, error, full, children }) {
+    return (
+        <div className={`form-field ${full ? "full" : ""}`}>
+            <label>{label}</label>
+            {children}
+            {error && <span className="field-error">{error}</span>}
+        </div>
+    );
+}
+
+function Navigation({ back, next, submit, saving, isEdit }) {
+    const submitLabel = isEdit
+        ? saving
+            ? "Guardando..."
+            : "Guardar cambios"
+        : saving
+            ? "Creando..."
+            : "Crear producto";
+
+    return (
+        <div className="form-navigation">
+            {back ? (
+                <button
+                    type="button"
+                    className="btn-secondary"
+                    onClick={back}
+                    disabled={saving}
+                >
+                    <ChevronLeft size={18} />
+                    Atrás
+                </button>
+            ) : (
+                <span />
             )}
 
+            {submit ? (
+                <button
+                    type="submit"
+                    className="btn-primary btn-save"
+                    disabled={saving}
+                >
+                    {submitLabel}
+                </button>
+            ) : (
+                <button
+                    type="button"
+                    className="btn-primary"
+                    onClick={next}
+                    disabled={saving}
+                >
+                    Siguiente
+                    <ChevronRight size={18} />
+                </button>
+            )}
         </div>
-
     );
-
 }
 
 export default ProductForm;

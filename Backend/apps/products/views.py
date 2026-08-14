@@ -1,6 +1,9 @@
+import json
+
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
+from rest_framework.parsers import MultiPartParser, FormParser
 from django.shortcuts import get_object_or_404
 
 from .models import Producto, ColorVariant, SizeVariant, ImagenProducto, Color
@@ -77,6 +80,45 @@ class ProductoView(APIView):
             ProductoSerializer(producto).data,
 
             status=status.HTTP_201_CREATED
+        )
+
+
+class ProductoCrearCompletoView(APIView):
+
+    permission_classes = [IsAdministrador]
+    parser_classes = [MultiPartParser, FormParser]
+
+    def post(self, request):
+        raw_data = request.data.get("data")
+
+        if not raw_data:
+            return Response(
+                {"detail": "Falta el campo 'data' con el payload JSON."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        try:
+            payload = json.loads(raw_data)
+        except (TypeError, ValueError):
+            return Response(
+                {"detail": "El campo 'data' no es un JSON válido."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        if not isinstance(payload, dict):
+            return Response(
+                {"detail": "El payload debe ser un objeto JSON."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        producto = ProductoService.crear_completo(
+            data=payload,
+            archivos=request.FILES,
+        )
+
+        return Response(
+            ProductoSerializer(producto).data,
+            status=status.HTTP_201_CREATED,
         )
 
 

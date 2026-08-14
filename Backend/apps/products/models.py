@@ -5,8 +5,15 @@ from apps.categories.models import Categoria
 
 class Color(models.Model):
     id_color = models.AutoField(primary_key=True)
-    nombre = models.CharField(max_length=50, unique=True)
-    codigo_hex = models.CharField(max_length=7)
+
+    nombre = models.CharField(
+        max_length=50,
+        unique=True
+    )
+
+    codigo_hex = models.CharField(
+        max_length=7
+    )
 
     class Meta:
         db_table = "colores"
@@ -17,12 +24,34 @@ class Color(models.Model):
 
 class Producto(models.Model):
     id_producto = models.AutoField(primary_key=True)
-    categoria = models.ForeignKey(Categoria, on_delete=models.PROTECT, db_column="id_categoria")
-    nombre = models.CharField(max_length=150)
-    slug = models.SlugField(unique=True)
+
+    categoria = models.ForeignKey(
+        Categoria,
+        on_delete=models.PROTECT,
+        db_column="id_categoria"
+    )
+
+    nombre = models.CharField(
+        max_length=150
+    )
+
+    slug = models.SlugField(
+        unique=True
+    )
+
     descripcion = models.TextField()
-    precio = models.DecimalField(max_digits=10, decimal_places=2)
-    estado = models.CharField(max_length=20, default="activo")
+
+    # El precio pertenece al producto.
+    # No se duplica en cada talla.
+    precio = models.DecimalField(
+        max_digits=10,
+        decimal_places=2
+    )
+
+    estado = models.CharField(
+        max_length=20,
+        default="activo"
+    )
 
     class Meta:
         db_table = "productos"
@@ -32,42 +61,145 @@ class Producto(models.Model):
 
 
 class ColorVariant(models.Model):
-    """Variante de color - contiene el color y las imágenes"""
-    id_variante = models.AutoField(primary_key=True)
-    producto = models.ForeignKey(Producto, on_delete=models.CASCADE, db_column="id_producto")
-    color = models.ForeignKey(Color, on_delete=models.PROTECT, db_column="id_color", null=True, blank=True)
+    """
+    Representa un color disponible para un producto.
+
+    Ejemplo:
+
+        Producto
+        ├── Azul
+        ├── Negro
+        └── Blanco
+
+    Las imágenes también pertenecen a esta variante de color.
+    """
+
+    id_variante = models.AutoField(
+        primary_key=True
+    )
+
+    producto = models.ForeignKey(
+        Producto,
+        on_delete=models.CASCADE,
+        db_column="id_producto"
+    )
+
+    color = models.ForeignKey(
+        Color,
+        on_delete=models.PROTECT,
+        db_column="id_color",
+        null=True,
+        blank=True
+    )
 
     class Meta:
         db_table = "producto_colores"
-        unique_together = ['producto', 'color']
+
+        constraints = [
+            models.UniqueConstraint(
+                fields=["producto", "color"],
+                name="unique_producto_color"
+            )
+        ]
 
     def __str__(self):
-        return f"{self.producto.nombre} - {self.color.nombre if self.color else 'Sin color'}"
+        nombre_color = self.color.nombre if self.color else "Sin color"
+        return f"{self.producto.nombre} - {nombre_color}"
 
 
 class SizeVariant(models.Model):
-    """Variante de talla - contiene talla, stock y SKU dentro de cada ColorVariant"""
-    id_size_variant = models.AutoField(primary_key=True)
-    color_variant = models.ForeignKey(ColorVariant, on_delete=models.CASCADE, db_column="id_variante")
-    talla = models.CharField(max_length=10, null=True, blank=True)
-    stock = models.PositiveIntegerField(default=0)
-    sku = models.CharField(max_length=50, unique=True)
-    precio = models.DecimalField(max_digits=10, decimal_places=2)
+    """
+    Representa una combinación de color + talla que puede venderse.
+
+    Ejemplo:
+
+        Producto
+        └── Azul
+            ├── S → stock + SKU
+            ├── M → stock + SKU
+            └── L → stock + SKU
+
+    El precio NO pertenece aquí.
+    El precio pertenece al Producto.
+    """
+
+    id_size_variant = models.AutoField(
+        primary_key=True
+    )
+
+    color_variant = models.ForeignKey(
+        ColorVariant,
+        on_delete=models.CASCADE,
+        db_column="id_variante"
+    )
+
+    talla = models.CharField(
+        max_length=10,
+        null=True,
+        blank=True
+    )
+
+    stock = models.PositiveIntegerField(
+        default=0
+    )
+
+    sku = models.CharField(
+        max_length=50,
+        unique=True
+    )
 
     class Meta:
         db_table = "producto_tallas"
-        unique_together = ['color_variant', 'talla']
+
+        constraints = [
+            models.UniqueConstraint(
+                fields=["color_variant", "talla"],
+                name="unique_color_variant_talla"
+            )
+        ]
 
     def __str__(self):
-        return f"{self.color_variant} - {self.talla or 'Sin talla'} - {self.sku}"
+        nombre_talla = self.talla or "Sin talla"
+        return f"{self.color_variant} - {nombre_talla} - {self.sku}"
 
 
 class ImagenProducto(models.Model):
-    id_imagen = models.AutoField(primary_key=True)
-    color_variant = models.ForeignKey(ColorVariant, on_delete=models.CASCADE, db_column="id_variante")
-    imagen = models.URLField(max_length=500, blank=True)
-    orden = models.PositiveIntegerField(default=1)
-    principal = models.BooleanField(default=False)
+    """
+    Imagen asociada a un color específico del producto.
+
+    Ejemplo:
+
+        Producto
+        └── Azul
+            ├── imagen 1
+            ├── imagen 2
+            └── imagen 3
+
+    Las imágenes NO se duplican por talla.
+    """
+
+    id_imagen = models.AutoField(
+        primary_key=True
+    )
+
+    color_variant = models.ForeignKey(
+        ColorVariant,
+        on_delete=models.CASCADE,
+        db_column="id_variante"
+    )
+
+    imagen = models.URLField(
+        max_length=500,
+        blank=True
+    )
+
+    orden = models.PositiveIntegerField(
+        default=1
+    )
+
+    principal = models.BooleanField(
+        default=False
+    )
 
     class Meta:
         db_table = "producto_imagenes"

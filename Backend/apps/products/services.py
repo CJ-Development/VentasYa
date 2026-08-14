@@ -1,112 +1,183 @@
-from django.db.models import Prefetch
+import os
+import uuid
 
-from .models import Producto, ColorVariant, SizeVariant, ImagenProducto
+from django.conf import settings
+from django.db import transaction
+
+from .models import (
+    Producto,
+    ColorVariant,
+    SizeVariant,
+    ImagenProducto,
+)
+from .serializers import ProductoCompletoSerializer
+
+
+def _guardar_archivo(archivo):
+    folder = os.path.join(
+        settings.MEDIA_ROOT,
+        "productos",
+    )
+    os.makedirs(folder, exist_ok=True)
+
+    extension = (
+        os.path.splitext(archivo.name)[1].lower()
+        or ".jpg"
+    )
+
+    nombre = f"{uuid.uuid4().hex}{extension}"
+    ruta = os.path.join(folder, nombre)
+
+    with open(ruta, "wb") as destino:
+        for chunk in archivo.chunks():
+            destino.write(chunk)
+
+    return f"{settings.MEDIA_URL}productos/{nombre}"
 
 
 class ProductoService:
 
     @staticmethod
     def listar(
-        *,
         solo_nuevos=False,
         categoria_id=None,
         estado=None,
         ordering=None,
     ):
-        """
-        Lista productos con filtros opcionales.
+        productos = Producto.objects.select_related(
+            "categoria"
+        ).prefetch_related(
+            "colorvariant_set__color",
+            "colorvariant_set__sizevariant_set",
+            "colorvariant_set__imagenproducto_set",
+        )
 
-        Args:
-            solo_nuevos: si True, devuelve solo productos con created_at
-                poblado, ordenados del más reciente al más antiguo.
-            categoria_id: filtra por id de categoría.
-            estado: filtra por estado (ej. "activo", "inactivo", "archivado").
-                Si es None, NO se aplica filtro de estado (compatibilidad
-                con llamadas existentes).
-            ordering: campo de ordenamiento. Si se pasa se ignora el
-                default de Meta y se ordena por este campo.
-        """
-        qs = ProductoService._base_queryset()
+        if estado:
+            productos = productos.filter(
+                estado=estado
+            )
+
+        if categoria_id:
+            productos = productos.filter(
+                categoria_id=categoria_id
+            )
 
         if solo_nuevos:
-            qs = qs.filter(
-                created_at__isnull=False
-            ).order_by("-created_at", "id_producto")
-        elif ordering:
-            qs = qs.order_by(ordering, "id_producto")
-
-        if categoria_id is not None:
-            qs = qs.filter(categoria_id=categoria_id)
-
-        if estado is not None:
-            qs = qs.filter(estado=estado)
-
-        return qs
-
-
-    @staticmethod
-    def _base_queryset():
-        return (
-            Producto.objects
-            .select_related("categoria")
-            .prefetch_related(
-                Prefetch(
-                    "colorvariant_set",
-                    queryset=ColorVariant.objects.select_related(
-                        "color"
-                    ).prefetch_related(
-                        Prefetch(
-                            "sizevariant_set",
-                            queryset=SizeVariant.objects.all()
-                        ),
-                        Prefetch(
-                            "imagenproducto_set",
-                            queryset=ImagenProducto.objects.order_by(
-                                "orden", "id_imagen"
-                            ),
-                        )
-                    ),
-                )
+            productos = productos.filter(
+                estado="activo"
             )
-        )
 
+        if ordering:
+            campos_permitidos = {
+                "nombre",
+                "-nombre",
+                "precio",
+                "-precio",
+                "id_producto",
+                "-id_producto",
+            }
 
-    @staticmethod
-    def obtener(id_producto):
-        return ProductoService._base_queryset().get(
-            id_producto=id_producto
-        )
+            if ordering in campos_permitidos:
+                productos = productos.order_by(
+                    ordering
+                )
+            else:
+                productos = productos.order_by(
+                    "-id_producto"
+                )
+        else:
+            productos = productos.order_by(
+                "-id_producto"
+            )
 
-
-    @staticmethod
-    def crear(data):
-        return Producto.objects.create(
-            **data
-        )
-
-
-    @staticmethod
-    def actualizar(id_producto, data):
-        producto = ProductoService.obtener(id_producto)
-
-        for campo, valor in data.items():
-            setattr(producto, campo, valor)
-
-        producto.save()
-        return producto
-
+        return productos
 
     @staticmethod
     def eliminar(id_producto):
-        return ProductoService.actualizar(
-            id_producto,
-            {"estado": "archivado"}
+        producto = Producto.objects.get(
+            id_producto=id_producto
         )
 
+        producto.estado = "inactivo"
+
+        producto.save(
+            update_fields=["estado"]
+        )
+
+        return producto
 
     @staticmethod
     def reactivar(id_producto):
-        return ProductoService.actualizar(
-            id_producto,
-            {"estado": "activo"}
+        producto = Producto.objects.get(
+            id_producto=id_producto
         )
+
+        producto.estado = "activo"
+
+        producto.save(
+            update_fields=["estado"]
+        )
+
+        return producto
+
+    @staticmethod
+    def crear_completo(data, archivos):
+        """
+        Crea un producto con sus colores, tallas e imágenes
+        en una única operación atómica.
+
+        data: dict validado por ProductoCompletoSerializer
+        archivos: dict con archivos subidos, claves tipo
+                  'imagen_<variante_index>_<imagen_index>'
+        """
+        with transaction.atomic():
+            serializer = ProductoCompletoSerializer(
+                data=data
+            )
+            serializer.is_valid(raise_exception=True)
+            payload = serializer.validated_data
+
+            color_variants_data = payload.pop("color_variants")
+
+            producto = Producto.objects.create(**payload)
+
+            for variant_index, variant_data in enumerate(color_variants_data):
+                size_variants_data = variant_data.pop("size_variants")
+                imagenes_data = variant_data.pop("imagenes", [])
+
+                color_variant = ColorVariant.objects.create(
+                    producto=producto,
+                    **variant_data,
+                )
+
+                for size_data in size_variants_data:
+                    SizeVariant.objects.create(
+                        color_variant=color_variant,
+                        **size_data,
+                    )
+
+                for image_index, imagen_data in enumerate(imagenes_data):
+                    clave = f"imagen_{variant_index}_{image_index}"
+                    archivo = archivos.get(clave)
+
+                    url_imagen = None
+                    if archivo is not None:
+                        url_imagen = _guardar_archivo(archivo)
+
+                    if url_imagen is None:
+                        url_imagen = imagen_data.get("imagen") or ""
+
+                    principal = bool(
+                        imagen_data.get("principal", False)
+                    )
+
+                    ImagenProducto.objects.create(
+                        color_variant=color_variant,
+                        imagen=url_imagen,
+                        orden=imagen_data.get("orden", image_index + 1),
+                        principal=principal,
+                    )
+
+            producto.refresh_from_db()
+
+            return producto
