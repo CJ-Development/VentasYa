@@ -95,14 +95,14 @@ function Orders() {
 
     const cargarPedidos = async () => {
 
-        if (!usuario?.id_usuario) {
+        if (!usuario?.id) {
             setLoading(false);
             return;
         }
 
         try {
             setLoading(true);
-            const { data } = await getMyOrders(usuario.id_usuario);
+            const { data } = await getMyOrders();
             setPedidos(data || []);
             setError(null);
         }
@@ -118,7 +118,7 @@ function Orders() {
 
     useEffect(() => {
         cargarPedidos();
-    }, [usuario?.id_usuario]);
+    }, [usuario?.id]);
 
     const abrirDetalle = async (pedido) => {
 

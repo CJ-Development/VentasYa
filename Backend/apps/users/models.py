@@ -1,87 +1,72 @@
+from django.contrib.auth.base_user import AbstractBaseUser
+from django.contrib.auth.models import BaseUserManager, PermissionsMixin
 from django.db import models
 
 
-class Rol(models.Model):
-    id_rol = models.AutoField(primary_key=True)
-    nombre_rol = models.CharField(max_length=50, unique=True)
+class UsuarioManager(BaseUserManager):
 
-    class Meta:
-        db_table = "roles"
+    use_in_migrations = True
 
-    def __str__(self):
-        return self.nombre_rol
+    def create_user(self, email, password=None, **extra_fields):
+        if not email:
+            raise ValueError("El email es obligatorio.")
+
+        extra_fields.setdefault("is_staff", False)
+        extra_fields.setdefault("is_superuser", False)
+
+        usuario = self.model(email=self.normalize_email(email), **extra_fields)
+        usuario.set_password(password)
+        usuario.save(using=self._db)
+        return usuario
+
+    def create_superuser(self, email, password=None, **extra_fields):
+        extra_fields.setdefault("is_staff", True)
+        extra_fields.setdefault("is_superuser", True)
+        extra_fields.setdefault("nombres", "Admin")
+        extra_fields.setdefault("apellidos", "VentasYa")
+
+        if extra_fields.get("is_staff") is not True:
+            raise ValueError("El superusuario debe tener is_staff=True.")
+        if extra_fields.get("is_superuser") is not True:
+            raise ValueError("El superusuario debe tener is_superuser=True.")
+
+        return self.create_user(email, password, **extra_fields)
 
 
-class Usuario(models.Model):
-    TIPO_DOCUMENTO = [
-        ("CC", "CC"),
-        ("CE", "CE"),
-        ("PASAPORTE", "PASAPORTE"),
-    ]
-
-    ESTADO = [
-        ("activo", "Activo"),
-        ("inactivo", "Inactivo"),
-    ]
+class Usuario(AbstractBaseUser, PermissionsMixin):
 
     id_usuario = models.AutoField(primary_key=True)
-
-    rol = models.ForeignKey(
-        Rol,
-        on_delete=models.PROTECT,
-        db_column="id_rol",
-        related_name="usuarios"
-    )
 
     nombres = models.CharField(max_length=100)
     apellidos = models.CharField(max_length=100)
 
-    tipo_documento = models.CharField(
-        max_length=20,
-        choices=TIPO_DOCUMENTO,
-        blank=True,
-        null=True
-    )
-
-    numero_documento = models.CharField(
-        max_length=20,
-        unique=True,
-        blank=True,
-        null=True
-    )
-
     email = models.EmailField(
         max_length=150,
-        unique=True
+        unique=True,
+        db_index=True
     )
 
     fecha_nacimiento = models.DateField()
 
-    password_hash = models.CharField(
-        max_length=255
-    )
+    telefono = models.CharField(max_length=20)
 
-    telefono = models.CharField(
-        max_length=20,
-        blank=True,
-        null=True
-    )
+    is_active = models.BooleanField(default=True)
+    is_staff = models.BooleanField(default=False)
 
-    fecha_registro = models.DateTimeField(
-        auto_now_add=True
-    )
+    objects = UsuarioManager()
 
-    estado = models.CharField(
-        max_length=20,
-        choices=ESTADO,
-        default="activo"
-    )
+    USERNAME_FIELD = "email"
+    REQUIRED_FIELDS = ["nombres", "apellidos", "fecha_nacimiento", "telefono"]
 
     class Meta:
         db_table = "usuarios"
 
     def __str__(self):
         return f"{self.nombres} {self.apellidos}"
+
+    @property
+    def es_administrador(self):
+        return self.is_superuser or self.is_staff
 
 
 class Direccion(models.Model):

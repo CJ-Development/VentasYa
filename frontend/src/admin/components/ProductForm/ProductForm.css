@@ -22,6 +22,8 @@
 
     max-width:95%;
 
+    max-height:90vh;
+
     background:#E2E2E2;
 
     border-radius:22px;
@@ -29,6 +31,12 @@
     padding:35px;
 
     animation:modal .25s ease;
+
+    overflow-y:auto;
+
+    display:flex;
+
+    flex-direction:column;
 
 }
 
@@ -164,11 +172,11 @@ margin-top:25px;
 
 .cancel-button{
 
-background:#D8D4D5;
+background:#e5e7eb;
 
-color:#384D48;
+color:#374151;
 
-border:none;
+border:2px solid #d1d5db;
 
 padding:14px 28px;
 
@@ -180,9 +188,25 @@ font-weight:600;
 
 }
 
+.cancel-button:hover{
+
+background:#d1d5db;
+
+border-color:#9ca3af;
+
+}
+
+.cancel-button:disabled{
+
+opacity:0.5;
+
+cursor:not-allowed;
+
+}
+
 .save-button{
 
-background:#384D48;
+background:#1a5d3c;
 
 color:white;
 
@@ -196,13 +220,29 @@ cursor:pointer;
 
 font-weight:700;
 
+box-shadow:0 4px 12px rgba(26,93,60,0.3);
+
 }
 
 .save-button:hover{
 
-background:#ACAD94;
+background:#0f4a2e;
 
-color:#384D48;
+transform:translateY(-1px);
+
+box-shadow:0 6px 16px rgba(26,93,60,0.4);
+
+}
+
+.save-button:disabled{
+
+background:#9ca3af;
+
+cursor:not-allowed;
+
+transform:none;
+
+box-shadow:none;
 
 }
 
@@ -258,7 +298,7 @@ color:#384D48;
 
 .next-button{
 
-    background:#0f766e;
+    background:#2d6a4f;
 
     color:white;
 
@@ -272,11 +312,29 @@ color:#384D48;
 
     font-weight:700;
 
+    box-shadow:0 4px 12px rgba(45,106,79,0.3);
+
 }
 
 .next-button:hover{
 
-    background:#0d5d57;
+    background:#1b4332;
+
+    transform:translateY(-1px);
+
+    box-shadow:0 6px 16px rgba(45,106,79,0.4);
+
+}
+
+.next-button:disabled{
+
+    background:#9ca3af;
+
+    cursor:not-allowed;
+
+    transform:none;
+
+    box-shadow:none;
 
 }
 
@@ -327,6 +385,8 @@ color:#384D48;
     color:#7b8794;
 
     font-size:13px;
+
+    white-space:nowrap;
 
 }
 
@@ -969,5 +1029,77 @@ color:#384D48;
     font-weight:600;
 
     text-transform:uppercase;
+
+}
+
+/* =====================================================
+
+   BOTONES DE TALLA (EN LUGAR DE SELECT)
+
+===================================================== */
+
+.talla-buttons{
+
+    display:flex;
+
+    flex-wrap:wrap;
+
+    gap:6px;
+
+}
+
+.talla-button{
+
+    padding:8px 12px;
+
+    border:1px solid #cbd5e1;
+
+    background:#f8fafc;
+
+    border-radius:8px;
+
+    cursor:pointer;
+
+    font-size:13px;
+
+    font-weight:500;
+
+    color:#384D48;
+
+    transition:all .2s;
+
+}
+
+.talla-button:hover{
+
+    background:#e2e8f0;
+
+    border-color:#94a3b8;
+
+}
+
+.talla-button.active{
+
+    background:#384D48;
+
+    color:white;
+
+    border-color:#384D48;
+
+}
+
+.talla-button.add-talla{
+
+    border-style:dashed;
+
+    color:#7b8794;
+
+}
+
+.talla-button.add-talla:hover{
+
+    color:#384D48;
+
+    border-color:#384D48;
 
 }

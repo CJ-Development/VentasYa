@@ -20,3 +20,5 @@ class FavoritoSerializer(serializers.ModelSerializer):
             "producto_detalle",
             "fecha_agregado",
         ]
+
+        read_only_fields = ["id_favorito", "usuario", "fecha_agregado"]

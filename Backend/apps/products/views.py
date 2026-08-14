@@ -3,18 +3,22 @@ from rest_framework.response import Response
 from rest_framework import status
 from django.shortcuts import get_object_or_404
 
-from .models import Producto, Variante, Color, Talla, ImagenProducto
+from .models import Producto, ColorVariant, SizeVariant, ImagenProducto, Color
 from .serializers import (
-    VarianteSerializer,
+    SizeVariantSerializer,
+    ColorVariantSerializer,
     ProductoSerializer,
     ColorSerializer,
-    TallaSerializer,
     ImagenSerializer,
 )
 from .services import ProductoService
 
+from utils.permissions import IsAdministrador, IsAdministradorOrReadOnly
+
 
 class ProductoView(APIView):
+
+    permission_classes = [IsAdministradorOrReadOnly]
 
     def get(self, request):
 
@@ -66,9 +70,7 @@ class ProductoView(APIView):
             raise_exception=True
         )
 
-        producto=ProductoService.crear(
-            serializer.validated_data
-        )
+        producto=serializer.save()
 
         return Response(
 
@@ -80,32 +82,38 @@ class ProductoView(APIView):
 
 class LowStockVariantesView(APIView):
 
+    permission_classes = [IsAdministrador]
+
     UMBRAL_STOCK = 5
 
     def get(self, request):
 
-        variantes = (
-            Variante.objects
-            .select_related("producto")
+        size_variants = (
+            SizeVariant.objects
+            .select_related("color_variant__producto", "color_variant__color")
             .filter(stock__lt=self.UMBRAL_STOCK)
             .order_by("stock")
         )
 
         data = [
             {
-                "id_variante": v.id_variante,
-                "sku": v.sku,
-                "stock": v.stock,
-                "producto_id": v.producto.id_producto,
-                "producto_nombre": v.producto.nombre,
+                "id_size_variant": sv.id_size_variant,
+                "sku": sv.sku,
+                "stock": sv.stock,
+                "talla": sv.talla,
+                "color": sv.color_variant.color.nombre if sv.color_variant.color else None,
+                "producto_id": sv.color_variant.producto.id_producto,
+                "producto_nombre": sv.color_variant.producto.nombre,
             }
-            for v in variantes
+            for sv in size_variants
         ]
 
         return Response(data)
 
 
 class ColorListView(APIView):
+
+    permission_classes = [IsAdministradorOrReadOnly]
 
     def get(self, request):
 
@@ -130,6 +138,8 @@ class ColorListView(APIView):
 
 
 class ColorDetalleView(APIView):
+
+    permission_classes = [IsAdministradorOrReadOnly]
 
     def get(self, request, id):
 
@@ -156,58 +166,9 @@ class ColorDetalleView(APIView):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
-class TallaListView(APIView):
-
-    def get(self, request):
-
-        tallas = Talla.objects.all().order_by("nombre")
-
-        return Response(
-            TallaSerializer(tallas, many=True).data
-        )
-
-    def post(self, request):
-
-        serializer = TallaSerializer(data=request.data)
-
-        serializer.is_valid(raise_exception=True)
-
-        talla = serializer.save()
-
-        return Response(
-            TallaSerializer(talla).data,
-            status=status.HTTP_201_CREATED,
-        )
-
-
-class TallaDetalleView(APIView):
-
-    def get(self, request, id):
-
-        talla = get_object_or_404(Talla, id_talla=id)
-
-        return Response(TallaSerializer(talla).data)
-
-    def put(self, request, id):
-
-        talla = get_object_or_404(Talla, id_talla=id)
-
-        serializer = TallaSerializer(talla, data=request.data)
-
-        serializer.is_valid(raise_exception=True)
-
-        serializer.save()
-
-        return Response(TallaSerializer(talla).data)
-
-    def delete(self, request, id):
-
-        Talla.objects.filter(id_talla=id).delete()
-
-        return Response(status=status.HTTP_204_NO_CONTENT)
-
-
 class ProductoDetalleView(APIView):
+
+    permission_classes = [IsAdministradorOrReadOnly]
 
     def get(self, request, id):
 
@@ -250,6 +211,8 @@ class ProductoDetalleView(APIView):
 
 class ProductoReactivarView(APIView):
 
+    permission_classes = [IsAdministrador]
+
     def post(self, request, id):
 
         producto = get_object_or_404(Producto, id_producto=id)
@@ -261,100 +224,182 @@ class ProductoReactivarView(APIView):
         )
 
 
-class VariantesPorProductoView(APIView):
+class ColorVariantListView(APIView):
 
-    def get(self, request, id):
+    permission_classes = [IsAdministradorOrReadOnly]
 
-        variantes = (
-            Variante.objects
-            .select_related("color", "talla")
-            .filter(producto_id=id)
+    def get(self, request, producto_id):
+
+        color_variants = (
+            ColorVariant.objects
+            .select_related("color")
+            .filter(producto_id=producto_id)
             .order_by("id_variante")
         )
 
         return Response(
-            VarianteSerializer(variantes, many=True).data
+            ColorVariantSerializer(color_variants, many=True).data
         )
 
-    def post(self, request, id):
+    def post(self, request, producto_id):
 
-        get_object_or_404(Producto, id_producto=id)
+        get_object_or_404(Producto, id_producto=producto_id)
 
-        # Aceptar multipart (por si vienen archivos) o JSON.
         data = request.data.copy()
-        data["producto_id"] = id
+        data["producto_id"] = producto_id
 
-        serializer = VarianteSerializer(data=data)
+        serializer = ColorVariantSerializer(data=data)
 
         serializer.is_valid(raise_exception=True)
 
-        variante = serializer.save()
+        color_variant = serializer.save()
 
-        variante.refresh_from_db()
+        color_variant.refresh_from_db()
 
         return Response(
-            VarianteSerializer(variante).data,
+            ColorVariantSerializer(color_variant).data,
             status=status.HTTP_201_CREATED
         )
 
 
-class VarianteDetalleView(APIView):
+class ColorVariantDetailView(APIView):
+
+    permission_classes = [IsAdministradorOrReadOnly]
 
     def get(self, request, variante_id):
 
-        variante = get_object_or_404(
-            Variante.objects.select_related("color", "talla"),
+        color_variant = get_object_or_404(
+            ColorVariant.objects.select_related("color", "producto"),
             id_variante=variante_id
         )
 
         return Response(
-            VarianteSerializer(variante).data
+            ColorVariantSerializer(color_variant).data
         )
 
     def put(self, request, variante_id):
 
-        variante = get_object_or_404(Variante, id_variante=variante_id)
+        color_variant = get_object_or_404(ColorVariant, id_variante=variante_id)
 
-        serializer = VarianteSerializer(variante, data=request.data)
+        serializer = ColorVariantSerializer(
+            color_variant,
+            data=request.data,
+            partial=True
+        )
 
         serializer.is_valid(raise_exception=True)
 
         serializer.save()
 
-        variante.refresh_from_db()
+        color_variant.refresh_from_db()
 
         return Response(
-            VarianteSerializer(variante).data
+            ColorVariantSerializer(color_variant).data
         )
 
     def delete(self, request, variante_id):
 
-        Variante.objects.filter(id_variante=variante_id).delete()
+        ColorVariant.objects.filter(id_variante=variante_id).delete()
 
         return Response(
             status=status.HTTP_204_NO_CONTENT
         )
 
 
-class ImagenesPorVarianteView(APIView):
+class SizeVariantListView(APIView):
 
-    def get(self, request, variante_id):
+    permission_classes = [IsAdministradorOrReadOnly]
+
+    def get(self, request, color_variant_id):
+
+        size_variants = (
+            SizeVariant.objects
+            .filter(color_variant_id=color_variant_id)
+            .order_by("id_size_variant")
+        )
+
+        return Response(
+            SizeVariantSerializer(size_variants, many=True).data
+        )
+
+    def post(self, request, color_variant_id):
+
+        get_object_or_404(ColorVariant, id_variante=color_variant_id)
+
+        data = request.data.copy()
+        data["color_variant_id"] = color_variant_id
+
+        serializer = SizeVariantSerializer(data=data)
+
+        serializer.is_valid(raise_exception=True)
+
+        size_variant = serializer.save()
+
+        return Response(
+            SizeVariantSerializer(size_variant).data,
+            status=status.HTTP_201_CREATED
+        )
+
+
+class SizeVariantDetailView(APIView):
+
+    permission_classes = [IsAdministradorOrReadOnly]
+
+    def get(self, request, size_variant_id):
+
+        size_variant = get_object_or_404(SizeVariant, id_size_variant=size_variant_id)
+
+        return Response(
+            SizeVariantSerializer(size_variant).data
+        )
+
+    def put(self, request, size_variant_id):
+
+        size_variant = get_object_or_404(SizeVariant, id_size_variant=size_variant_id)
+
+        serializer = SizeVariantSerializer(
+            size_variant,
+            data=request.data,
+            partial=True
+        )
+
+        serializer.is_valid(raise_exception=True)
+
+        serializer.save()
+
+        return Response(
+            SizeVariantSerializer(size_variant).data
+        )
+
+    def delete(self, request, size_variant_id):
+
+        SizeVariant.objects.filter(id_size_variant=size_variant_id).delete()
+
+        return Response(
+            status=status.HTTP_204_NO_CONTENT
+        )
+
+
+class ImagenesPorColorVariantView(APIView):
+
+    permission_classes = [IsAdministradorOrReadOnly]
+
+    def get(self, request, color_variant_id):
 
         imagenes = ImagenProducto.objects.filter(
-            variante_id=variante_id
+            color_variant_id=color_variant_id
         ).order_by("orden", "id_imagen")
 
         return Response(
             ImagenSerializer(imagenes, many=True).data
         )
 
-    def post(self, request, variante_id):
+    def post(self, request, color_variant_id):
 
-        get_object_or_404(Variante, id_variante=variante_id)
+        get_object_or_404(ColorVariant, id_variante=color_variant_id)
 
-        # Soporta tanto JSON (con `imagen`) como multipart (con `archivo`).
         data = request.data.copy()
-        data["variante"] = variante_id
+        data["color_variant"] = color_variant_id
 
         serializer = ImagenSerializer(data=data)
 
@@ -370,20 +415,21 @@ class ImagenesPorVarianteView(APIView):
 
 class ImagenDetalleView(APIView):
 
+    permission_classes = [IsAdministrador]
+
     def put(self, request, imagen_id):
 
         imagen = get_object_or_404(
-            ImagenProducto.objects.select_related("variante"),
+            ImagenProducto.objects.select_related("color_variant"),
             id_imagen=imagen_id,
         )
 
-        # Si se marca como principal, desmarcar las demás de la misma variante.
         nuevo_principal = request.data.get("principal")
 
         if str(nuevo_principal).lower() in ("true", "1", "yes"):
 
             ImagenProducto.objects.filter(
-                variante_id=imagen.variante_id,
+                color_variant_id=imagen.color_variant_id,
                 principal=True,
             ).exclude(id_imagen=imagen_id).update(principal=False)
 

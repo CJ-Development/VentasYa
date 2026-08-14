@@ -20,7 +20,7 @@
 
 .page-header h1{
 
-    color:var(--secondary);
+    color:#1a5d3c;
 
     font-size:2rem;
 
@@ -30,6 +30,6 @@
 
 .page-header p{
 
-    color:var(--text-light);
+    color:#6E7271;
 
 }

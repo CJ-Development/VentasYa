@@ -1,41 +1,38 @@
+from django.contrib.auth.password_validation import validate_password
 from rest_framework import serializers
-from .models import Usuario, Direccion, Rol
+
+from .models import Direccion, Usuario
 
 
 class UsuarioSerializer(serializers.ModelSerializer):
-
-    class Meta:
-        model = Usuario
-        exclude = ["password_hash"]
-
-
-class UsuarioUpdateSerializer(serializers.ModelSerializer):
-
-    rol = serializers.PrimaryKeyRelatedField(
-        queryset=Rol.objects.all()
-    )
+    es_administrador = serializers.BooleanField(read_only=True)
 
     class Meta:
         model = Usuario
         fields = [
-            "rol",
+            "id_usuario",
+            "es_administrador",
             "nombres",
             "apellidos",
-            "tipo_documento",
-            "numero_documento",
             "email",
             "fecha_nacimiento",
             "telefono",
-            "estado",
         ]
-        extra_kwargs = {
-            "tipo_documento": {"required": False, "allow_blank": True, "allow_null": True},
-            "numero_documento": {"required": False, "allow_blank": True, "allow_null": True},
-        }
+        read_only_fields = ["id_usuario"]
+
+
+class PerfilUpdateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Usuario
+        fields = [
+            "nombres",
+            "apellidos",
+            "fecha_nacimiento",
+            "telefono",
+        ]
 
 
 class RegisterSerializer(serializers.ModelSerializer):
-
     password = serializers.CharField(write_only=True)
 
     class Meta:
@@ -43,38 +40,40 @@ class RegisterSerializer(serializers.ModelSerializer):
         fields = [
             "nombres",
             "apellidos",
-            "tipo_documento",
-            "numero_documento",
             "email",
             "fecha_nacimiento",
             "telefono",
-            "password"
+            "password",
         ]
-        extra_kwargs = {
-            "tipo_documento": {"required": False, "allow_blank": True, "allow_null": True},
-            "numero_documento": {"required": False, "allow_blank": True, "allow_null": True},
-        }
+
+    def validate_password(self, value):
+        validate_password(value)
+        return value
 
 
 class LoginSerializer(serializers.Serializer):
-
     email = serializers.EmailField()
-
-    password = serializers.CharField()
+    password = serializers.CharField(write_only=True)
 
 
 class DireccionSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = Direccion
-        fields = "__all__"
+        fields = [
+            "id_direccion",
+            "direccion",
+            "ciudad",
+            "departamento",
+            "codigo_postal",
+            "predeterminada",
+        ]
+        read_only_fields = ["id_direccion"]
 
 
 class CambiarPasswordSerializer(serializers.Serializer):
-
     password_actual = serializers.CharField(required=True, write_only=True)
-    password_nuevo = serializers.CharField(
-        required=True,
-        write_only=True,
-        min_length=6,
-    )
+    password_nuevo = serializers.CharField(required=True, write_only=True)
+
+    def validate_password_nuevo(self, value):
+        validate_password(value)
+        return value

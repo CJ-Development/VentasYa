@@ -8,27 +8,32 @@ import "./index.css";
 import AuthProvider from "./context/AuthProvider";
 import CartProvider from "./context/CartProvider";
 import FavoritesProvider from "./context/FavoritesProvider";
+import { NotificationProvider } from "./components/Notifications/NotificationProvider";
 
 ReactDOM.createRoot(document.getElementById("root")).render(
     <React.StrictMode>
 
-        <AuthProvider>
+        <NotificationProvider>
 
-            <FavoritesProvider>
+            <AuthProvider>
 
-                <CartProvider>
+                <FavoritesProvider>
 
-                    <BrowserRouter>
+                    <CartProvider>
 
-                        <App />
+                        <BrowserRouter>
 
-                    </BrowserRouter>
+                            <App />
 
-                </CartProvider>
+                        </BrowserRouter>
 
-            </FavoritesProvider>
+                    </CartProvider>
 
-        </AuthProvider>
+                </FavoritesProvider>
+
+            </AuthProvider>
+
+        </NotificationProvider>
 
     </React.StrictMode>
 );

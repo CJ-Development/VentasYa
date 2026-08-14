@@ -1,21 +1,12 @@
 from django.db import models
 
-# ==========================
-# COLORES
-# ==========================
+from apps.categories.models import Categoria
+
 
 class Color(models.Model):
-
     id_color = models.AutoField(primary_key=True)
-
-    nombre = models.CharField(
-        max_length=50,
-        unique=True
-    )
-
-    codigo_hex = models.CharField(
-        max_length=7
-    )
+    nombre = models.CharField(max_length=50, unique=True)
+    codigo_hex = models.CharField(max_length=7)
 
     class Meta:
         db_table = "colores"
@@ -24,166 +15,62 @@ class Color(models.Model):
         return self.nombre
 
 
-# ==========================
-# TALLAS
-# ==========================
-
-class Talla(models.Model):
-
-    id_talla = models.AutoField(primary_key=True)
-
-    nombre = models.CharField(
-        max_length=20,
-        unique=True
-    )
-
-    class Meta:
-        db_table = "tallas"
-
-    def __str__(self):
-        return self.nombre
-
-
-# ==========================
-# PRODUCTOS
-# ==========================
-
-from apps.categories.models import Categoria
-
-
 class Producto(models.Model):
-
-    ESTADOS = [
-
-        ("activo","Activo"),
-
-        ("inactivo","Inactivo"),
-
-        ("archivado","Archivado"),
-
-    ]
-
     id_producto = models.AutoField(primary_key=True)
-
-    categoria = models.ForeignKey(
-        Categoria,
-        on_delete=models.PROTECT,
-        db_column="id_categoria"
-    )
-
+    categoria = models.ForeignKey(Categoria, on_delete=models.PROTECT, db_column="id_categoria")
     nombre = models.CharField(max_length=150)
-
-    slug = models.SlugField(
-        unique=True
-    )
-
+    slug = models.SlugField(unique=True)
     descripcion = models.TextField()
-
-    precio = models.DecimalField(
-        max_digits=10,
-        decimal_places=2
-    )
-
-    estado = models.CharField(
-        max_length=20,
-        choices=ESTADOS,
-        default="activo"
-    )
-
-    created_at = models.DateTimeField(
-        auto_now_add=True,
-        null=True,
-        blank=True
-    )
-
-    updated_at = models.DateTimeField(
-        auto_now=True,
-        null=True,
-        blank=True
-    )
+    precio = models.DecimalField(max_digits=10, decimal_places=2)
+    estado = models.CharField(max_length=20, default="activo")
 
     class Meta:
-        db_table="productos"
-        ordering=["-created_at", "id_producto"]
+        db_table = "productos"
 
     def __str__(self):
         return self.nombre
 
 
-# ==========================
-# VARIANTES
-# ==========================
-
-class Variante(models.Model):
-
+class ColorVariant(models.Model):
+    """Variante de color - contiene el color y las imágenes"""
     id_variante = models.AutoField(primary_key=True)
-
-    producto = models.ForeignKey(
-        Producto,
-        on_delete=models.CASCADE,
-        db_column="id_producto"
-    )
-
-    color = models.ForeignKey(
-        Color,
-        on_delete=models.PROTECT,
-        db_column="id_color"
-    )
-
-    talla = models.ForeignKey(
-        Talla,
-        on_delete=models.PROTECT,
-        db_column="id_talla"
-    )
-
-    sku = models.CharField(
-        max_length=50,
-        unique=True
-    )
-
-    stock = models.PositiveIntegerField(default=0)
+    producto = models.ForeignKey(Producto, on_delete=models.CASCADE, db_column="id_producto")
+    color = models.ForeignKey(Color, on_delete=models.PROTECT, db_column="id_color", null=True, blank=True)
 
     class Meta:
-
-        db_table="producto_variantes"
+        db_table = "producto_colores"
+        unique_together = ['producto', 'color']
 
     def __str__(self):
+        return f"{self.producto.nombre} - {self.color.nombre if self.color else 'Sin color'}"
 
-        return self.sku
 
+class SizeVariant(models.Model):
+    """Variante de talla - contiene talla, stock y SKU dentro de cada ColorVariant"""
+    id_size_variant = models.AutoField(primary_key=True)
+    color_variant = models.ForeignKey(ColorVariant, on_delete=models.CASCADE, db_column="id_variante")
+    talla = models.CharField(max_length=10, null=True, blank=True)
+    stock = models.PositiveIntegerField(default=0)
+    sku = models.CharField(max_length=50, unique=True)
+    precio = models.DecimalField(max_digits=10, decimal_places=2)
 
-# ==========================
-# IMAGENES
-# ==========================
+    class Meta:
+        db_table = "producto_tallas"
+        unique_together = ['color_variant', 'talla']
+
+    def __str__(self):
+        return f"{self.color_variant} - {self.talla or 'Sin talla'} - {self.sku}"
+
 
 class ImagenProducto(models.Model):
-
     id_imagen = models.AutoField(primary_key=True)
-
-    variante = models.ForeignKey(
-
-        Variante,
-
-        on_delete=models.CASCADE,
-
-        db_column="id_variante"
-
-    )
-
-    imagen = models.URLField(
-
-        max_length=500
-
-    )
-
+    color_variant = models.ForeignKey(ColorVariant, on_delete=models.CASCADE, db_column="id_variante")
+    imagen = models.URLField(max_length=500, blank=True)
     orden = models.PositiveIntegerField(default=1)
-
     principal = models.BooleanField(default=False)
 
     class Meta:
-
-        db_table="producto_imagenes"
+        db_table = "producto_imagenes"
 
     def __str__(self):
-
         return f"Imagen {self.id_imagen}"

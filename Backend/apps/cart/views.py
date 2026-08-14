@@ -1,57 +1,30 @@
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework import status
 from django.shortcuts import get_object_or_404
+from rest_framework import status
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from rest_framework.views import APIView
 
-from .models import Carrito, ItemCarrito
+from apps.products.models import SizeVariant
+
+from .models import ItemCarrito
 from .serializers import CarritoSerializer, ItemCarritoSerializer
 from .services import CarritoService
 
-from apps.products.models import Variante
-
 
 class CarritoView(APIView):
+    """Carrito del usuario autenticado."""
+
+    permission_classes = [IsAuthenticated]
 
     def get(self, request):
 
-        usuario_id = (
-            request.query_params.get("usuario_id")
-            or request.query_params.get("usuario")
-        )
-
-        if not usuario_id:
-
-            return Response(
-                {"detail": "Se requiere el parámetro 'usuario_id'."},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-
-        from apps.users.models import Usuario
-
-        usuario = get_object_or_404(Usuario, id_usuario=usuario_id)
-
-        carrito = CarritoService.obtener(usuario)
+        carrito = CarritoService.obtener(request.user)
 
         return Response(CarritoSerializer(carrito).data)
 
     def post(self, request):
 
-        usuario_id = request.data.get("usuario_id")
-
-        if not usuario_id:
-
-            return Response(
-                {"detail": "Se requiere 'usuario_id' en el cuerpo."},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-
-        from apps.users.models import Usuario
-
-        usuario = get_object_or_404(Usuario, id_usuario=usuario_id)
-
         variante_id = request.data.get("variante_id")
-
-        cantidad = int(request.data.get("cantidad", 1))
 
         if not variante_id:
 
@@ -60,9 +33,42 @@ class CarritoView(APIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        variante = get_object_or_404(Variante, id_variante=variante_id)
+        try:
+            cantidad = int(request.data.get("cantidad", 1))
+        except (TypeError, ValueError):
+            return Response(
+                {"detail": "'cantidad' debe ser un entero."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
-        carrito = CarritoService.obtener(usuario)
+        if cantidad < 1:
+            return Response(
+                {"detail": "'cantidad' debe ser mayor o igual a 1."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        variante = get_object_or_404(SizeVariant, id_size_variant=variante_id)
+
+        carrito = CarritoService.obtener(request.user)
+
+        cantidad_actual = (
+            carrito.items
+            .filter(variante=variante)
+            .values_list("cantidad", flat=True)
+            .first()
+            or 0
+        )
+
+        if cantidad_actual + cantidad > variante.stock:
+            return Response(
+                {
+                    "detail": (
+                        f"Stock insuficiente. Disponible: {variante.stock}, "
+                        f"en tu carrito: {cantidad_actual}."
+                    )
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
         item = CarritoService.agregar(carrito, variante, cantidad)
 
@@ -71,12 +77,28 @@ class CarritoView(APIView):
             status=status.HTTP_201_CREATED,
         )
 
+    def delete(self, request):
+        """Vacía el carrito completo."""
+
+        CarritoService.vaciar(CarritoService.obtener(request.user))
+
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
 
 class ItemCarritoDetalleView(APIView):
 
+    permission_classes = [IsAuthenticated]
+
+    def _get_item(self, request, id_item):
+        return get_object_or_404(
+            ItemCarrito.objects.select_related("variante"),
+            id_item=id_item,
+            carrito__usuario=request.user,
+        )
+
     def put(self, request, id_item):
 
-        item = get_object_or_404(ItemCarrito, id_item=id_item)
+        item = self._get_item(request, id_item)
 
         cantidad = request.data.get("cantidad")
 
@@ -105,14 +127,27 @@ class ItemCarritoDetalleView(APIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
+        if cantidad > item.variante.stock:
+
+            return Response(
+                {
+                    "detail": (
+                        f"Stock insuficiente. Disponible: {item.variante.stock}."
+                    )
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
         item.cantidad = cantidad
 
-        item.save()
+        item.save(update_fields=["cantidad"])
 
         return Response(ItemCarritoSerializer(item).data)
 
     def delete(self, request, id_item):
 
-        CarritoService.eliminar(id_item)
+        item = self._get_item(request, id_item)
+
+        item.delete()
 
         return Response(status=status.HTTP_204_NO_CONTENT)

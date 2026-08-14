@@ -9,9 +9,7 @@ import {
     updateProduct,
     getCategories,
     getColors,
-    getTallas,
     createColor,
-    createTalla,
     createVariant,
     updateVariant,
     deleteVariant,
@@ -19,7 +17,14 @@ import {
     updateVariantImage,
     deleteVariantImage,
     uploadVariantImage,
+    getVariants,
 } from "../../../services/adminService";
+
+// Tallas estándar de Colombia
+const TALLAS_COLOMBIA = [
+    "XS", "S", "M", "L", "XL", "XXL", "XXXL",
+    "26", "28", "30", "32", "34", "36", "38", "40", "42", "44", "46"
+];
 
 const generarSlug = (texto) =>
     texto
@@ -39,16 +44,12 @@ const estadoInicialDatos = {
     estado: "activo",
 };
 
-const varianteVacia = {
+const colorVariantVacia = {
     tempId: 0,
     id_variante: null,
     color: "",
-    talla: "",
-    sku: "",
-    stock: 0,
     imagenes: [],
-    nuevaImagen: "",
-    nuevoArchivo: null,
+    size_variants: [],  // Array de {talla, stock, sku}
 };
 
 let tempCounter = 1;
@@ -214,13 +215,13 @@ function ProductForm({ product, onClose, onSaved }) {
 
     const [colores, setColores] = useState([]);
 
-    const [tallas, setTallas] = useState([]);
+    const [tallas, setTallas] = useState(TALLAS_COLOMBIA.map((nombre, index) => ({ id: index, nombre })));
 
     const [datos, setDatos] = useState(estadoInicialDatos);
 
     const [slug, setSlug] = useState("");
 
-    const [variantes, setVariantes] = useState([]);
+    const [colorVariants, setColorVariants] = useState([]);
 
     const [submitting, setSubmitting] = useState(false);
 
@@ -245,17 +246,19 @@ function ProductForm({ product, onClose, onSaved }) {
 
             setSlug(product.slug || "");
 
-            setVariantes(
-                (product.variantes || []).map((v) => ({
+            // Cargar color variants
+            setColorVariants(
+                (product.color_variants || []).map((cv) => ({
                     tempId: tempCounter++,
-                    id_variante: v.id_variante,
-                    color: v.color?.id_color ?? "",
-                    talla: v.talla?.id_talla ?? "",
-                    sku: v.sku || "",
-                    stock: v.stock ?? 0,
-                    imagenes: v.imagenes || [],
-                    nuevaImagen: "",
-                    nuevoArchivo: null,
+                    id_variante: cv.id_variante,
+                    color: cv.color?.id_color ? String(cv.color.id_color) : "",
+                    imagenes: cv.imagenes || [],
+                    size_variants: (cv.size_variants || []).map((sv) => ({
+                        id_size_variant: sv.id_size_variant,
+                        talla: sv.talla || "",
+                        stock: sv.stock ?? 0,
+                        sku: sv.sku || "",
+                    })),
                 }))
             );
 
@@ -263,7 +266,7 @@ function ProductForm({ product, onClose, onSaved }) {
 
             setDatos(estadoInicialDatos);
             setSlug("");
-            setVariantes([]);
+            setColorVariants([]);
 
         }
 
@@ -273,15 +276,13 @@ function ProductForm({ product, onClose, onSaved }) {
 
         try {
 
-            const [cats, cols, talls] = await Promise.all([
+            const [cats, cols] = await Promise.all([
                 getCategories(),
                 getColors(),
-                getTallas(),
             ]);
 
             setCategories(cats.data);
             setColores(cols.data);
-            setTallas(talls.data);
 
         }
 
@@ -318,66 +319,94 @@ function ProductForm({ product, onClose, onSaved }) {
 
     };
 
-    const agregarVariante = () => {
-
-        setVariantes((prev) => [
+    const agregarColorVariant = () => {
+        setColorVariants((prev) => [
             ...prev,
             {
-                ...varianteVacia,
+                ...colorVariantVacia,
                 tempId: tempCounter++,
             },
         ]);
-
     };
 
-    const eliminarVariante = async (index) => {
+    const eliminarColorVariant = async (index) => {
+        const colorVariant = colorVariants[index];
 
-        const variante = variantes[index];
-
-        if (variante.id_variante) {
-
+        if (colorVariant.id_variante) {
             const confirmar = window.confirm(
-                "¿Eliminar esta variante y sus imágenes?"
+                "¿Eliminar este color y sus imágenes/tallas?"
             );
-
             if (!confirmar) return;
 
             try {
-
-                await deleteVariant(variante.id_variante);
-
-            }
-
-            catch (err) {
-
+                // TODO: Implementar deleteColorVariant en adminService
+                // await deleteColorVariant(colorVariant.id_variante);
+            } catch (err) {
                 console.error(err);
-
-                alert("No se pudo eliminar la variante.");
-
+                alert("No se pudo eliminar el color.");
                 return;
-
             }
-
         }
 
-        setVariantes((prev) => prev.filter((_, i) => i !== index));
-
+        setColorVariants((prev) => prev.filter((_, i) => i !== index));
     };
 
-    const handleVarianteChange = (index, campo, valor) => {
-
-        setVariantes((prev) =>
-
-            prev.map((v, i) => (i === index ? { ...v, [campo]: valor } : v))
-
+    const handleColorVariantChange = (index, campo, valor) => {
+        setColorVariants((prev) =>
+            prev.map((cv, i) => (i === index ? { ...cv, [campo]: valor } : cv))
         );
-
         setErrores((prev) => {
-            const variantesErr = { ...(prev.variantes || {}) };
-            delete variantesErr[index]?.[campo];
-            return { ...prev, variantes: variantesErr };
+            const colorVariantsErr = { ...(prev.color_variants || {}) };
+            delete colorVariantsErr[index]?.[campo];
+            return { ...prev, color_variants: colorVariantsErr };
         });
+    };
 
+    const agregarSizeVariant = (colorIndex) => {
+        setColorVariants((prev) =>
+            prev.map((cv, i) => {
+                if (i === colorIndex) {
+                    return {
+                        ...cv,
+                        size_variants: [
+                            ...cv.size_variants,
+                            { id_size_variant: null, talla: "", stock: 0, sku: "" }
+                        ]
+                    };
+                }
+                return cv;
+            })
+        );
+    };
+
+    const eliminarSizeVariant = (colorIndex, sizeIndex) => {
+        setColorVariants((prev) =>
+            prev.map((cv, i) => {
+                if (i === colorIndex) {
+                    return {
+                        ...cv,
+                        size_variants: cv.size_variants.filter((_, j) => j !== sizeIndex)
+                    };
+                }
+                return cv;
+            })
+        );
+    };
+
+    const handleSizeVariantChange = (colorIndex, sizeIndex, campo, valor) => {
+        setColorVariants((prev) =>
+            prev.map((cv, i) => {
+                if (i === colorIndex) {
+                    return {
+                        ...cv,
+                        size_variants: cv.size_variants.map((sv, j) =>
+                            j === sizeIndex ? { ...sv, [campo]: valor } : sv
+                        )
+                    };
+                }
+                return cv;
+            })
+        );
     };
 
     const handleArchivoChange = (index, file) => {
@@ -687,49 +716,73 @@ function ProductForm({ product, onClose, onSaved }) {
     const validar = () => {
         const nuevosErrores = { datos: {}, variantes: {} };
 
-        if (!datos.nombre.trim()) {
-            nuevosErrores.datos.nombre = "El nombre es obligatorio.";
+        if (!datos.nombre || !datos.nombre.trim()) {
+            nuevosErrores.datos.nombre = "El nombre del producto es obligatorio.";
         }
 
         if (!datos.categoria_id) {
-            nuevosErrores.datos.categoria_id =
-                "Selecciona una categoría.";
+            nuevosErrores.datos.categoria_id = "Debes seleccionar una categoría.";
+        }
+
+        if (!datos.descripcion || !datos.descripcion.trim()) {
+            nuevosErrores.datos.descripcion = "La descripción del producto es obligatoria.";
         }
 
         if (
             datos.precio === "" ||
             datos.precio === null ||
+            datos.precio === undefined ||
             Number(datos.precio) <= 0
         ) {
-            nuevosErrores.datos.precio = "Ingresa un precio mayor a 0.";
+            nuevosErrores.datos.precio = "El precio debe ser mayor a 0.";
         }
 
         if (variantes.length === 0) {
-            nuevosErrores.variantesGlobal = "Agrega al menos una variante.";
+            nuevosErrores.variantesGlobal = "Debes agregar al menos una variante (color + talla + SKU + stock).";
         }
 
         const skusVistos = new Set();
 
-        variantes.forEach((v, i) => {
+        // Validar color variants
+        colorVariants.forEach((cv, i) => {
             const err = {};
 
-            if (!v.color) err.color = "Selecciona un color.";
-            if (!v.talla) err.talla = "Selecciona una talla.";
-
-            if (!v.sku.trim()) {
-                err.sku = "El SKU es obligatorio.";
-            } else if (skusVistos.has(v.sku.trim())) {
-                err.sku = "SKU repetido en este producto.";
-            } else {
-                skusVistos.add(v.sku.trim());
+            if (!cv.color) {
+                err.color = "Selecciona un color para esta variante.";
             }
 
-            if (v.stock === "" || v.stock === null || Number(v.stock) < 0) {
-                err.stock = "Stock inválido.";
+            // Validar size variants (tallas)
+            cv.size_variants.forEach((sv, j) => {
+                const svErr = {};
+                
+                if (!sv.talla || !sv.talla.trim()) {
+                    svErr.talla = "La talla es obligatoria.";
+                }
+                
+                if (!sv.sku || !sv.sku.trim()) {
+                    svErr.sku = "El SKU es obligatorio.";
+                } else if (skusVistos.has(sv.sku.trim())) {
+                    svErr.sku = "Este SKU ya está en uso.";
+                } else {
+                    skusVistos.add(sv.sku.trim());
+                }
+                
+                if (sv.stock === "" || sv.stock === null || sv.stock === undefined || Number(sv.stock) < 0) {
+                    svErr.stock = "El stock debe ser un número positivo.";
+                }
+                
+                if (Object.keys(svErr).length > 0) {
+                    if (!err.size_variants) err.size_variants = {};
+                    err.size_variants[j] = svErr;
+                }
+            });
+
+            if (cv.size_variants.length === 0) {
+                err.size_variants = "Debes agregar al menos una talla.";
             }
 
             if (Object.keys(err).length > 0) {
-                nuevosErrores.variantes[i] = err;
+                nuevosErrores.color_variants[i] = err;
             }
         });
 
@@ -767,14 +820,39 @@ function ProductForm({ product, onClose, onSaved }) {
 
             let productoId = product?.id_producto;
 
+            // Preparar color variants para enviar junto con el producto
+            const colorVariantsPayload = colorVariants.map(cv => {
+                const imagenesPayload = cv.imagenes.map(img => ({
+                    imagen: img.imagen || null,
+                    principal: img.principal || false,
+                    orden: cv.imagenes.indexOf(img) + 1,
+                }));
+                
+                const sizeVariantsPayload = cv.size_variants.map(sv => ({
+                    talla: sv.talla,
+                    stock: Number(sv.stock),
+                    sku: sv.sku,
+                    precio: Number(datos.precio),
+                }));
+                
+                return {
+                    color: cv.color ? Number(cv.color) : null,
+                    imagenes: imagenesPayload,
+                    size_variants_data: sizeVariantsPayload,
+                };
+            });
+
             const payloadProducto = {
                 nombre: datos.nombre,
                 categoria_id: Number(datos.categoria_id),
                 descripcion: datos.descripcion,
                 precio: Number(datos.precio),
-                estado: datos.estado,
                 slug: slug || generarSlug(datos.nombre),
+                estado: datos.estado,
+                color_variants_data: colorVariantsPayload,
             };
+
+            console.log("Enviando producto completo con variantes:", payloadProducto);
 
             if (modoEdicion) {
 
@@ -786,39 +864,22 @@ function ProductForm({ product, onClose, onSaved }) {
 
                 productoId = data.id_producto;
 
+                // Necesitamos obtener las variantes creadas para asignarles imágenes
+                const { data: variantesCreadas } = await getVariants(productoId);
+
+                // Mapear las variantes creadas con las del formulario
+                for (let i = 0; i < variantes.length; i++) {
+                    if (variantesCreadas[i]) {
+                        variantes[i].id_variante = variantesCreadas[i].id_variante;
+                    }
+                }
+
             }
 
+            // Procesar imágenes de las variantes
             for (const v of variantes) {
-
-                const variantePayload = {
-                    color: Number(v.color),
-                    talla: Number(v.talla),
-                    sku: v.sku,
-                    stock: Number(v.stock),
-                };
-
-                if (productoId) {
-
-                    variantePayload.producto_id = productoId;
-
-                }
-
-                let varianteId = v.id_variante;
-
-                if (varianteId) {
-
-                    await updateVariant(varianteId, variantePayload);
-
-                } else {
-
-                    const { data } = await createVariant(
-                        productoId,
-                        variantePayload
-                    );
-
-                    varianteId = data.id_variante;
-
-                }
+                const varianteId = v.id_variante;
+                if (!varianteId) continue;
 
                 for (const img of v.imagenes) {
 
@@ -847,7 +908,6 @@ function ProductForm({ product, onClose, onSaved }) {
                     }
 
                 }
-
             }
 
             if (onSaved) await onSaved();
@@ -858,7 +918,8 @@ function ProductForm({ product, onClose, onSaved }) {
 
         catch (error) {
 
-            console.error(error);
+            console.error("Error completo:", error);
+            console.error("Respuesta del servidor:", error.response?.data);
 
             let mensaje = "No fue posible conectar con el servidor.";
 
@@ -1125,7 +1186,7 @@ function ProductForm({ product, onClose, onSaved }) {
 
                                 <label>
                                     Estado
-                                    <LabelHelp texto="Activo: visible en la tienda. Inactivo: oculto. Archivado: borrado lógico." />
+                                    <LabelHelp texto="Activo: visible en la tienda. Inactivo: oculto." />
                                 </label>
 
                                 <select
@@ -1136,7 +1197,6 @@ function ProductForm({ product, onClose, onSaved }) {
 
                                     <option value="activo">Activo</option>
                                     <option value="inactivo">Inactivo</option>
-                                    <option value="archivado">Archivado</option>
 
                                 </select>
 
@@ -1200,20 +1260,6 @@ function ProductForm({ product, onClose, onSaved }) {
 
                             </button>
 
-                            <button
-                                type="submit"
-                                className="save-button"
-                                disabled={submitting}
-                            >
-
-                                {submitting
-                                    ? "Guardando..."
-                                    : (modoEdicion
-                                        ? "Guardar cambios"
-                                        : "Guardar producto")}
-
-                            </button>
-
                         </div>
 
                     </>
@@ -1261,10 +1307,22 @@ function ProductForm({ product, onClose, onSaved }) {
 
                                     <tr>
 
-                                        <th>Color</th>
-                                        <th>Talla</th>
-                                        <th>SKU</th>
-                                        <th>Stock</th>
+                                        <th>
+                                            Color
+                                            <LabelHelp texto="Color de la variante (ej: Rojo, Azul, Negro)." />
+                                        </th>
+                                        <th>
+                                            Talla
+                                            <LabelHelp texto="Talla disponible (puedes seleccionar varias)." />
+                                        </th>
+                                        <th>
+                                            SKU
+                                            <LabelHelp texto="Código único de identificación del producto." />
+                                        </th>
+                                        <th>
+                                            Stock
+                                            <LabelHelp texto="Cantidad disponible en inventario." />
+                                        </th>
                                         <th></th>
 
                                     </tr>
@@ -1335,51 +1393,37 @@ function ProductForm({ product, onClose, onSaved }) {
 
                                             <td>
 
-                                                <div className="select-with-add">
-                                                    <select
-                                                        value={v.talla}
-                                                        onChange={(e) =>
-                                                            handleVarianteChange(
-                                                                i,
-                                                                "talla",
-                                                                e.target.value
-                                                            )
-                                                        }
-                                                        className={errV.talla ? "input-error" : ""}
-                                                    >
-
-                                                        <option value="">—</option>
-
-                                                        {tallas.map((t) => (
-
-                                                            <option
-                                                                key={t.id_talla}
-                                                                value={t.id_talla}
-                                                            >
-
-                                                                {t.nombre}
-
-                                                            </option>
-
-                                                        ))}
-
-                                                    </select>
-
-                                                    <button
-                                                        type="button"
-                                                        className="add-inline"
-                                                        title="Crear una nueva talla"
-                                                        onClick={() =>
-                                                            setModalCrear("talla")
-                                                        }
-                                                    >
-                                                        +
-                                                    </button>
+                                                <div className="talla-buttons">
+                                                    {tallas.map((t) => (
+                                                        <button
+                                                            key={t.id}
+                                                            type="button"
+                                                            className={`talla-button ${v.tallas.includes(t.nombre) ? 'active' : ''}`}
+                                                            onClick={() => {
+                                                                const tallasActuales = [...v.tallas];
+                                                                if (tallasActuales.includes(t.nombre)) {
+                                                                    handleVarianteChange(
+                                                                        i,
+                                                                        "tallas",
+                                                                        tallasActuales.filter(nombre => nombre !== t.nombre)
+                                                                    );
+                                                                } else {
+                                                                    handleVarianteChange(
+                                                                        i,
+                                                                        "tallas",
+                                                                        [...tallasActuales, t.nombre]
+                                                                    );
+                                                                }
+                                                            }}
+                                                        >
+                                                            {t.nombre}
+                                                        </button>
+                                                    ))}
                                                 </div>
 
-                                                {errV.talla && (
+                                                {errV.tallas && (
                                                     <span className="error-text">
-                                                        {errV.talla}
+                                                        {errV.tallas}
                                                     </span>
                                                 )}
 
@@ -1491,20 +1535,6 @@ function ProductForm({ product, onClose, onSaved }) {
 
                             </button>
 
-                            <button
-                                type="submit"
-                                className="save-button"
-                                disabled={submitting}
-                            >
-
-                                {submitting
-                                    ? "Guardando..."
-                                    : (modoEdicion
-                                        ? "Guardar cambios"
-                                        : "Guardar producto")}
-
-                            </button>
-
                         </div>
 
                     </>
@@ -1567,7 +1597,7 @@ function ProductForm({ product, onClose, onSaved }) {
                                                         alt={`img-${j}`}
                                                         onError={(e) => {
                                                             e.currentTarget.src =
-                                                                "https://via.placeholder.com/80?text=Error";
+                                                                "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80' viewBox='0 0 80 80'%3E%3Crect width='80' height='80' fill='%23fee2e2'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-family='Arial, sans-serif' font-size='10' fill='%23dc2626'%3EError%3C/text%3E%3C/svg%3E";
                                                         }}
                                                     />
 

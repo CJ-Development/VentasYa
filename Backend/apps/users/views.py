@@ -1,192 +1,192 @@
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework import status
 from django.shortcuts import get_object_or_404
-from django.contrib.auth.hashers import check_password, make_password
+from rest_framework import status
+from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.response import Response
+from rest_framework.views import APIView
+from rest_framework_simplejwt.tokens import RefreshToken
 
+from utils.permissions import IsAdministrador
+
+from .models import Direccion, Usuario
 from .serializers import (
-    UsuarioSerializer,
-    UsuarioUpdateSerializer,
-    RegisterSerializer,
-    LoginSerializer,
     CambiarPasswordSerializer,
     DireccionSerializer,
+    LoginSerializer,
+    PerfilUpdateSerializer,
+    RegisterSerializer,
+    UsuarioSerializer,
 )
-
-from .models import Usuario, Direccion
-
 from .services import UserService
+
+
+def _tokens_para(usuario):
+    refresh = RefreshToken.for_user(usuario)
+
+    return {
+        "access": str(refresh.access_token),
+        "refresh": str(refresh),
+    }
 
 
 class RegisterView(APIView):
 
+    permission_classes = [AllowAny]
+    throttle_scope = "register"
+
     def post(self, request):
-
         serializer = RegisterSerializer(data=request.data)
-
         serializer.is_valid(raise_exception=True)
 
-        usuario = UserService.crear_usuario(serializer.validated_data)
+        usuario = UserService.crear_usuario(dict(serializer.validated_data))
 
         return Response(
-
-            UsuarioSerializer(usuario).data,
-
-            status=status.HTTP_201_CREATED
-
+            {
+                "usuario": UsuarioSerializer(usuario).data,
+                **_tokens_para(usuario),
+            },
+            status=status.HTTP_201_CREATED,
         )
 
 
 class LoginView(APIView):
 
+    permission_classes = [AllowAny]
+    throttle_scope = "login"
+
     def post(self, request):
-
         serializer = LoginSerializer(data=request.data)
-
         serializer.is_valid(raise_exception=True)
 
-        usuario = UserService.login(
-
+        usuario = UserService.autenticar(
+            request,
             serializer.validated_data["email"],
-
-            serializer.validated_data["password"]
-
+            serializer.validated_data["password"],
         )
 
-        if not usuario:
-
+        if usuario is None:
             return Response(
-
-                {"error": "Credenciales inválidas"},
-
-                status=401
-
+                {"detail": "Credenciales inválidas."},
+                status=status.HTTP_401_UNAUTHORIZED,
             )
 
         return Response(
-
-            UsuarioSerializer(usuario).data
-
+            {
+                "usuario": UsuarioSerializer(usuario).data,
+                **_tokens_para(usuario),
+            }
         )
+
+
+class MeView(APIView):
+    """Perfil del usuario autenticado."""
+
+    def get(self, request):
+        return Response(UsuarioSerializer(request.user).data)
+
+    def put(self, request):
+        serializer = PerfilUpdateSerializer(
+            request.user,
+            data=request.data,
+            partial=True,
+        )
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+
+        return Response(UsuarioSerializer(request.user).data)
+
+
+class CambiarPasswordView(APIView):
+    """POST /api/users/me/cambiar-password/"""
+
+    def post(self, request):
+        serializer = CambiarPasswordSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        usuario = request.user
+
+        if not usuario.check_password(serializer.validated_data["password_actual"]):
+            return Response(
+                {"detail": "La contraseña actual es incorrecta."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        usuario.set_password(serializer.validated_data["password_nuevo"])
+        usuario.save(update_fields=["password"])
+
+        return Response({"ok": True, **_tokens_para(usuario)})
+
 
 class UserListView(APIView):
 
-    def get(self, request):
+    permission_classes = [IsAdministrador]
 
+    def get(self, request):
         usuarios = UserService.obtener_usuarios()
 
-        serializer = UsuarioSerializer(
-            usuarios,
-            many=True
-        )
-
-        return Response(serializer.data)
+        return Response(UsuarioSerializer(usuarios, many=True).data)
 
 
 class UsuarioDetalleView(APIView):
 
+    permission_classes = [IsAdministrador]
+
     def get(self, request, id):
-
         usuario = get_object_or_404(Usuario, id_usuario=id)
-
         return Response(UsuarioSerializer(usuario).data)
 
     def put(self, request, id):
-
         usuario = get_object_or_404(Usuario, id_usuario=id)
-
-        serializer = UsuarioUpdateSerializer(
-            usuario,
-            data=request.data
-        )
-
+        serializer = PerfilUpdateSerializer(usuario, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
-
         serializer.save()
-
-        usuario.refresh_from_db()
-
         return Response(UsuarioSerializer(usuario).data)
 
     def delete(self, request, id):
-
-        Usuario.objects.filter(id_usuario=id).delete()
-
-        return Response(status=status.HTTP_204_NO_CONTENT)
-
-
-class CambiarPasswordView(APIView):
-    """
-    POST /api/users/<id>/cambiar-password/
-    body: { password_actual, password_nuevo }
-    """
-
-    def post(self, request, id):
-
         usuario = get_object_or_404(Usuario, id_usuario=id)
-
-        serializer = CambiarPasswordSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-
-        actual = serializer.validated_data["password_actual"]
-        nuevo = serializer.validated_data["password_nuevo"]
-
-        if not check_password(actual, usuario.password_hash):
+        if usuario.pk == request.user.pk:
             return Response(
-                {"error": "La contraseña actual es incorrecta."},
+                {"detail": "No puedes desactivar tu propia cuenta."},
                 status=status.HTTP_400_BAD_REQUEST,
             )
-
-        usuario.password_hash = make_password(nuevo)
-        usuario.save(update_fields=["password_hash"])
-
-        return Response({"ok": True})
+        usuario.is_active = False
+        usuario.save(update_fields=["is_active"])
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 class DireccionView(APIView):
     """
-    GET  /api/users/direcciones/?usuario_id=X      -> lista
-    POST /api/users/direcciones/                    body: { usuario_id, direccion, ciudad, departamento, codigo_postal, predeterminada }
+    GET  /api/users/direcciones/   -> direcciones del usuario autenticado
+    POST /api/users/direcciones/   -> crea una dirección para el usuario
     """
 
+    permission_classes = [IsAuthenticated]
+
     def get(self, request):
-
-        usuario_id = (
-            request.query_params.get("usuario_id")
-            or request.query_params.get("usuario")
-        )
-
-        if not usuario_id:
-            return Response(
-                {"detail": "Se requiere el parámetro 'usuario_id'."},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-
-        get_object_or_404(Usuario, id_usuario=usuario_id)
-
         direcciones = (
             Direccion.objects
-            .filter(usuario_id=usuario_id)
+            .filter(usuario=request.user)
             .order_by("-predeterminada", "id_direccion")
         )
 
         return Response(DireccionSerializer(direcciones, many=True).data)
 
     def post(self, request):
-
         serializer = DireccionSerializer(data=request.data)
-
         serializer.is_valid(raise_exception=True)
 
-        usuario = serializer.validated_data["usuario"]
+        es_primera = not Direccion.objects.filter(usuario=request.user).exists()
 
-        # Si llega como predeterminada, desmarcamos las demás
-        if serializer.validated_data.get("predeterminada"):
+        predeterminada = serializer.validated_data.get("predeterminada") or es_primera
+
+        if predeterminada:
             Direccion.objects.filter(
-                usuario=usuario, predeterminada=True
+                usuario=request.user, predeterminada=True
             ).update(predeterminada=False)
 
-        direccion = serializer.save()
+        direccion = serializer.save(
+            usuario=request.user,
+            predeterminada=predeterminada,
+        )
 
         return Response(
             DireccionSerializer(direccion).data,
@@ -196,16 +196,19 @@ class DireccionView(APIView):
 
 class DireccionDetalleView(APIView):
     """
-    PUT    /api/users/direcciones/<id>/   actualizar
-    DELETE /api/users/direcciones/<id>/   eliminar
+    PUT    /api/users/direcciones/<id>/
+    DELETE /api/users/direcciones/<id>/
     """
 
-    def put(self, request, id):
+    permission_classes = [IsAuthenticated]
 
-        direccion = get_object_or_404(Direccion, id_direccion=id)
+    def _get_direccion(self, request, id):
+        return get_object_or_404(Direccion, id_direccion=id, usuario=request.user)
+
+    def put(self, request, id):
+        direccion = self._get_direccion(request, id)
 
         serializer = DireccionSerializer(direccion, data=request.data, partial=True)
-
         serializer.is_valid(raise_exception=True)
 
         if serializer.validated_data.get("predeterminada"):
@@ -218,7 +221,7 @@ class DireccionDetalleView(APIView):
         return Response(DireccionSerializer(direccion).data)
 
     def delete(self, request, id):
-
-        Direccion.objects.filter(id_direccion=id).delete()
+        direccion = self._get_direccion(request, id)
+        direccion.delete()
 
         return Response(status=status.HTTP_204_NO_CONTENT)

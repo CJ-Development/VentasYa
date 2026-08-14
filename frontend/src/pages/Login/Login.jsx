@@ -16,9 +16,10 @@ import {
     Tag
 } from "lucide-react";
 
-import { login } from "../../api/axios";
+import { login } from "../../services/api";
 import { useAuth } from "../../hooks/useAuth";
 import { useCart } from "../../hooks/useCart";
+import { useNotification } from "../../components/Notifications/NotificationProvider";
 
 
 function Login() {
@@ -29,6 +30,8 @@ function Login() {
     const { login: loginContext } = useAuth();
 
     const { syncOnLogin } = useCart();
+
+    const { success, error: showError } = useNotification();
 
 
     /* =====================================================
@@ -88,11 +91,12 @@ function Login() {
                SINCRONIZAR CARRITO
             ============================================= */
 
-            if (data?.id_usuario) {
+            const usuarioData = data.usuario || data;
+            if (usuarioData?.id) {
 
                 try {
 
-                    await syncOnLogin(data.id_usuario);
+                    await syncOnLogin(usuarioData.id);
 
                 } catch (syncErr) {
 
@@ -110,7 +114,7 @@ function Login() {
                MENSAJE
             ============================================= */
 
-            alert(`Bienvenido ${data.nombres}`);
+            success(`¡Bienvenido de nuevo, ${usuarioData.nombres}!`);
 
 
             /* =============================================
@@ -142,7 +146,7 @@ function Login() {
                REDIRECCIÓN POR ROL
             ============================================= */
 
-            if (data.rol === 2) {
+            if (usuarioData.es_administrador) {
 
                 navigate("/admin");
 
@@ -155,20 +159,7 @@ function Login() {
 
         } catch (error) {
 
-            if (error.response) {
-
-                alert(
-                    error.response.data?.error ||
-                    "Los datos ingresados no son correctos"
-                );
-
-            } else {
-
-                alert(
-                    "No fue posible iniciar sesión"
-                );
-
-            }
+            showError("No fue posible iniciar sesión. Verifica tus credenciales.");
 
         } finally {
 
@@ -429,12 +420,9 @@ function Login() {
                                 </label>
 
 
-                                <Link
-                                    to="/recuperar-password"
-                                    className="forgot-password"
-                                >
+                                <span className="forgot-password">
                                     ¿Olvidaste tu contraseña?
-                                </Link>
+                                </span>
 
                             </div>
 
@@ -615,7 +603,7 @@ function Login() {
 
                         ¿No tienes cuenta?
 
-                        <Link to="/registro">
+                        <Link to="/register">
                             Regístrate aquí
                         </Link>
 

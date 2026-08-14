@@ -27,6 +27,7 @@ import {
 import NoImage from "../../../assets/images/no-detail.png";
 
 import "./ProductDetail.css";
+import { useNotification } from "../../../components/Notifications/NotificationProvider";
 
 const formatearPesos = (valor) => {
 
@@ -43,6 +44,8 @@ function ProductDetail({ productId, onClose }) {
     const { addItem } = useCart();
 
     const { usuario } = useAuth();
+
+    const { success, error: showError } = useNotification();
 
     const navigate = useNavigate();
 
@@ -200,7 +203,7 @@ function ProductDetail({ productId, onClose }) {
 
         const cargar = async () => {
 
-            if (!usuario?.id_usuario) {
+            if (!usuario?.id) {
 
                 setFavoritos([]);
 
@@ -210,7 +213,7 @@ function ProductDetail({ productId, onClose }) {
 
             try {
 
-                const { data } = await getMyFavorites(usuario.id_usuario);
+                const { data } = await getMyFavorites();
 
                 if (cancelado) return;
 
@@ -230,7 +233,7 @@ function ProductDetail({ productId, onClose }) {
 
         return () => { cancelado = true; };
 
-    }, [usuario?.id_usuario]);
+    }, [usuario?.id]);
 
     // Actualizar estado de favorito cuando cargan los favoritos y el producto
     useEffect(() => {
@@ -274,7 +277,7 @@ function ProductDetail({ productId, onClose }) {
 
         if (!variante) {
 
-            alert("No hay variantes disponibles para este producto.");
+            showError("No hay variantes disponibles para este producto");
 
             return;
 
@@ -292,7 +295,7 @@ function ProductDetail({ productId, onClose }) {
             producto_id: producto.id_producto,
             producto_nombre: producto.nombre,
             producto_slug: producto.slug,
-            producto_precio: producto.precio,
+            producto_precio: variante.precio_con_descuento || variante.precio,
             color: variante.color?.nombre || "",
             talla: variante.talla?.nombre || "",
             imagen,
@@ -306,7 +309,7 @@ function ProductDetail({ productId, onClose }) {
             return;
         }
 
-        alert("No se pudo agregar al carrito. Intenta de nuevo.");
+        showError("No se pudo agregar al carrito. Intenta de nuevo.");
 
     };
 
@@ -436,7 +439,23 @@ function ProductDetail({ productId, onClose }) {
 
                         <div className="product-price">
 
-                            {formatearPesos(producto.precio)}
+                            {producto.oferta_activa && (
+                                <span className="offer-badge">
+                                    {producto.oferta_activa.tipo_descuento === 'porcentaje'
+                                        ? `-${producto.oferta_activa.valor}%`
+                                        : `-$${Number(producto.oferta_activa.valor).toLocaleString('es-CO')}`}
+                                </span>
+                            )}
+
+                            {producto.oferta_activa && (
+                                <span className="old-price">
+                                    {formatearPesos(producto.precio)}
+                                </span>
+                            )}
+
+                            <span className="current-price">
+                                {formatearPesos(producto.precio)}
+                            </span>
 
                         </div>
 
@@ -601,11 +620,11 @@ function ProductDetail({ productId, onClose }) {
 
                                         try {
 
-                                            await addFavorite(usuario.id_usuario, producto.id_producto);
+                                            await addFavorite(producto.id_producto);
 
                                             // Recargar favoritos para tener el id real
 
-                                            const { data } = await getMyFavorites(usuario.id_usuario);
+                                            const { data } = await getMyFavorites();
 
                                             const arr = Array.isArray(data) ? data : [];
 

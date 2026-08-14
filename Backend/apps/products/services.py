@@ -1,6 +1,6 @@
 from django.db.models import Prefetch
 
-from .models import Producto, Variante, ImagenProducto
+from .models import Producto, ColorVariant, SizeVariant, ImagenProducto
 
 
 class ProductoService:
@@ -51,10 +51,14 @@ class ProductoService:
             .select_related("categoria")
             .prefetch_related(
                 Prefetch(
-                    "variante_set",
-                    queryset=Variante.objects.select_related(
-                        "color", "talla"
+                    "colorvariant_set",
+                    queryset=ColorVariant.objects.select_related(
+                        "color"
                     ).prefetch_related(
+                        Prefetch(
+                            "sizevariant_set",
+                            queryset=SizeVariant.objects.all()
+                        ),
                         Prefetch(
                             "imagenproducto_set",
                             queryset=ImagenProducto.objects.order_by(

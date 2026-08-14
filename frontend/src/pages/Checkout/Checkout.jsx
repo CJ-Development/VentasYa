@@ -69,7 +69,7 @@ function Checkout() {
         if (!usuario) return;
         setLoadingDatos(true);
         Promise.all([
-            getMisDirecciones(usuario.id_usuario),
+            getMisDirecciones(),
             getMetodosPago(),
         ])
             .then(([dirRes, metRes]) => {
@@ -121,7 +121,6 @@ function Checkout() {
         setError(null);
         try {
             const { data } = await crearDireccion({
-                usuario_id: usuario.id_usuario,
                 ...nuevaDireccion,
             });
             const nuevas = [...direcciones, data];
@@ -158,11 +157,14 @@ function Checkout() {
         setError(null);
 
         try {
+            // Generar idempotency_key único para este intento
+            const idempotencyKey = crypto.randomUUID();
+
             const { data } = await checkout({
-                usuario_id: usuario.id_usuario,
                 direccion_id: direccionId,
                 metodo_pago_id: metodoPagoId,
                 telefono_contacto: telefono || usuario.telefono,
+                idempotency_key: idempotencyKey,
             });
 
             // Vaciar carrito local
@@ -454,7 +456,7 @@ function Checkout() {
                                         >
                                             <input
                                                 type="radio"
-                                                name="metodo"
+                                                name="metodo_pago"
                                                 value={m.id}
                                                 checked={metodoPagoId === m.id}
                                                 onChange={() => setMetodoPagoId(m.id)}
@@ -473,99 +475,77 @@ function Checkout() {
                     {/* ===========================
                         RESUMEN
                     ============================ */}
-                    <aside className="checkout-summary">
+                    <div className="checkout-summary">
                         <h2>Resumen del pedido</h2>
 
-                        <ul className="checkout-items">
-                            {items.map((it) => {
-                                const key = it.id_item || it.variante_id;
-                                const sub = Number(it.producto_precio || 0) * Number(it.cantidad || 0);
-                                return (
-                                    <li key={key} className="checkout-item">
-                                        <img
-                                            src={it.imagen || NoImage}
-                                            alt={it.producto_nombre}
-                                            onError={(e) => {
-                                                e.currentTarget.src = NoImage;
-                                            }}
-                                        />
-                                        <div className="checkout-item-info">
-                                            <strong>{it.producto_nombre}</strong>
-                                            <span>
-                                                {it.color ? `Color: ${it.color}` : ""}
-                                                {it.color && it.talla ? " · " : ""}
-                                                {it.talla ? `Talla: ${it.talla}` : ""}
-                                                {" · Cant: "}{it.cantidad}
-                                            </span>
-                                        </div>
-                                        <span className="checkout-item-price">
-                                            {formatearPesos(sub)}
+                        <div className="checkout-items">
+                            {items.map((item) => (
+                                <div key={item.id_item} className="checkout-item">
+                                    <img
+                                        src={item.imagen || NoImage}
+                                        alt={item.producto_nombre}
+                                        className="checkout-item-image"
+                                    />
+                                    <div className="checkout-item-info">
+                                        <strong>{item.producto_nombre}</strong>
+                                        <span>
+                                            {item.color} · {item.talla} · x{item.cantidad}
                                         </span>
-                                    </li>
-                                );
-                            })}
-                        </ul>
+                                    </div>
+                                    <span className="checkout-item-price">
+                                        {formatearPesos(item.producto_precio * item.cantidad)}
+                                    </span>
+                                </div>
+                            ))}
+                        </div>
 
-                        <div className="checkout-summary-row">
-                            <span>Subtotal</span>
-                            <strong>{formatearPesos(total)}</strong>
-                        </div>
-                        <div className="checkout-summary-row">
-                            <span>
-                                <Truck size={13} style={{ verticalAlign: -2 }} /> Envío
-                            </span>
-                            <strong style={{ color: envioGratis ? "#0097A7" : "#031927" }}>
-                                {envioGratis ? "Gratis" : "Por calcular"}
-                            </strong>
-                        </div>
-                        <div className="checkout-summary-divider" />
-                        <div className="checkout-summary-row checkout-summary-total">
-                            <span>Total</span>
-                            <strong>{formatearPesos(totalFinal)}</strong>
+                        <div className="checkout-totals">
+                            <div className="checkout-total-row">
+                                <span>Subtotal</span>
+                                <span>{formatearPesos(total)}</span>
+                            </div>
+                            <div className="checkout-total-row">
+                                <span>Envío</span>
+                                <span>
+                                    {costoEnvio === 0 ? "Gratis" : formatearPesos(costoEnvio)}
+                                </span>
+                            </div>
+                            {!envioGratis && (
+                                <div className="checkout-shipping-notice">
+                                    <Truck size={14} />
+                                    Agrega {formatearPesos(envioGratisDesde - total)} para envío gratis
+                                </div>
+                            )}
+                            <div className="checkout-total-row checkout-total-final">
+                                <span>Total</span>
+                                <span>{formatearPesos(totalFinal)}</span>
+                            </div>
                         </div>
 
                         <button
-                            type="button"
                             className="checkout-pay"
                             onClick={handlePagar}
-                            disabled={
-                                procesando ||
-                                !direccionId ||
-                                !metodoPagoId
-                            }
+                            disabled={procesando}
                         >
                             {procesando ? (
                                 <>
-                                    <Loader2 size={16} className="checkout-spin" />
-                                    Procesando pago...
+                                    <Loader2 size={18} className="checkout-spin" />
+                                    Procesando...
                                 </>
                             ) : (
                                 <>
-                                    <LockKeyhole size={16} />
+                                    <LockKeyhole size={18} />
                                     Pagar {formatearPesos(totalFinal)}
                                 </>
                             )}
                         </button>
 
-                        <Link
-                            to="/cart"
-                            style={{
-                                display: "inline-flex",
-                                alignItems: "center",
-                                gap: 6,
-                                marginTop: 14,
-                                color: "#0097A7",
-                                textDecoration: "none",
-                                fontWeight: 600,
-                                fontSize: 13,
-                            }}
-                        >
-                            <ArrowLeft size={14} /> Volver al carrito
-                        </Link>
-                    </aside>
-
+                        <div className="checkout-security">
+                            <LockKeyhole size={14} />
+                            <span>Pago seguro con encriptación SSL</span>
+                        </div>
+                    </div>
                 </div>
-
             </div>
         </main>
     );
