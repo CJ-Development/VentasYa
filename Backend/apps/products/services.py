@@ -30,10 +30,7 @@ class ProductoService:
                 Prefetch(
                     "variante_set",
                     queryset=Variante.objects.select_related("color", "talla").prefetch_related(
-                        Prefetch(
-                            "imagenproducto_set",
-                            queryset=ImagenProducto.objects.order_by("orden", "id_imagen"),
-                        )
+                        Prefetch("imagenproducto_set", queryset=ImagenProducto.objects.order_by("orden", "id_imagen"))
                     ),
                 )
             )
@@ -93,7 +90,6 @@ class ProductoService:
     @transaction.atomic
     def guardar_completo(*, producto_data, variantes_data, archivos):
         producto_id = producto_data.pop("id_producto", None)
-
         if producto_id:
             producto = Producto.objects.select_for_update().get(id_producto=producto_id)
             for field, value in producto_data.items():
@@ -111,10 +107,13 @@ class ProductoService:
             if not variant_data.get("color") or not variant_data.get("talla"):
                 raise ValueError("Cada variante necesita color y talla.")
 
-            # Reuse the same serializer validation as the individual endpoint.
-            variant_serializer = VarianteSerializer(data=variant_data)
+            variant_serializer = VarianteSerializer(data={
+                **variant_data,
+                "producto_id": producto.id_producto,
+            })
             variant_serializer.is_valid(raise_exception=True)
             clean_variant = variant_serializer.validated_data
+            clean_variant.pop("producto", None)
 
             if variant_id:
                 variant = existing_variants.get(int(variant_id))
@@ -156,12 +155,7 @@ class ProductoService:
                 if not image_url:
                     raise ValueError("Cada imagen nueva debe incluir un archivo o una URL.")
 
-                image = ImagenProducto.objects.create(
-                    variante=variant,
-                    imagen=image_url,
-                    principal=principal,
-                    orden=order,
-                )
+                image = ImagenProducto.objects.create(variante=variant, imagen=image_url, principal=principal, orden=order)
                 received_image_ids.add(image.id_imagen)
 
             for old_image in existing_images.values():
