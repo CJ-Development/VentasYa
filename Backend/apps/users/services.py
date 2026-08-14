@@ -1,6 +1,4 @@
-from django.contrib.auth.hashers import make_password, check_password
-
-from .models import Usuario, Rol
+from .models import Usuario
 
 
 class UserService:
@@ -8,35 +6,16 @@ class UserService:
     @staticmethod
     def crear_usuario(data):
 
-        rol = Rol.objects.get(nombre_rol="Cliente")
-
-        # Si no llega documento, generamos uno único a partir del email
-        # para mantener compatibilidad con la constraint unique.
-        tipo_doc = data.get("tipo_documento") or "CC"
-        num_doc = data.get("numero_documento")
-        if not num_doc:
-            num_doc = f"AUTO-{data['email']}"
-
-        usuario = Usuario.objects.create(
-
-            rol=rol,
-
-            nombres=data["nombres"],
-
-            apellidos=data["apellidos"],
-
-            tipo_documento=tipo_doc,
-
-            numero_documento=num_doc,
-
+        usuario = Usuario.objects.create_user(
             email=data["email"],
-
+            password=data["password"],
+            nombres=data["nombres"],
+            apellidos=data["apellidos"],
             fecha_nacimiento=data["fecha_nacimiento"],
-
             telefono=data.get("telefono"),
-
-            password_hash=make_password(data["password"])
-
+            is_staff=False,
+            is_superuser=False,
+            is_active=True,
         )
 
         return usuario
@@ -45,33 +24,57 @@ class UserService:
     def login(email, password):
 
         try:
-
-            usuario = Usuario.objects.get(email=email)
-
-        except Usuario.DoesNotExist():
-
+            usuario = Usuario.objects.get(
+                email=email
+            )
+        except Usuario.DoesNotExist:
             return None
 
-        if check_password(password, usuario.password_hash):
+        if not usuario.is_active:
+            return None
 
-            return usuario
+        if not usuario.check_password(password):
+            return None
 
-        return None
+        return usuario
 
     @staticmethod
     def obtener_usuarios():
-        return Usuario.objects.select_related("rol").all()
+
+        return Usuario.objects.all()
 
     @staticmethod
     def obtener(id_usuario):
-        return Usuario.objects.select_related("rol").get(id_usuario=id_usuario)
+
+        return Usuario.objects.get(
+            id_usuario=id_usuario
+        )
 
     @staticmethod
     def actualizar(id_usuario, data):
-        usuario = Usuario.objects.get(id_usuario=id_usuario)
+
+        usuario = Usuario.objects.get(
+            id_usuario=id_usuario
+        )
+
+        campos_permitidos = [
+            "nombres",
+            "apellidos",
+            "email",
+            "fecha_nacimiento",
+            "telefono",
+            "estado",
+        ]
 
         for campo, valor in data.items():
-            setattr(usuario, campo, valor)
+
+            if campo in campos_permitidos:
+                setattr(
+                    usuario,
+                    campo,
+                    valor
+                )
 
         usuario.save()
+
         return usuario

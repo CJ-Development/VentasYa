@@ -1,80 +1,130 @@
 from rest_framework import serializers
-from .models import Usuario, Direccion, Rol
+
+from .models import Usuario, Direccion
 
 
 class UsuarioSerializer(serializers.ModelSerializer):
 
+    tipo_usuario = serializers.SerializerMethodField()
+
     class Meta:
         model = Usuario
-        exclude = ["password_hash"]
+
+        fields = [
+            "id_usuario",
+            "nombres",
+            "apellidos",
+            "email",
+            "fecha_nacimiento",
+            "telefono",
+            "fecha_registro",
+            "estado",
+            "is_active",
+            "is_staff",
+            "is_superuser",
+            "tipo_usuario",
+        ]
+
+        read_only_fields = [
+            "id_usuario",
+            "fecha_registro",
+            "is_superuser",
+            "is_staff",
+            "tipo_usuario",
+        ]
+
+    def get_tipo_usuario(self, obj):
+        return "admin" if obj.is_superuser else "cliente"
 
 
 class UsuarioUpdateSerializer(serializers.ModelSerializer):
 
-    rol = serializers.PrimaryKeyRelatedField(
-        queryset=Rol.objects.all()
-    )
-
     class Meta:
         model = Usuario
+
         fields = [
-            "rol",
             "nombres",
             "apellidos",
-            "tipo_documento",
-            "numero_documento",
             "email",
             "fecha_nacimiento",
             "telefono",
             "estado",
         ]
-        extra_kwargs = {
-            "tipo_documento": {"required": False, "allow_blank": True, "allow_null": True},
-            "numero_documento": {"required": False, "allow_blank": True, "allow_null": True},
-        }
 
 
 class RegisterSerializer(serializers.ModelSerializer):
 
-    password = serializers.CharField(write_only=True)
+    password = serializers.CharField(
+        write_only=True,
+        min_length=6
+    )
 
     class Meta:
         model = Usuario
+
         fields = [
             "nombres",
             "apellidos",
-            "tipo_documento",
-            "numero_documento",
             "email",
             "fecha_nacimiento",
             "telefono",
-            "password"
+            "password",
         ]
-        extra_kwargs = {
-            "tipo_documento": {"required": False, "allow_blank": True, "allow_null": True},
-            "numero_documento": {"required": False, "allow_blank": True, "allow_null": True},
-        }
+
+    def create(self, validated_data):
+
+        password = validated_data.pop("password")
+
+        # Todo registro público es cliente
+        usuario = Usuario.objects.create_user(
+            password=password,
+            is_staff=False,
+            is_superuser=False,
+            is_active=True,
+            **validated_data
+        )
+
+        return usuario
 
 
 class LoginSerializer(serializers.Serializer):
 
     email = serializers.EmailField()
 
-    password = serializers.CharField()
+    password = serializers.CharField(
+        write_only=True
+    )
+
+
+class CambiarPasswordSerializer(serializers.Serializer):
+
+    password_actual = serializers.CharField(
+        required=True,
+        write_only=True
+    )
+
+    password_nuevo = serializers.CharField(
+        required=True,
+        write_only=True,
+        min_length=6
+    )
 
 
 class DireccionSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Direccion
-        fields = "__all__"
 
+        fields = [
+            "id_direccion",
+            "usuario",
+            "direccion",
+            "ciudad",
+            "departamento",
+            "codigo_postal",
+            "predeterminada",
+        ]
 
-class CambiarPasswordSerializer(serializers.Serializer):
-
-    password_actual = serializers.CharField(required=True, write_only=True)
-    password_nuevo = serializers.CharField(
-        required=True,
-        write_only=True,
-        min_length=6,
-    )
+        read_only_fields = [
+            "id_direccion",
+        ]
