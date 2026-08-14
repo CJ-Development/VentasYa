@@ -7,13 +7,7 @@ from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 from django.shortcuts import get_object_or_404
 
 from .models import Producto, Variante, Color, Talla, ImagenProducto
-from .serializers import (
-    VarianteSerializer,
-    ProductoSerializer,
-    ColorSerializer,
-    TallaSerializer,
-    ImagenSerializer,
-)
+from .serializers import VarianteSerializer, ProductoSerializer, ColorSerializer, TallaSerializer, ImagenSerializer
 from .services import ProductoService
 
 
@@ -23,12 +17,7 @@ class ProductoView(APIView):
         categoria_id = self._parse_int(request.query_params.get("categoria"))
         ordering = request.query_params.get("ordering") or None
         estado = request.query_params.get("estado") or None
-        productos = ProductoService.listar(
-            solo_nuevos=solo_nuevos,
-            categoria_id=categoria_id,
-            estado=estado,
-            ordering=ordering,
-        )
+        productos = ProductoService.listar(solo_nuevos=solo_nuevos, categoria_id=categoria_id, estado=estado, ordering=ordering)
         return Response(ProductoSerializer(productos, many=True).data)
 
     @staticmethod
@@ -54,12 +43,6 @@ class ProductoView(APIView):
 
 
 class ProductoCompletoView(APIView):
-    """Single endpoint for the admin product editor.
-
-    Accepts multipart/form-data with:
-      payload: JSON containing producto + complete variantes/images state
-      files: fields referenced by each image's `file_key`.
-    """
     parser_classes = [MultiPartParser, FormParser, JSONParser]
 
     def post(self, request):
@@ -72,7 +55,6 @@ class ProductoCompletoView(APIView):
         try:
             raw_payload = request.data.get("payload")
             if raw_payload is None:
-                # JSON requests are also accepted for URL-only products.
                 payload = request.data
             elif isinstance(raw_payload, str):
                 payload = json.loads(raw_payload)
@@ -84,14 +66,12 @@ class ProductoCompletoView(APIView):
 
             producto_data = dict(payload.get("producto") or {})
             variantes_data = [dict(v) for v in (payload.get("variantes") or [])]
-
             if id is not None:
                 producto_data["id_producto"] = id
 
-            serializer = ProductoSerializer(data={
-                key: value for key, value in producto_data.items()
-                if key != "id_producto"
-            })
+            producto_instance = get_object_or_404(Producto, id_producto=id) if id is not None else None
+            serializer_input = {key: value for key, value in producto_data.items() if key != "id_producto"}
+            serializer = ProductoSerializer(producto_instance, data=serializer_input) if producto_instance else ProductoSerializer(data=serializer_input)
             serializer.is_valid(raise_exception=True)
 
             archivos = {key: value for key, value in request.FILES.items()}
@@ -101,10 +81,7 @@ class ProductoCompletoView(APIView):
                 archivos=archivos,
             )
 
-            return Response(
-                ProductoSerializer(producto).data,
-                status=status.HTTP_200_OK if id is not None else status.HTTP_201_CREATED,
-            )
+            return Response(ProductoSerializer(producto).data, status=status.HTTP_200_OK if id is not None else status.HTTP_201_CREATED)
         except Producto.DoesNotExist:
             return Response({"detail": "Producto no encontrado."}, status=404)
         except (ValueError, TypeError, json.JSONDecodeError) as exc:
@@ -115,28 +92,16 @@ class LowStockVariantesView(APIView):
     UMBRAL_STOCK = 5
 
     def get(self, request):
-        variantes = (
-            Variante.objects.select_related("producto")
-            .filter(stock__lt=self.UMBRAL_STOCK)
-            .order_by("stock")
-        )
-        data = [
-            {
-                "id_variante": v.id_variante,
-                "sku": v.sku,
-                "stock": v.stock,
-                "producto_id": v.producto.id_producto,
-                "producto_nombre": v.producto.nombre,
-            }
+        variantes = Variante.objects.select_related("producto").filter(stock__lt=self.UMBRAL_STOCK).order_by("stock")
+        return Response([
+            {"id_variante": v.id_variante, "sku": v.sku, "stock": v.stock, "producto_id": v.producto.id_producto, "producto_nombre": v.producto.nombre}
             for v in variantes
-        ]
-        return Response(data)
+        ])
 
 
 class ColorListView(APIView):
     def get(self, request):
-        colores = Color.objects.all().order_by("nombre")
-        return Response(ColorSerializer(colores, many=True).data)
+        return Response(ColorSerializer(Color.objects.all().order_by("nombre"), many=True).data)
 
     def post(self, request):
         serializer = ColorSerializer(data=request.data)
@@ -147,8 +112,7 @@ class ColorListView(APIView):
 
 class ColorDetalleView(APIView):
     def get(self, request, id):
-        color = get_object_or_404(Color, id_color=id)
-        return Response(ColorSerializer(color).data)
+        return Response(ColorSerializer(get_object_or_404(Color, id_color=id)).data)
 
     def put(self, request, id):
         color = get_object_or_404(Color, id_color=id)
@@ -164,8 +128,7 @@ class ColorDetalleView(APIView):
 
 class TallaListView(APIView):
     def get(self, request):
-        tallas = Talla.objects.all().order_by("nombre")
-        return Response(TallaSerializer(tallas, many=True).data)
+        return Response(TallaSerializer(Talla.objects.all().order_by("nombre"), many=True).data)
 
     def post(self, request):
         serializer = TallaSerializer(data=request.data)
@@ -176,8 +139,7 @@ class TallaListView(APIView):
 
 class TallaDetalleView(APIView):
     def get(self, request, id):
-        talla = get_object_or_404(Talla, id_talla=id)
-        return Response(TallaSerializer(talla).data)
+        return Response(TallaSerializer(get_object_or_404(Talla, id_talla=id)).data)
 
     def put(self, request, id):
         talla = get_object_or_404(Talla, id_talla=id)
@@ -193,8 +155,7 @@ class TallaDetalleView(APIView):
 
 class ProductoDetalleView(APIView):
     def get(self, request, id):
-        producto = get_object_or_404(Producto, id_producto=id)
-        return Response(ProductoSerializer(producto).data)
+        return Response(ProductoSerializer(get_object_or_404(Producto, id_producto=id)).data)
 
     def put(self, request, id):
         producto = get_object_or_404(Producto, id_producto=id)
@@ -212,17 +173,12 @@ class ProductoDetalleView(APIView):
 class ProductoReactivarView(APIView):
     def post(self, request, id):
         get_object_or_404(Producto, id_producto=id)
-        producto = ProductoService.reactivar(id)
-        return Response(ProductoSerializer(producto).data)
+        return Response(ProductoSerializer(ProductoService.reactivar(id)).data)
 
 
 class VariantesPorProductoView(APIView):
     def get(self, request, id):
-        variantes = (
-            Variante.objects.select_related("color", "talla")
-            .filter(producto_id=id)
-            .order_by("id_variante")
-        )
+        variantes = Variante.objects.select_related("color", "talla").filter(producto_id=id).order_by("id_variante")
         return Response(VarianteSerializer(variantes, many=True).data)
 
     def post(self, request, id):
@@ -238,9 +194,7 @@ class VariantesPorProductoView(APIView):
 
 class VarianteDetalleView(APIView):
     def get(self, request, variante_id):
-        variante = get_object_or_404(
-            Variante.objects.select_related("color", "talla"), id_variante=variante_id
-        )
+        variante = get_object_or_404(Variante.objects.select_related("color", "talla"), id_variante=variante_id)
         return Response(VarianteSerializer(variante).data)
 
     def put(self, request, variante_id):
