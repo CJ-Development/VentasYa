@@ -6,32 +6,27 @@ from django.db import transaction
 from django.db.models import Prefetch
 
 from .models import Producto, Variante, ImagenProducto
+from .serializers import VarianteSerializer
 
 
 class ProductoService:
-
     @staticmethod
     def listar(*, solo_nuevos=False, categoria_id=None, estado=None, ordering=None):
         qs = ProductoService._base_queryset()
-
         if solo_nuevos:
             qs = qs.filter(created_at__isnull=False).order_by("-created_at", "id_producto")
         elif ordering:
             qs = qs.order_by(ordering, "id_producto")
-
         if categoria_id is not None:
             qs = qs.filter(categoria_id=categoria_id)
         if estado is not None:
             qs = qs.filter(estado=estado)
-
         return qs
 
     @staticmethod
     def _base_queryset():
         return (
-            Producto.objects
-            .select_related("categoria")
-            .prefetch_related(
+            Producto.objects.select_related("categoria").prefetch_related(
                 Prefetch(
                     "variante_set",
                     queryset=Variante.objects.select_related("color", "talla").prefetch_related(
@@ -97,12 +92,6 @@ class ProductoService:
     @staticmethod
     @transaction.atomic
     def guardar_completo(*, producto_data, variantes_data, archivos):
-        """Create/update the whole product graph in one DB transaction.
-
-        `variantes_data` contains the complete desired state. Existing variant
-        and image ids are retained; omitted records are removed. New files are
-        looked up in `archivos` using their `file_key`.
-        """
         producto_id = producto_data.pop("id_producto", None)
 
         if producto_id:
@@ -113,32 +102,34 @@ class ProductoService:
         else:
             producto = Producto.objects.create(**producto_data)
 
-        existing_variants = {
-            v.id_variante: v
-            for v in Variante.objects.filter(producto=producto)
-        }
+        existing_variants = {v.id_variante: v for v in Variante.objects.filter(producto=producto)}
         received_variant_ids = set()
 
-        for variant_index, variant_data in enumerate(variantes_data):
+        for variant_data in variantes_data:
             variant_id = variant_data.pop("id_variante", None)
             image_data = variant_data.pop("imagenes", []) or []
+            if not variant_data.get("color") or not variant_data.get("talla"):
+                raise ValueError("Cada variante necesita color y talla.")
+
+            # Reuse the same serializer validation as the individual endpoint.
+            variant_serializer = VarianteSerializer(data=variant_data)
+            variant_serializer.is_valid(raise_exception=True)
+            clean_variant = variant_serializer.validated_data
 
             if variant_id:
                 variant = existing_variants.get(int(variant_id))
                 if not variant or variant.producto_id != producto.id_producto:
                     raise ValueError("Una de las variantes no pertenece al producto.")
-                for field, value in variant_data.items():
-                    setattr(variant, field, value)
+                variant.color = clean_variant["color"]
+                variant.talla = clean_variant["talla"]
+                variant.sku = clean_variant["sku"]
+                variant.stock = clean_variant["stock"]
                 variant.save()
             else:
-                variant = Variante.objects.create(producto=producto, **variant_data)
+                variant = Variante.objects.create(producto=producto, **clean_variant)
 
             received_variant_ids.add(variant.id_variante)
-
-            existing_images = {
-                image.id_imagen: image
-                for image in ImagenProducto.objects.filter(variante=variant)
-            }
+            existing_images = {i.id_imagen: i for i in ImagenProducto.objects.filter(variante=variant)}
             received_image_ids = set()
 
             if len(image_data) > 3:
@@ -161,11 +152,7 @@ class ProductoService:
                     continue
 
                 uploaded = archivos.get(file_key) if file_key else None
-                if uploaded:
-                    image_url = ProductoService._save_uploaded_file(uploaded)
-                else:
-                    image_url = image_item.get("imagen", "")
-
+                image_url = ProductoService._save_uploaded_file(uploaded) if uploaded else image_item.get("imagen", "")
                 if not image_url:
                     raise ValueError("Cada imagen nueva debe incluir un archivo o una URL.")
 
@@ -182,11 +169,7 @@ class ProductoService:
                     ProductoService._delete_file_if_local(old_image)
                     old_image.delete()
 
-            # Guarantee at most one principal image per variant.
-            principal_images = ImagenProducto.objects.filter(
-                variante=variant,
-                principal=True,
-            ).order_by("orden", "id_imagen")
+            principal_images = ImagenProducto.objects.filter(variante=variant, principal=True).order_by("orden", "id_imagen")
             first = principal_images.first()
             if first:
                 principal_images.exclude(id_imagen=first.id_imagen).update(principal=False)
