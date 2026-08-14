@@ -1,1726 +1,334 @@
 import "./ProductForm.css";
-
-import { useEffect, useRef, useState } from "react";
-
-import { Plus, Star, Trash2, X, HelpCircle } from "lucide-react";
-
+import { useEffect, useMemo, useRef, useState } from "react";
+import { Plus, Star, Trash2, X } from "lucide-react";
 import {
-    createProduct,
-    updateProduct,
+    saveProductComplete,
     getCategories,
     getColors,
     getTallas,
     createColor,
     createTalla,
-    createVariant,
-    updateVariant,
-    deleteVariant,
-    addVariantImage,
-    updateVariantImage,
-    deleteVariantImage,
-    uploadVariantImage,
 } from "../../../services/adminService";
 
-const generarSlug = (texto) =>
-    texto
-        .toLowerCase()
-        .trim()
-        .normalize("NFD")
-        .replace(/[̀-ͯ]/g, "")
-        .replace(/[^a-z0-9\s-]/g, "")
-        .replace(/\s+/g, "-")
-        .replace(/-+/g, "-");
+const API_ORIGIN = "http://127.0.0.1:8000";
+const MAX_IMAGES = 3;
 
-const estadoInicialDatos = {
-    nombre: "",
-    categoria_id: "",
-    descripcion: "",
-    precio: "",
-    estado: "activo",
+const slugify = (text) => text.toLowerCase().trim().normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9\s-]/g, "")
+    .replace(/\s+/g, "-").replace(/-+/g, "-");
+
+const mediaUrl = (value) => {
+    if (!value) return "";
+    if (value.startsWith("blob:") || value.startsWith("http://") || value.startsWith("https://")) return value;
+    return `${API_ORIGIN}${value.startsWith("/") ? "" : "/"}${value}`;
 };
 
-const varianteVacia = {
-    tempId: 0,
+const emptyVariant = () => ({
+    clientId: crypto.randomUUID(),
     id_variante: null,
     color: "",
     talla: "",
     sku: "",
     stock: 0,
     imagenes: [],
-    nuevaImagen: "",
-    nuevoArchivo: null,
-};
+});
 
-let tempCounter = 1;
+const normalizeProduct = (product) => ({
+    nombre: product?.nombre || "",
+    categoria_id: product?.categoria?.id_categoria ?? product?.categoria_id ?? "",
+    descripcion: product?.descripcion || "",
+    precio: product?.precio ?? "",
+    estado: product?.estado || "activo",
+    slug: product?.slug || "",
+});
 
-/* =====================================================
-   Componente pequeño: signo "?" con tooltip que aparece
-   al pasar el mouse o al hacer focus (sin librerías).
-===================================================== */
-
-function LabelHelp({ texto }) {
-    return (
-        <span
-            className="label-help"
-            tabIndex={0}
-            role="tooltip"
-            aria-label={texto}
-        >
-            ?
-            <span className="label-help-bubble">
-                {texto}
-            </span>
-        </span>
-    );
-}
-
-/* =====================================================
-   Mini-modal para crear un color o talla en línea.
-===================================================== */
-
-function MiniModalCrear({ tipo, onClose, onGuardado }) {
-    const [nombre, setNombre] = useState("");
-    const [hex, setHex] = useState("#384D48");
-    const [guardando, setGuardando] = useState(false);
-
-    const handleGuardar = async (e) => {
-        e.preventDefault();
-
-        if (!nombre.trim()) return;
-
-        setGuardando(true);
-
-        try {
-            const payload =
-                tipo === "color"
-                    ? { nombre: nombre.trim(), codigo_hex: hex }
-                    : { nombre: nombre.trim() };
-
-            const { data } =
-                tipo === "color"
-                    ? await createColor(payload)
-                    : await createTalla(payload);
-
-            onGuardado(data);
-            onClose();
-        } catch (err) {
-            console.error(err);
-            alert(
-                tipo === "color"
-                    ? "No se pudo crear el color."
-                    : "No se pudo crear la talla."
-            );
-        } finally {
-            setGuardando(false);
-        }
-    };
-
-    return (
-        <div
-            className="inline-modal-backdrop"
-            onClick={onClose}
-        >
-            <div
-                className="inline-modal"
-                onClick={(e) => e.stopPropagation()}
-            >
-                <div className="inline-modal-header">
-                    <h4>
-                        {tipo === "color"
-                            ? "Nuevo color"
-                            : "Nueva talla"}
-                    </h4>
-                    <button
-                        type="button"
-                        className="close-button"
-                        onClick={onClose}
-                    >
-                        <X size={16} />
-                    </button>
-                </div>
-
-                <form onSubmit={handleGuardar}>
-                    <div className="form-group">
-                        <label>
-                            Nombre
-                            <LabelHelp texto="Nombre descriptivo (ej. Rojo, M, 38)." />
-                        </label>
-                        <input
-                            type="text"
-                            value={nombre}
-                            onChange={(e) => setNombre(e.target.value)}
-                            placeholder={
-                                tipo === "color"
-                                    ? "Verde militar"
-                                    : "Talla 38"
-                            }
-                            autoFocus
-                            required
-                        />
-                    </div>
-
-                    {tipo === "color" && (
-                        <div className="form-group">
-                            <label>
-                                Color (HEX)
-                                <LabelHelp texto="Código hexadecimal del color. Sirve para mostrarlo en catálogos." />
-                            </label>
-                            <div className="hex-input">
-                                <input
-                                    type="color"
-                                    value={hex}
-                                    onChange={(e) => setHex(e.target.value)}
-                                />
-                                <input
-                                    type="text"
-                                    value={hex}
-                                    onChange={(e) => setHex(e.target.value)}
-                                    placeholder="#384D48"
-                                />
-                            </div>
-                        </div>
-                    )}
-
-                    <div className="form-buttons">
-                        <button
-                            type="button"
-                            className="cancel-button"
-                            onClick={onClose}
-                            disabled={guardando}
-                        >
-                            Cancelar
-                        </button>
-                        <button
-                            type="submit"
-                            className="save-button"
-                            disabled={guardando}
-                        >
-                            {guardando ? "Guardando..." : "Guardar"}
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    );
-}
+const normalizeVariants = (product) => (product?.variantes || []).map((v) => ({
+    clientId: crypto.randomUUID(),
+    id_variante: v.id_variante,
+    color: v.color?.id_color ?? v.color ?? "",
+    talla: v.talla?.id_talla ?? v.talla ?? "",
+    sku: v.sku || "",
+    stock: v.stock ?? 0,
+    imagenes: (v.imagenes || []).map((img) => ({
+        id_imagen: img.id_imagen,
+        imagen: img.imagen,
+        principal: Boolean(img.principal),
+        orden: img.orden,
+    })),
+}));
 
 function ProductForm({ product, onClose, onSaved }) {
-
-    const modoEdicion = Boolean(product);
-
+    const editing = Boolean(product?.id_producto);
     const [tab, setTab] = useState("datos");
-
+    const [datos, setDatos] = useState(() => normalizeProduct(product));
+    const [variantes, setVariantes] = useState(() => normalizeVariants(product));
     const [categories, setCategories] = useState([]);
-
     const [colores, setColores] = useState([]);
-
     const [tallas, setTallas] = useState([]);
-
-    const [datos, setDatos] = useState(estadoInicialDatos);
-
-    const [slug, setSlug] = useState("");
-
-    const [variantes, setVariantes] = useState([]);
-
-    const [submitting, setSubmitting] = useState(false);
-
-    const [errores, setErrores] = useState({});
-
-    const [modalCrear, setModalCrear] = useState(null);
-
-    const fileInputsRef = useRef({});
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState("");
+    const [errors, setErrors] = useState({});
+    const inputRefs = useRef({});
 
     useEffect(() => {
-        cargarListas();
-
-        if (product) {
-
-            setDatos({
-                nombre: product.nombre || "",
-                categoria_id: product.categoria?.id_categoria ?? "",
-                descripcion: product.descripcion || "",
-                precio: product.precio ?? "",
-                estado: product.estado || "activo",
-            });
-
-            setSlug(product.slug || "");
-
-            setVariantes(
-                (product.variantes || []).map((v) => ({
-                    tempId: tempCounter++,
-                    id_variante: v.id_variante,
-                    color: v.color?.id_color ?? "",
-                    talla: v.talla?.id_talla ?? "",
-                    sku: v.sku || "",
-                    stock: v.stock ?? 0,
-                    imagenes: v.imagenes || [],
-                    nuevaImagen: "",
-                    nuevoArchivo: null,
-                }))
-            );
-
-        } else {
-
-            setDatos(estadoInicialDatos);
-            setSlug("");
-            setVariantes([]);
-
-        }
-
-    }, [product]);
-
-    const cargarListas = async () => {
-
-        try {
-
-            const [cats, cols, talls] = await Promise.all([
-                getCategories(),
-                getColors(),
-                getTallas(),
-            ]);
-
-            setCategories(cats.data);
-            setColores(cols.data);
-            setTallas(talls.data);
-
-        }
-
-        catch (error) {
-
-            console.error(error);
-
-        }
-
-    };
-
-    const handleDatosChange = (e) => {
-
-        const { name, value } = e.target;
-
-        setDatos((prev) => {
-
-            const next = { ...prev, [name]: value };
-
-            if (name === "nombre") {
-
-                setSlug(generarSlug(value));
-
-            }
-
-            return next;
-
-        });
-
-        // Limpiar error de ese campo al editar.
-        if (errores[name]) {
-            setErrores((prev) => ({ ...prev, [name]: null }));
-        }
-
-    };
-
-    const agregarVariante = () => {
-
-        setVariantes((prev) => [
-            ...prev,
-            {
-                ...varianteVacia,
-                tempId: tempCounter++,
-            },
-        ]);
-
-    };
-
-    const eliminarVariante = async (index) => {
-
-        const variante = variantes[index];
-
-        if (variante.id_variante) {
-
-            const confirmar = window.confirm(
-                "¿Eliminar esta variante y sus imágenes?"
-            );
-
-            if (!confirmar) return;
-
-            try {
-
-                await deleteVariant(variante.id_variante);
-
-            }
-
-            catch (err) {
-
-                console.error(err);
-
-                alert("No se pudo eliminar la variante.");
-
-                return;
-
-            }
-
-        }
-
-        setVariantes((prev) => prev.filter((_, i) => i !== index));
-
-    };
-
-    const handleVarianteChange = (index, campo, valor) => {
-
-        setVariantes((prev) =>
-
-            prev.map((v, i) => (i === index ? { ...v, [campo]: valor } : v))
-
-        );
-
-        setErrores((prev) => {
-            const variantesErr = { ...(prev.variantes || {}) };
-            delete variantesErr[index]?.[campo];
-            return { ...prev, variantes: variantesErr };
-        });
-
-    };
-
-    const handleArchivoChange = (index, file) => {
-        setVariantes((prev) =>
-            prev.map((v, i) =>
-                i === index
-                    ? { ...v, nuevoArchivo: file, nuevaImagen: "" }
-                    : v
-            )
-        );
-    };
-
-    const handleUrlChange = (index, url) => {
-        setVariantes((prev) =>
-            prev.map((v, i) =>
-                i === index
-                    ? { ...v, nuevaImagen: url, nuevoArchivo: null }
-                    : v
-            )
-        );
-    };
-
-    const agregarImagen = async (index) => {
-
-        const variante = variantes[index];
-
-        const url = variante.nuevaImagen.trim();
-        const archivo = variante.nuevoArchivo;
-
-        if (!url && !archivo) return;
-
-        try {
-
-            if (archivo) {
-                // Subida real desde PC.
-                const fd = new FormData();
-                fd.append("archivo", archivo);
-                fd.append("principal", variante.imagenes.length === 0);
-                fd.append(
-                    "orden",
-                    String(variante.imagenes.length + 1)
-                );
-
-                if (variante.id_variante) {
-                    const { data } = await uploadVariantImage(
-                        variante.id_variante,
-                        fd
-                    );
-
-                    setVariantes((prev) =>
-                        prev.map((v, i) =>
-                            i === index
-                                ? {
-                                    ...v,
-                                    imagenes: [...v.imagenes, data],
-                                    nuevoArchivo: null,
-                                    nuevaImagen: "",
-                                }
-                                : v
-                        )
-                    );
-
-                    if (fileInputsRef.current[index]) {
-                        fileInputsRef.current[index].value = "";
-                    }
-                } else {
-                    // Pendiente: guardar al crear el producto.
-                    const previewUrl =
-                        URL.createObjectURL(archivo);
-
-                    setVariantes((prev) =>
-                        prev.map((v, i) =>
-                            i === index
-                                ? {
-                                    ...v,
-                                    nuevaImagen: "",
-                                    nuevoArchivo: null,
-                                    imagenes: [
-                                        ...v.imagenes,
-                                        {
-                                            imagen: previewUrl,
-                                            principal:
-                                                v.imagenes.length === 0,
-                                            pendiente: true,
-                                            archivo: archivo,
-                                        },
-                                    ],
-                                }
-                                : v
-                        )
-                    );
-
-                    if (fileInputsRef.current[index]) {
-                        fileInputsRef.current[index].value = "";
-                    }
-                }
-            } else {
-                // Compatibilidad: pegar URL.
-                if (variante.id_variante) {
-
-                    const { data } = await addVariantImage(
-                        variante.id_variante,
-                        {
-                            imagen: url,
-                            principal: variante.imagenes.length === 0,
-                            orden: variante.imagenes.length + 1,
-                        }
-                    );
-
-                    setVariantes((prev) =>
-                        prev.map((v, i) =>
-                            i === index
-                                ? {
-                                    ...v,
-                                    imagenes: [...v.imagenes, data],
-                                    nuevaImagen: "",
-                                }
-                                : v
-                        )
-                    );
-
-                } else {
-
-                    setVariantes((prev) =>
-                        prev.map((v, i) =>
-                            i === index
-                                ? {
-                                    ...v,
-                                    nuevaImagen: "",
-                                    imagenes: [
-                                        ...v.imagenes,
-                                        {
-                                            imagen: url,
-                                            principal:
-                                                v.imagenes.length === 0,
-                                        },
-                                    ],
-                                }
-                                : v
-                        )
-                    );
-
-                }
-            }
-
-        }
-
-        catch (err) {
-
+        let alive = true;
+        Promise.all([getCategories(), getColors(), getTallas()]).then(([cats, cols, sizes]) => {
+            if (!alive) return;
+            setCategories(cats.data || []);
+            setColores(cols.data || []);
+            setTallas(sizes.data || []);
+        }).catch((err) => {
             console.error(err);
+            if (alive) setError("No fue posible cargar categorías, colores y tallas.");
+        });
+        return () => { alive = false; };
+    }, []);
 
-            alert("No se pudo agregar la imagen.");
-
-        }
-
+    const handleData = (event) => {
+        const { name, value } = event.target;
+        setDatos((prev) => ({ ...prev, [name]: value, ...(name === "nombre" ? { slug: slugify(value) } : {}) }));
+        setErrors((prev) => ({ ...prev, [name]: "" }));
     };
 
-    const eliminarImagen = async (varianteIndex, imagenIndex) => {
-
-        const variante = variantes[varianteIndex];
-
-        const imagen = variante.imagenes[imagenIndex];
-
-        if (imagen.id_imagen) {
-
-            try {
-
-                await deleteVariantImage(imagen.id_imagen);
-
-            }
-
-            catch (err) {
-
-                console.error(err);
-
-                alert("No se pudo eliminar la imagen.");
-
-                return;
-
-            }
-
-        }
-
-        setVariantes((prev) =>
-
-            prev.map((v, i) =>
-
-                i === varianteIndex
-                    ? {
-                        ...v,
-                        imagenes: v.imagenes.filter(
-                            (_, j) => j !== imagenIndex
-                        ),
-                    }
-                    : v
-
-            )
-
-        );
-
+    const updateVariant = (index, field, value) => {
+        setVariantes((prev) => prev.map((v, i) => i === index ? { ...v, [field]: value } : v));
+        setErrors((prev) => ({ ...prev, [`variant-${index}-${field}`]: "" }));
     };
 
-    const marcarPrincipal = async (varianteIndex, imagenIndex) => {
+    const addVariant = () => setVariantes((prev) => [...prev, emptyVariant()]);
 
-        const variante = variantes[varianteIndex];
+    const removeVariant = (index) => setVariantes((prev) => prev.filter((_, i) => i !== index));
 
-        const imagen = variante.imagenes[imagenIndex];
-
-        if (imagen.principal) return;
-
+    const addColor = async () => {
+        const nombre = window.prompt("Nombre del nuevo color:");
+        if (!nombre?.trim()) return;
         try {
-
-            if (imagen.id_imagen) {
-
-                await updateVariantImage(imagen.id_imagen, {
-                    principal: true,
-                });
-
-                setVariantes((prev) =>
-
-                    prev.map((v, i) =>
-
-                        i === varianteIndex
-                            ? {
-                                ...v,
-                                imagenes: v.imagenes.map((img, j) => ({
-                                    ...img,
-                                    principal: j === imagenIndex,
-                                })),
-                            }
-                            : v
-
-                    )
-
-                );
-
-            } else {
-
-                if (!variante.id_variante) {
-
-                    alert(
-                        "Guarda primero el producto para poder marcar la imagen principal."
-                    );
-
-                    return;
-
-                }
-
-                const { data: nueva } = await addVariantImage(
-                    variante.id_variante,
-                    {
-                        imagen: imagen.imagen,
-                        principal: true,
-                        orden: variante.imagenes.length + 1,
-                    }
-                );
-
-                const anteriorPrincipal = variante.imagenes.find(
-                    (img) => img.principal && img.id_imagen
-                );
-
-                if (anteriorPrincipal) {
-
-                    await updateVariantImage(anteriorPrincipal.id_imagen, {
-                        principal: false,
-                    });
-
-                }
-
-                setVariantes((prev) =>
-
-                    prev.map((v, i) =>
-
-                        i === varianteIndex
-                            ? {
-                                ...v,
-                                imagenes: v.imagenes.map((img, j) => ({
-                                    ...img,
-                                    principal: j === imagenIndex,
-                                    ...(j === imagenIndex ? nueva : {}),
-                                })),
-                            }
-                            : v
-
-                    )
-
-                );
-
-            }
-
-        }
-
-        catch (err) {
-
+            const { data } = await createColor({ nombre: nombre.trim(), codigo_hex: "#384D48" });
+            setColores((prev) => [...prev, data]);
+            setVariantes((prev) => prev.map((v) => !v.color ? { ...v, color: data.id_color } : v));
+        } catch (err) {
             console.error(err);
-
-            alert("No se pudo marcar la imagen como principal.");
-
+            setError("No se pudo crear el color.");
         }
-
     };
 
-    /* =====================================================
-       VALIDACIÓN INLINE
-    ====================================================== */
-
-    const validar = () => {
-        const nuevosErrores = { datos: {}, variantes: {} };
-
-        if (!datos.nombre.trim()) {
-            nuevosErrores.datos.nombre = "El nombre es obligatorio.";
+    const addTalla = async () => {
+        const nombre = window.prompt("Nombre de la nueva talla:");
+        if (!nombre?.trim()) return;
+        try {
+            const { data } = await createTalla({ nombre: nombre.trim() });
+            setTallas((prev) => [...prev, data]);
+            setVariantes((prev) => prev.map((v) => !v.talla ? { ...v, talla: data.id_talla } : v));
+        } catch (err) {
+            console.error(err);
+            setError("No se pudo crear la talla.");
         }
+    };
 
-        if (!datos.categoria_id) {
-            nuevosErrores.datos.categoria_id =
-                "Selecciona una categoría.";
-        }
+    const addFile = (index, file) => {
+        if (!file) return;
+        if (!file.type.startsWith("image/")) return setError("Solo se permiten archivos de imagen.");
+        setError("");
+        setVariantes((prev) => prev.map((v, i) => {
+            if (i !== index || v.imagenes.length >= MAX_IMAGES) return v;
+            const principal = v.imagenes.length === 0;
+            return {
+                ...v,
+                imagenes: [...v.imagenes, {
+                    imagen: URL.createObjectURL(file),
+                    principal,
+                    orden: v.imagenes.length + 1,
+                    file,
+                }],
+            };
+        }));
+        if (inputRefs.current[index]) inputRefs.current[index].value = "";
+    };
 
-        if (
-            datos.precio === "" ||
-            datos.precio === null ||
-            Number(datos.precio) <= 0
-        ) {
-            nuevosErrores.datos.precio = "Ingresa un precio mayor a 0.";
-        }
+    const addUrl = (index) => {
+        if (variantes[index].imagenes.length >= MAX_IMAGES) return setError(`Máximo ${MAX_IMAGES} imágenes por variante.`);
+        const url = window.prompt("URL de la imagen:");
+        if (!url?.trim()) return;
+        setVariantes((prev) => prev.map((v, i) => i === index ? {
+            ...v,
+            imagenes: [...v.imagenes, { imagen: url.trim(), principal: v.imagenes.length === 0, orden: v.imagenes.length + 1 }],
+        } : v));
+    };
 
-        if (variantes.length === 0) {
-            nuevosErrores.variantesGlobal = "Agrega al menos una variante.";
-        }
+    const removeImage = (variantIndex, imageIndex) => {
+        setVariantes((prev) => prev.map((v, i) => i !== variantIndex ? v : {
+            ...v,
+            imagenes: v.imagenes.filter((_, j) => j !== imageIndex).map((img, j) => ({ ...img, orden: j + 1, principal: j === 0 })),
+        }));
+    };
 
-        const skusVistos = new Set();
+    const setPrincipal = (variantIndex, imageIndex) => {
+        setVariantes((prev) => prev.map((v, i) => i !== variantIndex ? v : {
+            ...v,
+            imagenes: v.imagenes.map((img, j) => ({ ...img, principal: j === imageIndex })),
+        }));
+    };
 
+    const validate = () => {
+        const next = {};
+        if (!datos.nombre.trim()) next.nombre = "El nombre es obligatorio.";
+        if (!datos.categoria_id) next.categoria_id = "Selecciona una categoría.";
+        if (datos.precio === "" || Number(datos.precio) <= 0) next.precio = "Ingresa un precio mayor a 0.";
+        if (!variantes.length) next.variantes = "Agrega al menos una variante.";
+
+        const skus = new Set();
         variantes.forEach((v, i) => {
-            const err = {};
-
-            if (!v.color) err.color = "Selecciona un color.";
-            if (!v.talla) err.talla = "Selecciona una talla.";
-
-            if (!v.sku.trim()) {
-                err.sku = "El SKU es obligatorio.";
-            } else if (skusVistos.has(v.sku.trim())) {
-                err.sku = "SKU repetido en este producto.";
-            } else {
-                skusVistos.add(v.sku.trim());
-            }
-
-            if (v.stock === "" || v.stock === null || Number(v.stock) < 0) {
-                err.stock = "Stock inválido.";
-            }
-
-            if (Object.keys(err).length > 0) {
-                nuevosErrores.variantes[i] = err;
-            }
+            if (!v.color) next[`variant-${i}-color`] = "Selecciona un color.";
+            if (!v.talla) next[`variant-${i}-talla`] = "Selecciona una talla.";
+            if (!v.sku.trim()) next[`variant-${i}-sku`] = "El SKU es obligatorio.";
+            else if (skus.has(v.sku.trim())) next[`variant-${i}-sku`] = "SKU repetido.";
+            else skus.add(v.sku.trim());
+            if (v.stock === "" || Number(v.stock) < 0) next[`variant-${i}-stock`] = "Stock inválido.";
+            if (!v.imagenes.length) next[`variant-${i}-images`] = "Agrega al menos una imagen.";
+            if (v.imagenes.length > MAX_IMAGES) next[`variant-${i}-images`] = `Máximo ${MAX_IMAGES} imágenes.`;
         });
-
-        return nuevosErrores;
+        setErrors(next);
+        return Object.keys(next).length === 0;
     };
 
-    const handleSubmit = async (e) => {
+    const buildFormData = () => {
+        const formData = new FormData();
+        const variantsPayload = variantes.map((v, variantIndex) => ({
+            ...(v.id_variante ? { id_variante: v.id_variante } : {}),
+            color: Number(v.color),
+            talla: Number(v.talla),
+            sku: v.sku.trim(),
+            stock: Number(v.stock),
+            imagenes: v.imagenes.map((img, imageIndex) => {
+                if (img.file) {
+                    const fileKey = `variant_${variantIndex}_image_${imageIndex}`;
+                    formData.append(fileKey, img.file, img.file.name);
+                    return { principal: Boolean(img.principal), orden: imageIndex + 1, file_key: fileKey };
+                }
+                return {
+                    ...(img.id_imagen ? { id_imagen: img.id_imagen } : {}),
+                    imagen: img.imagen,
+                    principal: Boolean(img.principal),
+                    orden: imageIndex + 1,
+                };
+            }),
+        }));
 
-        e.preventDefault();
-
-        const nuevosErrores = validar();
-
-        const tieneErrores =
-            Object.keys(nuevosErrores.datos).length > 0 ||
-            nuevosErrores.variantesGlobal ||
-            Object.keys(nuevosErrores.variantes).length > 0;
-
-        if (tieneErrores) {
-            setErrores(nuevosErrores);
-
-            // Si hay error en Datos, saltar a esa pestaña.
-            if (Object.keys(nuevosErrores.datos).length > 0) {
-                setTab("datos");
-            } else {
-                setTab("variantes");
-            }
-
-            return;
-        }
-
-        setErrores({});
-        setSubmitting(true);
-
-        try {
-
-            let productoId = product?.id_producto;
-
-            const payloadProducto = {
-                nombre: datos.nombre,
+        formData.append("payload", JSON.stringify({
+            producto: {
+                ...(editing ? { id_producto: product.id_producto } : {}),
+                nombre: datos.nombre.trim(),
                 categoria_id: Number(datos.categoria_id),
                 descripcion: datos.descripcion,
                 precio: Number(datos.precio),
                 estado: datos.estado,
-                slug: slug || generarSlug(datos.nombre),
-            };
+                slug: datos.slug || slugify(datos.nombre),
+            },
+            variantes: variantsPayload,
+        }));
+        return formData;
+    };
 
-            if (modoEdicion) {
-
-                await updateProduct(product.id_producto, payloadProducto);
-
-            } else {
-
-                const { data } = await createProduct(payloadProducto);
-
-                productoId = data.id_producto;
-
-            }
-
-            for (const v of variantes) {
-
-                const variantePayload = {
-                    color: Number(v.color),
-                    talla: Number(v.talla),
-                    sku: v.sku,
-                    stock: Number(v.stock),
-                };
-
-                if (productoId) {
-
-                    variantePayload.producto_id = productoId;
-
-                }
-
-                let varianteId = v.id_variante;
-
-                if (varianteId) {
-
-                    await updateVariant(varianteId, variantePayload);
-
-                } else {
-
-                    const { data } = await createVariant(
-                        productoId,
-                        variantePayload
-                    );
-
-                    varianteId = data.id_variante;
-
-                }
-
-                for (const img of v.imagenes) {
-
-                    if (!img.id_imagen) {
-                        // Imagen pendiente (subida de archivo aún no enviada).
-                        if (img.archivo) {
-                            const fd = new FormData();
-                            fd.append("archivo", img.archivo);
-                            fd.append(
-                                "principal",
-                                String(Boolean(img.principal))
-                            );
-                            fd.append(
-                                "orden",
-                                String(v.imagenes.indexOf(img) + 1)
-                            );
-
-                            await uploadVariantImage(varianteId, fd);
-                        } else {
-                            await addVariantImage(varianteId, {
-                                imagen: img.imagen,
-                                principal: img.principal || false,
-                                orden: v.imagenes.indexOf(img) + 1,
-                            });
-                        }
-                    }
-
-                }
-
-            }
-
-            if (onSaved) await onSaved();
-
+    const submit = async (event) => {
+        event.preventDefault();
+        setError("");
+        if (!validate()) {
+            setTab(Object.keys(errors).some((key) => key.startsWith("variant") || key === "variantes") ? "variantes" : "datos");
+            return;
+        }
+        setLoading(true);
+        try {
+            const { data } = await saveProductComplete(editing ? product.id_producto : null, buildFormData());
+            if (onSaved) await onSaved(data);
             onClose();
-
+        } catch (err) {
+            console.error(err);
+            const backend = err.response?.data;
+            setError(backend?.detail || Object.entries(backend || {}).map(([k, v]) => `${k}: ${Array.isArray(v) ? v.join(", ") : v}`).join(" | ") || "No fue posible guardar el producto.");
+        } finally {
+            setLoading(false);
         }
-
-        catch (error) {
-
-            console.error(error);
-
-            let mensaje = "No fue posible conectar con el servidor.";
-
-            if (error.response?.data) {
-                const data = error.response.data;
-                if (typeof data === "string") {
-                    mensaje = data;
-                } else if (data.detail) {
-                    mensaje = data.detail;
-                } else {
-                    // Mostrar errores por campo del backend.
-                    const campos = Object.entries(data)
-                        .map(
-                            ([k, v]) =>
-                                `${k}: ${
-                                    Array.isArray(v)
-                                        ? v.join(", ")
-                                        : String(v)
-                                }`
-                        )
-                        .join(" | ");
-                    mensaje = campos || "No fue posible guardar el producto.";
-                }
-            }
-
-            setErrores({
-                backend: mensaje,
-                datos: {},
-                variantes: {},
-            });
-
-            // Si el error es de datos base, saltar a esa pestaña.
-            setTab("datos");
-
-        }
-
-        finally {
-
-            setSubmitting(false);
-
-        }
-
     };
 
-    const onColorCreado = (nuevo) => {
-        setColores((prev) => [...prev, nuevo]);
-        // Auto-seleccionar el recién creado en todas las variantes.
-        setVariantes((prev) =>
-            prev.map((v) =>
-                !v.color ? { ...v, color: nuevo.id_color } : v
-            )
-        );
-    };
-
-    const onTallaCreada = (nuevo) => {
-        setTallas((prev) => [...prev, nuevo]);
-        setVariantes((prev) =>
-            prev.map((v) =>
-                !v.talla ? { ...v, talla: nuevo.id_talla } : v
-            )
-        );
-    };
-
-    const errDatos = errores.datos || {};
-    const errVars = errores.variantes || {};
+    const variantSummary = useMemo(() => variantes.map((v) => {
+        const color = colores.find((c) => c.id_color === Number(v.color))?.nombre || "Sin color";
+        const talla = tallas.find((t) => t.id_talla === Number(v.talla))?.nombre || "Sin talla";
+        return `${color} / ${talla}`;
+    }), [variantes, colores, tallas]);
 
     return (
-
         <div className="modal-overlay">
-
-            <form
-                className="product-form"
-                onSubmit={handleSubmit}
-                noValidate
-            >
-
+            <form className="product-form" onSubmit={submit} noValidate>
                 <div className="modal-header">
-
-                    <div>
-
-                        <h2>
-
-                            {modoEdicion ? "Editar producto" : "Nuevo producto"}
-
-                        </h2>
-
-                        <p>
-
-                            {modoEdicion
-                                ? "Modifica la información del producto."
-                                : "Completa los datos, variantes e imágenes."}
-
-                        </p>
-
-                    </div>
-
-                    <button
-                        type="button"
-                        className="close-button"
-                        onClick={onClose}
-                        disabled={submitting}
-                    >
-
-                        <X size={20} />
-
-                    </button>
-
+                    <div><h2>{editing ? "Editar producto" : "Nuevo producto"}</h2><p>Guarda datos, variantes e imágenes como una sola operación.</p></div>
+                    <button type="button" className="close-button" onClick={onClose} disabled={loading}><X size={20} /></button>
                 </div>
 
                 <div className="tabs">
-
-                    <button
-                        type="button"
-                        className={tab === "datos" ? "tab active" : "tab"}
-                        onClick={() => setTab("datos")}
-                    >
-
-                        Datos
-
-                    </button>
-
-                    <button
-                        type="button"
-                        className={tab === "variantes" ? "tab active" : "tab"}
-                        onClick={() => setTab("variantes")}
-                    >
-
-                        Variantes ({variantes.length})
-
-                    </button>
-
-                    <button
-                        type="button"
-                        className={tab === "imagenes" ? "tab active" : "tab"}
-                        onClick={() => setTab("imagenes")}
-                    >
-
-                        Imágenes
-
-                    </button>
-
+                    <button type="button" className={tab === "datos" ? "tab active" : "tab"} onClick={() => setTab("datos")}>Datos</button>
+                    <button type="button" className={tab === "variantes" ? "tab active" : "tab"} onClick={() => setTab("variantes")}>Variantes ({variantes.length})</button>
+                    <button type="button" className={tab === "imagenes" ? "tab active" : "tab"} onClick={() => setTab("imagenes")}>Imágenes</button>
                 </div>
 
+                {error && <div className="form-error-banner"><span>{error}</span></div>}
+
                 {tab === "datos" && (
-
                     <>
-
-                        {errores.backend && (
-                            <div className="form-error-banner">
-                                <HelpCircle size={16} />
-                                <span>{errores.backend}</span>
-                            </div>
-                        )}
-
-                        {Object.keys(errDatos).length > 0 && (
-                            <div className="form-error-banner">
-                                <HelpCircle size={16} />
-                                <span>
-                                    Completa los campos marcados en rojo
-                                    antes de guardar.
-                                </span>
-                            </div>
-                        )}
-
                         <div className="form-grid">
-
-                            <div className="form-group">
-
-                                <label>
-                                    Nombre
-                                    <LabelHelp texto="Nombre visible del producto para los clientes." />
-                                </label>
-
-                                <input
-                                    type="text"
-                                    name="nombre"
-                                    value={datos.nombre}
-                                    onChange={handleDatosChange}
-                                    placeholder="Nombre del producto"
-                                    className={errDatos.nombre ? "input-error" : ""}
-                                    required
-                                />
-
-                                {errDatos.nombre && (
-                                    <span className="error-text">
-                                        {errDatos.nombre}
-                                    </span>
-                                )}
-
-                            </div>
-
-                            <div className="form-group">
-
-                                <label>
-                                    Categoría
-                                    <LabelHelp texto="Tipo de producto (Hombre, Mujer, Niño, etc.)." />
-                                </label>
-
-                                <select
-                                    name="categoria_id"
-                                    value={datos.categoria_id}
-                                    onChange={handleDatosChange}
-                                    className={errDatos.categoria_id ? "input-error" : ""}
-                                    required
-                                >
-
-                                    <option value="">
-
-                                        Seleccione una categoría
-
-                                    </option>
-
-                                    {categories.map((c) => (
-
-                                        <option
-                                            key={c.id_categoria}
-                                            value={c.id_categoria}
-                                        >
-
-                                            {c.nombre}
-
-                                        </option>
-
-                                    ))}
-
-                                </select>
-
-                                {errDatos.categoria_id && (
-                                    <span className="error-text">
-                                        {errDatos.categoria_id}
-                                    </span>
-                                )}
-
-                            </div>
-
-                            <div className="form-group">
-
-                                <label>
-                                    Precio
-                                    <LabelHelp texto="Precio en pesos colombianos (COP). Usa punto para decimales." />
-                                </label>
-
-                                <input
-                                    type="number"
-                                    name="precio"
-                                    value={datos.precio}
-                                    onChange={handleDatosChange}
-                                    placeholder="0"
-                                    min="0"
-                                    step="0.01"
-                                    className={errDatos.precio ? "input-error" : ""}
-                                    required
-                                />
-
-                                {errDatos.precio && (
-                                    <span className="error-text">
-                                        {errDatos.precio}
-                                    </span>
-                                )}
-
-                            </div>
-
-                            <div className="form-group">
-
-                                <label>
-                                    Estado
-                                    <LabelHelp texto="Activo: visible en la tienda. Inactivo: oculto. Archivado: borrado lógico." />
-                                </label>
-
-                                <select
-                                    name="estado"
-                                    value={datos.estado}
-                                    onChange={handleDatosChange}
-                                >
-
-                                    <option value="activo">Activo</option>
-                                    <option value="inactivo">Inactivo</option>
-                                    <option value="archivado">Archivado</option>
-
-                                </select>
-
-                            </div>
-
+                            <div className="form-group"><label>Nombre</label><input name="nombre" value={datos.nombre} onChange={handleData} className={errors.nombre ? "input-error" : ""} placeholder="Nombre del producto" />{errors.nombre && <span className="error-text">{errors.nombre}</span>}</div>
+                            <div className="form-group"><label>Categoría</label><select name="categoria_id" value={datos.categoria_id} onChange={handleData} className={errors.categoria_id ? "input-error" : ""}><option value="">Seleccione una categoría</option>{categories.map((c) => <option key={c.id_categoria} value={c.id_categoria}>{c.nombre}</option>)}</select>{errors.categoria_id && <span className="error-text">{errors.categoria_id}</span>}</div>
+                            <div className="form-group"><label>Precio</label><input type="number" name="precio" min="0" step="0.01" value={datos.precio} onChange={handleData} className={errors.precio ? "input-error" : ""} />{errors.precio && <span className="error-text">{errors.precio}</span>}</div>
+                            <div className="form-group"><label>Estado</label><select name="estado" value={datos.estado} onChange={handleData}><option value="activo">Activo</option><option value="inactivo">Inactivo</option><option value="archivado">Archivado</option></select></div>
                         </div>
-
-                        <div className="form-group">
-
-                            <label>
-                                Descripción
-                                <LabelHelp texto="Texto libre que verán los clientes en la página del producto." />
-                            </label>
-
-                            <textarea
-                                rows="4"
-                                name="descripcion"
-                                value={datos.descripcion}
-                                onChange={handleDatosChange}
-                                placeholder="Descripción del producto"
-                            />
-
-                        </div>
-
-                        <div className="form-group">
-
-                            <label>
-                                Slug
-                                <LabelHelp texto="Identificador único en la URL. Se genera automático desde el nombre." />
-                            </label>
-
-                            <input
-                                type="text"
-                                value={slug}
-                                readOnly
-                                placeholder="se-genera-desde-el-nombre"
-                            />
-
-                        </div>
-
-                        <div className="form-buttons">
-
-                            <button
-                                type="button"
-                                className="cancel-button"
-                                onClick={onClose}
-                                disabled={submitting}
-                            >
-
-                                Cancelar
-
-                            </button>
-
-                            <button
-                                type="button"
-                                className="next-button"
-                                onClick={() => setTab("variantes")}
-                            >
-
-                                Siguiente: Variantes
-
-                            </button>
-
-                            <button
-                                type="submit"
-                                className="save-button"
-                                disabled={submitting}
-                            >
-
-                                {submitting
-                                    ? "Guardando..."
-                                    : (modoEdicion
-                                        ? "Guardar cambios"
-                                        : "Guardar producto")}
-
-                            </button>
-
-                        </div>
-
+                        <div className="form-group"><label>Descripción</label><textarea rows="4" name="descripcion" value={datos.descripcion} onChange={handleData} /></div>
+                        <div className="form-group"><label>Slug</label><input value={datos.slug} readOnly /></div>
+                        <div className="form-buttons"><button type="button" className="cancel-button" onClick={onClose}>Cancelar</button><button type="button" className="next-button" onClick={() => setTab("variantes")}>Siguiente: Variantes</button></div>
                     </>
-
                 )}
 
                 {tab === "variantes" && (
-
                     <>
-
-                        <p className="tab-help">
-
-                            Cada variante es una combinación específica de color y
-                            talla con su propio stock.
-
-                        </p>
-
-                        {errores.backend && (
-                            <div className="form-error-banner">
-                                <HelpCircle size={16} />
-                                <span>{errores.backend}</span>
-                            </div>
+                        <p className="tab-help">Cada variante combina color, talla, SKU, stock y hasta 3 imágenes.</p>
+                        {errors.variantes && <div className="form-error-banner"><span>{errors.variantes}</span></div>}
+                        {variantes.length === 0 ? <p className="empty-state">Aún no agregaste variantes.</p> : (
+                            <table className="variants-table"><thead><tr><th>Color</th><th>Talla</th><th>SKU</th><th>Stock</th><th /></tr></thead><tbody>
+                                {variantes.map((v, i) => <tr key={v.clientId}>
+                                    <td><div className="select-with-add"><select value={v.color} onChange={(e) => updateVariant(i, "color", e.target.value)}><option value="">—</option>{colores.map((c) => <option key={c.id_color} value={c.id_color}>{c.nombre}</option>)}</select><button type="button" className="add-inline" onClick={addColor}>+</button></div>{errors[`variant-${i}-color`] && <span className="error-text">{errors[`variant-${i}-color`]}</span>}</td>
+                                    <td><div className="select-with-add"><select value={v.talla} onChange={(e) => updateVariant(i, "talla", e.target.value)}><option value="">—</option>{tallas.map((t) => <option key={t.id_talla} value={t.id_talla}>{t.nombre}</option>)}</select><button type="button" className="add-inline" onClick={addTalla}>+</button></div>{errors[`variant-${i}-talla`] && <span className="error-text">{errors[`variant-${i}-talla`]}</span>}</td>
+                                    <td><input value={v.sku} onChange={(e) => updateVariant(i, "sku", e.target.value)} placeholder="SKU-001" />{errors[`variant-${i}-sku`] && <span className="error-text">{errors[`variant-${i}-sku`]}</span>}</td>
+                                    <td><input type="number" min="0" value={v.stock} onChange={(e) => updateVariant(i, "stock", e.target.value)} />{errors[`variant-${i}-stock`] && <span className="error-text">{errors[`variant-${i}-stock`]}</span>}</td>
+                                    <td><button type="button" className="delete-row" onClick={() => removeVariant(i)}><Trash2 size={16} /></button></td>
+                                </tr>)}
+                            </tbody></table>
                         )}
-
-                        {errores.variantesGlobal && (
-                            <div className="form-error-banner">
-                                <HelpCircle size={16} />
-                                <span>{errores.variantesGlobal}</span>
-                            </div>
-                        )}
-
-                        {variantes.length === 0 ? (
-
-                            <p className="empty-state">
-
-                                Aún no agregaste variantes.
-
-                            </p>
-
-                        ) : (
-
-                            <table className="variants-table">
-
-                                <thead>
-
-                                    <tr>
-
-                                        <th>Color</th>
-                                        <th>Talla</th>
-                                        <th>SKU</th>
-                                        <th>Stock</th>
-                                        <th></th>
-
-                                    </tr>
-
-                                </thead>
-
-                                <tbody>
-
-                                    {variantes.map((v, i) => {
-
-                                        const errV = errVars[i] || {};
-
-                                        return (
-
-                                        <tr key={v.tempId}>
-
-                                            <td>
-
-                                                <div className="select-with-add">
-                                                    <select
-                                                        value={v.color}
-                                                        onChange={(e) =>
-                                                            handleVarianteChange(
-                                                                i,
-                                                                "color",
-                                                                e.target.value
-                                                            )
-                                                        }
-                                                        className={errV.color ? "input-error" : ""}
-                                                    >
-
-                                                        <option value="">—</option>
-
-                                                        {colores.map((c) => (
-
-                                                            <option
-                                                                key={c.id_color}
-                                                                value={c.id_color}
-                                                            >
-
-                                                                {c.nombre}
-
-                                                            </option>
-
-                                                        ))}
-
-                                                    </select>
-
-                                                    <button
-                                                        type="button"
-                                                        className="add-inline"
-                                                        title="Crear un nuevo color"
-                                                        onClick={() =>
-                                                            setModalCrear("color")
-                                                        }
-                                                    >
-                                                        +
-                                                    </button>
-                                                </div>
-
-                                                {errV.color && (
-                                                    <span className="error-text">
-                                                        {errV.color}
-                                                    </span>
-                                                )}
-
-                                            </td>
-
-                                            <td>
-
-                                                <div className="select-with-add">
-                                                    <select
-                                                        value={v.talla}
-                                                        onChange={(e) =>
-                                                            handleVarianteChange(
-                                                                i,
-                                                                "talla",
-                                                                e.target.value
-                                                            )
-                                                        }
-                                                        className={errV.talla ? "input-error" : ""}
-                                                    >
-
-                                                        <option value="">—</option>
-
-                                                        {tallas.map((t) => (
-
-                                                            <option
-                                                                key={t.id_talla}
-                                                                value={t.id_talla}
-                                                            >
-
-                                                                {t.nombre}
-
-                                                            </option>
-
-                                                        ))}
-
-                                                    </select>
-
-                                                    <button
-                                                        type="button"
-                                                        className="add-inline"
-                                                        title="Crear una nueva talla"
-                                                        onClick={() =>
-                                                            setModalCrear("talla")
-                                                        }
-                                                    >
-                                                        +
-                                                    </button>
-                                                </div>
-
-                                                {errV.talla && (
-                                                    <span className="error-text">
-                                                        {errV.talla}
-                                                    </span>
-                                                )}
-
-                                            </td>
-
-                                            <td>
-
-                                                <input
-                                                    type="text"
-                                                    value={v.sku}
-                                                    onChange={(e) =>
-                                                        handleVarianteChange(
-                                                            i,
-                                                            "sku",
-                                                            e.target.value
-                                                        )
-                                                    }
-                                                    placeholder="SKU-001"
-                                                    className={errV.sku ? "input-error" : ""}
-                                                />
-
-                                                {errV.sku && (
-                                                    <span className="error-text">
-                                                        {errV.sku}
-                                                    </span>
-                                                )}
-
-                                            </td>
-
-                                            <td>
-
-                                                <input
-                                                    type="number"
-                                                    value={v.stock}
-                                                    min="0"
-                                                    onChange={(e) =>
-                                                        handleVarianteChange(
-                                                            i,
-                                                            "stock",
-                                                            e.target.value
-                                                        )
-                                                    }
-                                                    className={errV.stock ? "input-error" : ""}
-                                                />
-
-                                                {errV.stock && (
-                                                    <span className="error-text">
-                                                        {errV.stock}
-                                                    </span>
-                                                )}
-
-                                            </td>
-
-                                            <td>
-
-                                                <button
-                                                    type="button"
-                                                    className="delete-row"
-                                                    onClick={() => eliminarVariante(i)}
-                                                >
-
-                                                    <Trash2 size={16} />
-
-                                                </button>
-
-                                            </td>
-
-                                        </tr>
-
-                                    );})}
-
-                                </tbody>
-
-                            </table>
-
-                        )}
-
-                        <button
-                            type="button"
-                            className="add-row"
-                            onClick={agregarVariante}
-                        >
-
-                            <Plus size={16} />
-                            Agregar variante
-
-                        </button>
-
-                        <div className="form-buttons">
-
-                            <button
-                                type="button"
-                                className="cancel-button"
-                                onClick={() => setTab("datos")}
-                                disabled={submitting}
-                            >
-
-                                Volver
-
-                            </button>
-
-                            <button
-                                type="button"
-                                className="next-button"
-                                onClick={() => setTab("imagenes")}
-                            >
-
-                                Siguiente: Imágenes
-
-                            </button>
-
-                            <button
-                                type="submit"
-                                className="save-button"
-                                disabled={submitting}
-                            >
-
-                                {submitting
-                                    ? "Guardando..."
-                                    : (modoEdicion
-                                        ? "Guardar cambios"
-                                        : "Guardar producto")}
-
-                            </button>
-
-                        </div>
-
+                        <button type="button" className="add-row" onClick={addVariant}><Plus size={16} />Agregar variante</button>
+                        <div className="form-buttons"><button type="button" className="cancel-button" onClick={() => setTab("datos")}>Volver</button><button type="button" className="next-button" onClick={() => setTab("imagenes")}>Siguiente: Imágenes</button></div>
                     </>
-
                 )}
 
                 {tab === "imagenes" && (
-
                     <>
-
-                        <p className="tab-help">
-
-                            Sube una imagen desde tu PC o pega una URL. La
-                            primera imagen de cada variante se marca como
-                            principal.
-
-                        </p>
-
-                        {variantes.length === 0 ? (
-
-                            <p className="empty-state">
-
-                                Primero agrega al menos una variante en la pestaña
-                                anterior.
-
-                            </p>
-
-                        ) : (
-
-                            variantes.map((v, i) => (
-
-                                <div key={v.tempId} className="image-section">
-
-                                    <h4>
-
-                                        Variante #{i + 1} —{" "}
-
-                                        {colores.find((c) => c.id_color === Number(v.color))?.nombre || "?"}
-                                        {" / "}
-                                        {tallas.find((t) => t.id_talla === Number(v.talla))?.nombre || "?"}
-
-                                    </h4>
-
-                                    {v.imagenes.length > 0 && (
-
-                                        <div className="image-grid">
-
-                                            {v.imagenes.map((img, j) => (
-
-                                                <div
-                                                    key={j}
-                                                    className={
-                                                        "image-card"
-                                                        + (img.principal ? " image-card--principal" : "")
-                                                    }
-                                                >
-
-                                                    <img
-                                                        src={img.imagen}
-                                                        alt={`img-${j}`}
-                                                        onError={(e) => {
-                                                            e.currentTarget.src =
-                                                                "https://via.placeholder.com/80?text=Error";
-                                                        }}
-                                                    />
-
-                                                    {img.principal && (
-
-                                                        <span className="principal-badge">
-
-                                                            <Star size={11} fill="currentColor" />
-                                                            Principal
-
-                                                        </span>
-
-                                                    )}
-
-                                                    <div className="image-card-actions">
-
-                                                        <button
-                                                            type="button"
-                                                            className={
-                                                                "star-button"
-                                                                + (img.principal ? " star-button--active" : "")
-                                                            }
-                                                            title={
-                                                                img.principal
-                                                                    ? "Imagen principal"
-                                                                    : "Marcar como principal"
-                                                            }
-                                                            onClick={() => marcarPrincipal(i, j)}
-                                                        >
-
-                                                            <Star
-                                                                size={14}
-                                                                fill={img.principal ? "currentColor" : "none"}
-                                                            />
-
-                                                        </button>
-
-                                                        <button
-                                                            type="button"
-                                                            className="delete-button"
-                                                            title="Eliminar imagen"
-                                                            onClick={() => eliminarImagen(i, j)}
-                                                        >
-
-                                                            <Trash2 size={14} />
-
-                                                        </button>
-
-                                                    </div>
-
-                                                </div>
-
-                                            ))}
-
-                                        </div>
-
-                                    )}
-
-                                    <div className="image-input">
-
-                                        <input
-                                            type="file"
-                                            accept="image/*"
-                                            ref={(el) => (fileInputsRef.current[i] = el)}
-                                            onChange={(e) =>
-                                                handleArchivoChange(
-                                                    i,
-                                                    e.target.files?.[0] || null
-                                                )
-                                            }
-                                        />
-
-                                        <span className="input-or">o</span>
-
-                                        <input
-                                            type="url"
-                                            placeholder="https://..."
-                                            value={v.nuevaImagen}
-                                            onChange={(e) =>
-                                                handleUrlChange(i, e.target.value)
-                                            }
-                                        />
-
-                                        <button
-                                            type="button"
-                                            onClick={() => agregarImagen(i)}
-                                            disabled={!v.nuevoArchivo && !v.nuevaImagen.trim()}
-                                        >
-
-                                            <Plus size={16} />
-                                            Agregar
-
-                                        </button>
-
-                                    </div>
-
-                                </div>
-
-                            ))
-
-                        )}
-
-                        <div className="form-buttons">
-
-                            <button
-                                type="button"
-                                className="cancel-button"
-                                onClick={() => setTab("variantes")}
-                                disabled={submitting}
-                            >
-
-                                Volver
-
-                            </button>
-
-                            <button
-                                type="submit"
-                                className="save-button"
-                                disabled={submitting}
-                            >
-
-                                {submitting
-                                    ? "Guardando..."
-                                    : (modoEdicion
-                                        ? "Guardar cambios"
-                                        : "Guardar producto")}
-
-                            </button>
-
-                        </div>
-
+                        <p className="tab-help">Hasta 3 imágenes por variante. La primera queda como principal.</p>
+                        {variantes.length === 0 ? <p className="empty-state">Primero agrega una variante.</p> : variantes.map((v, i) => <div className="image-section" key={v.clientId}>
+                            <h4>Variante #{i + 1} — {variantSummary[i]}</h4>
+                            {v.imagenes.length > 0 && <div className="image-grid">{v.imagenes.map((img, j) => <div className={`image-card${img.principal ? " image-card--principal" : ""}`} key={img.id_imagen || `${v.clientId}-${j}`}>
+                                <img src={mediaUrl(img.imagen)} alt={`Imagen ${j + 1}`} />
+                                {img.principal && <span className="principal-badge"><Star size={11} fill="currentColor" />Principal</span>}
+                                <div className="image-card-actions"><button type="button" className={`star-button${img.principal ? " star-button--active" : ""}`} onClick={() => setPrincipal(i, j)}><Star size={14} fill={img.principal ? "currentColor" : "none"} /></button><button type="button" className="delete-button" onClick={() => removeImage(i, j)}><Trash2 size={14} /></button></div>
+                            </div>)}</div>}
+                            {errors[`variant-${i}-images`] && <span className="error-text">{errors[`variant-${i}-images`]}</span>}
+                            <div className="image-input">
+                                <input type="file" accept="image/*" ref={(el) => { inputRefs.current[i] = el; }} onChange={(e) => addFile(i, e.target.files?.[0])} />
+                                <span className="input-or">o</span>
+                                <button type="button" onClick={() => addUrl(i)}><Plus size={16} />Agregar URL</button>
+                            </div>
+                        </div>)}
+                        <div className="form-buttons"><button type="button" className="cancel-button" onClick={() => setTab("variantes")}>Volver</button><button type="submit" className="save-button" disabled={loading}>{loading ? "Guardando todo..." : editing ? "Guardar cambios" : "Guardar producto"}</button></div>
                     </>
-
                 )}
-
             </form>
-
-            {modalCrear && (
-                <MiniModalCrear
-                    tipo={modalCrear}
-                    onClose={() => setModalCrear(null)}
-                    onGuardado={
-                        modalCrear === "color"
-                            ? onColorCreado
-                            : onTallaCreada
-                    }
-                />
-            )}
-
         </div>
-
     );
-
 }
 
 export default ProductForm;
