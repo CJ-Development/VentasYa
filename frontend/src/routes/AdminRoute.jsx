@@ -17,7 +17,11 @@ function AdminRoute({ children }) {
 
     }
 
-    if (usuario.rol !== 2) {
+    const esAdministrador =
+        usuario?.is_superuser === true ||
+        usuario?.tipo_usuario === "admin";
+
+    if (!esAdministrador) {
 
         return <Navigate to="/" replace />;
 

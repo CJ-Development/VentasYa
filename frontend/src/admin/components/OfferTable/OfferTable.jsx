@@ -34,6 +34,29 @@ const formatearDescuento = (oferta) => {
 
 };
 
+/* Normaliza el listado de categorías para mostrarlo en la tabla.
+ * Acepta tanto el array anidado (categorias_detalle) como la lista
+ * plana de IDs (categorias_ids). */
+const nombresCategorias = (oferta) => {
+
+    const detalle = Array.isArray(oferta.categorias_detalle)
+        ? oferta.categorias_detalle
+        : null;
+
+    if (detalle && detalle.length > 0) {
+        return detalle.map((c) => c.nombre);
+    }
+
+    if (Array.isArray(oferta.categorias) && oferta.categorias.length > 0) {
+        return oferta.categorias
+            .map((c) => (typeof c === "string" ? c : c?.nombre))
+            .filter(Boolean);
+    }
+
+    return [];
+
+};
+
 function OfferTable({ refreshKey, onEdit }) {
 
     const [ofertas, setOfertas] = useState([]);
@@ -171,6 +194,8 @@ function OfferTable({ refreshKey, onEdit }) {
 
                         <th>Producto</th>
 
+                        <th>Categorías</th>
+
                         <th>Descuento</th>
 
                         <th>Inicio</th>
@@ -196,7 +221,7 @@ function OfferTable({ refreshKey, onEdit }) {
                             <tr>
 
                                 <td
-                                    colSpan="7"
+                                    colSpan="8"
                                     style={{ textAlign: "center", padding: "40px" }}
                                 >
 
@@ -216,6 +241,8 @@ function OfferTable({ refreshKey, onEdit }) {
                                 ? oferta.producto
                                 : oferta.producto?.nombre || `Producto #${oferta.producto_id || oferta.producto}`;
 
+                            const categorias = nombresCategorias(oferta);
+
                             return (
 
                                 <tr key={oferta.id_oferta}>
@@ -233,6 +260,35 @@ function OfferTable({ refreshKey, onEdit }) {
                                     </td>
 
                                     <td>{productoNombre}</td>
+
+                                    <td>
+
+                                        {categorias.length === 0 ? (
+                                            <span className="offer-categories-empty">
+                                                Sin categorías
+                                            </span>
+                                        ) : (
+                                            <div className="offer-categories-list">
+                                                {categorias.slice(0, 3).map((nombre, idx) => (
+                                                    <span
+                                                        key={`${oferta.id_oferta}-cat-${idx}`}
+                                                        className="offer-category-pill"
+                                                    >
+                                                        {nombre}
+                                                    </span>
+                                                ))}
+                                                {categorias.length > 3 && (
+                                                    <span
+                                                        className="offer-category-pill offer-category-pill--more"
+                                                        title={categorias.slice(3).join(", ")}
+                                                    >
+                                                        +{categorias.length - 3}
+                                                    </span>
+                                                )}
+                                            </div>
+                                        )}
+
+                                    </td>
 
                                     <td>{formatearDescuento(oferta)}</td>
 

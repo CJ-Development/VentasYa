@@ -2,6 +2,7 @@ import "./Profile.css";
 import { Link } from "react-router-dom";
 import { useState } from "react";
 import { useAuth } from "../../hooks/useAuth";
+import Breadcrumb from "../../components/Breadcrumb/Breadcrumb";
 
 import {
     User,
@@ -37,6 +38,16 @@ function Profile() {
     return (
 
         <main className="profile-page">
+
+            <div className="profile-container">
+
+                <Breadcrumb
+                    items={[
+                        { label: "Mi cuenta" }
+                    ]}
+                />
+
+            </div>
 
             {/* =========================
                 ENCABEZADO DE PERFIL

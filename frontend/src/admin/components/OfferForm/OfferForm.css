@@ -46,6 +46,14 @@
 
 }
 
+.form-group-required{
+
+    color:#d62828;
+
+    margin-left:4px;
+
+}
+
 .form-group input,
 .form-group select,
 .form-group textarea{
@@ -73,5 +81,155 @@
     cursor:pointer;
 
     font-weight:700;
+
+}
+
+/* =====================================================
+   SELECTOR DE CATEGORÍAS (árbol jerárquico + chips)
+   ===================================================== */
+
+.offer-categories-selected{
+
+    display:flex;
+
+    flex-wrap:wrap;
+
+    gap:8px;
+
+    min-height:42px;
+
+    padding:8px;
+
+    border:1px dashed #ddd;
+
+    border-radius:12px;
+
+    margin-bottom:12px;
+
+    background:#fafafa;
+
+}
+
+.offer-categories-empty{
+
+    color:#9CA3AF;
+
+    font-size:13px;
+
+    font-style:italic;
+
+    padding:6px 8px;
+
+}
+
+.offer-category-chip{
+
+    display:inline-flex;
+
+    align-items:center;
+
+    gap:6px;
+
+    padding:6px 12px;
+
+    background:#eaf6f8;
+
+    color:#0EA5B5;
+
+    border:1px solid #b9e1e6;
+
+    border-radius:999px;
+
+    font-size:12px;
+
+    font-weight:600;
+
+    cursor:pointer;
+
+    transition:
+        background 0.18s ease,
+        transform 0.18s ease;
+
+}
+
+.offer-category-chip:hover{
+
+    background:#d6eef1;
+
+    transform:translateY(-1px);
+
+}
+
+.offer-category-chip small{
+
+    color:#6B7280;
+
+    font-weight:500;
+
+    font-size:11px;
+
+}
+
+.offer-category-chip svg{
+
+    color:#0EA5B5;
+
+}
+
+.offer-categories-tree{
+
+    max-height:260px;
+
+    overflow-y:auto;
+
+    border:1px solid #eee;
+
+    border-radius:12px;
+
+    padding:10px 14px;
+
+    background:#fff;
+
+}
+
+.offer-categories-node{
+
+    padding:4px 0;
+
+}
+
+.offer-categories-row{
+
+    display:flex;
+
+    align-items:center;
+
+    gap:8px;
+
+    font-weight:500;
+
+    color:#1F2937;
+
+    cursor:pointer;
+
+    padding:4px 0;
+
+}
+
+.offer-categories-row input{
+
+    margin:0;
+
+    cursor:pointer;
+
+}
+
+.offer-categories-children{
+
+    margin-left:22px;
+
+    border-left:2px solid #f0f1f2;
+
+    padding-left:14px;
 
 }

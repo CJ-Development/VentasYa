@@ -74,3 +74,57 @@ td button{
     background:#d62828;
 
 }
+
+/* =====================================================
+   CATEGORÍAS EN LA TABLA
+   ===================================================== */
+
+.offer-categories-list{
+
+    display:flex;
+
+    flex-wrap:wrap;
+
+    gap:6px;
+
+    max-width:240px;
+
+}
+
+.offer-category-pill{
+
+    display:inline-block;
+
+    background:#eaf6f8;
+
+    color:#0EA5B5;
+
+    padding:4px 10px;
+
+    border-radius:999px;
+
+    font-size:11px;
+
+    font-weight:600;
+
+    white-space:nowrap;
+
+}
+
+.offer-category-pill--more{
+
+    background:#f3f4f6;
+
+    color:#6B7280;
+
+}
+
+.offer-categories-empty{
+
+    color:#9CA3AF;
+
+    font-size:12px;
+
+    font-style:italic;
+
+}

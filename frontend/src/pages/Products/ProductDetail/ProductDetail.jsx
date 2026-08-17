@@ -25,6 +25,7 @@ import {
 } from "../../../services/clientService";
 
 import NoImage from "../../../assets/images/no-detail.png";
+import { mediaUrl } from "../../../utils/mediaUrl";
 
 import "./ProductDetail.css";
 
@@ -260,7 +261,7 @@ function ProductDetail({ productId, onClose }) {
 
     // ====== Render ======
 
-    const imagenActual = galeria[imagenActiva]?.imagen || NoImage;
+    const imagenActual = mediaUrl(galeria[imagenActiva]?.imagen, NoImage);
 
     const handleAgregarCarrito = async () => {
 
@@ -280,10 +281,14 @@ function ProductDetail({ productId, onClose }) {
 
         }
 
-        // Buscar imagen representativa
-        const imagen = (variante.imagenes || []).find((i) => i.principal)?.imagen
-            || (variante.imagenes || [])[0]?.imagen
-            || null;
+        // Buscar imagen representativa (URL absoluta para que cargue en el carrito)
+        const imagen = mediaUrl(
+            (variante.imagenes || []).find((i) => i.principal)?.imagen,
+            null
+        ) || mediaUrl(
+            (variante.imagenes || [])[0]?.imagen,
+            null
+        ) || null;
 
         const payload = {
             variante_id: variante.id_variante,
@@ -386,7 +391,7 @@ function ProductDetail({ productId, onClose }) {
 
                                         key={img.id_imagen || idx}
 
-                                        src={img.imagen}
+                                        src={mediaUrl(img.imagen, NoImage)}
 
                                         alt={`Vista ${idx + 1}`}
 

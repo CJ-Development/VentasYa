@@ -9,14 +9,16 @@ import {
     Truck,
     ShieldCheck,
     LockKeyhole,
-    ChevronRight,
     PackageCheck,
 } from "lucide-react";
 
 import { useAuth } from "../../hooks/useAuth";
 import { useCart } from "../../hooks/useCart";
 
+import Breadcrumb from "../../components/Breadcrumb/Breadcrumb";
+
 import NoImage from "../../assets/images/no-image.png";
+import { mediaUrl } from "../../utils/mediaUrl";
 
 import "./Cart.css";
 
@@ -107,11 +109,11 @@ function Cart() {
 
                 <div className="cart-container">
 
-                    <div className="cart-breadcrumb">
-                        <Link to="/">Inicio</Link>
-                        <ChevronRight size={15} />
-                        <span>Carrito</span>
-                    </div>
+                    <Breadcrumb
+                        items={[
+                            { label: "Carrito" }
+                        ]}
+                    />
 
                     <header className="cart-header">
 
@@ -176,19 +178,11 @@ function Cart() {
 
             <div className="cart-container">
 
-                <div className="cart-breadcrumb">
-
-                    <Link to="/">
-                        Inicio
-                    </Link>
-
-                    <ChevronRight size={15} />
-
-                    <span>
-                        Carrito
-                    </span>
-
-                </div>
+                <Breadcrumb
+                    items={[
+                        { label: "Carrito" }
+                    ]}
+                />
 
                 <header className="cart-header">
 
@@ -330,8 +324,10 @@ function Cart() {
 
                                                         <img
                                                             src={
-                                                                item.imagen ||
-                                                                NoImage
+                                                                mediaUrl(
+                                                                    item.imagen,
+                                                                    NoImage
+                                                                )
                                                             }
                                                             alt={
                                                                 item.producto_nombre

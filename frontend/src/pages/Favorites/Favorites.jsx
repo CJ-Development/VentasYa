@@ -19,8 +19,10 @@ import {
 } from "../../services/clientService";
 
 import ProductDetail from "../Products/ProductDetail/ProductDetail";
+import Breadcrumb from "../../components/Breadcrumb/Breadcrumb";
 
 import NoImage from "../../assets/images/no-image.png";
+import { mediaUrl } from "../../utils/mediaUrl";
 
 import "./Favorites.css";
 
@@ -162,7 +164,7 @@ function Favorites() {
 
             .find((img) => img.principal);
 
-        if (principal) return principal.imagen;
+        if (principal) return mediaUrl(principal.imagen, NoImage);
 
         const primera = (p.variantes || [])
 
@@ -170,7 +172,7 @@ function Favorites() {
 
             .sort((a, b) => (a.orden || 0) - (b.orden || 0))[0];
 
-        return primera?.imagen || NoImage;
+        return mediaUrl(primera?.imagen, NoImage);
 
     };
 
@@ -234,6 +236,12 @@ function Favorites() {
         <main className="favorites-page">
 
             <div className="favorites-container">
+
+                <Breadcrumb
+                    items={[
+                        { label: "Mis favoritos" }
+                    ]}
+                />
 
                 <header className="favorites-header">
 

@@ -131,6 +131,80 @@
 
 
 /* ============================================================
+   GRUPO PADRE / HIJO
+   - El padre se ve en negrita.
+   - Las sub-categorías se muestran indentadas con tipografía
+     más liviana para que la jerarquía sea visible.
+============================================================ */
+
+.category-group {
+    width: 100%;
+
+    display: flex;
+
+    flex-direction: column;
+}
+
+
+.category-item--parent {
+    font-weight: 700;
+
+    color: #16283a;
+}
+
+
+.category-item--parent.active {
+    color: #087f90;
+}
+
+
+.category-sublist {
+    width: 100%;
+
+    display: flex;
+
+    flex-direction: column;
+
+    margin: 2px 0 6px;
+
+    padding-left: 18px;
+
+    border-left: 1px dashed #d6dde3;
+
+    margin-left: 14px;
+}
+
+
+.category-item--sub {
+    min-height: 30px;
+
+    padding: 6px 12px;
+
+    font-size: 12px;
+
+    font-weight: 500;
+
+    color: #526174;
+}
+
+
+.category-item--sub.active {
+    color: #087f90;
+
+    background: #edf6f7;
+
+    font-weight: 700;
+}
+
+
+.category-item--sub:hover {
+    color: #087f90;
+
+    background: #f2f8f9;
+}
+
+
+/* ============================================================
    DIVISOR
 ============================================================ */
 

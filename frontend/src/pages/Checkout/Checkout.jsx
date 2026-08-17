@@ -18,6 +18,8 @@ import {
 import { useAuth } from "../../hooks/useAuth";
 import { useCart } from "../../hooks/useCart";
 
+import Breadcrumb from "../../components/Breadcrumb/Breadcrumb";
+
 import {
     getMisDirecciones,
     crearDireccion,
@@ -25,6 +27,7 @@ import {
 import { getMetodosPago, checkout } from "../../services/paymentService";
 
 import NoImage from "../../assets/images/no-image.png";
+import { mediaUrl } from "../../utils/mediaUrl";
 
 import "./Checkout.css";
 
@@ -233,13 +236,12 @@ function Checkout() {
         <main className="checkout-page">
             <div className="checkout-container">
 
-                <div className="checkout-breadcrumb">
-                    <Link to="/">Inicio</Link>
-                    <span>›</span>
-                    <Link to="/cart">Carrito</Link>
-                    <span>›</span>
-                    <span>Checkout</span>
-                </div>
+                <Breadcrumb
+                    items={[
+                        { label: "Carrito", to: "/cart" },
+                        { label: "Checkout" }
+                    ]}
+                />
 
                 <h1>Finalizar compra</h1>
                 <p>Confirma tu dirección y método de pago para completar el pedido.</p>
@@ -483,7 +485,7 @@ function Checkout() {
                                 return (
                                     <li key={key} className="checkout-item">
                                         <img
-                                            src={it.imagen || NoImage}
+                                            src={mediaUrl(it.imagen, NoImage)}
                                             alt={it.producto_nombre}
                                             onError={(e) => {
                                                 e.currentTarget.src = NoImage;

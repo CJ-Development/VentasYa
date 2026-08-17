@@ -15,6 +15,7 @@ import { useAuth } from "../../../hooks/useAuth";
 import { useCart } from "../../../hooks/useCart";
 
 import NoImage from "../../../assets/images/no-image.png";
+import { mediaUrl } from "../../../utils/mediaUrl";
 
 import "./CartDrawer.css";
 
@@ -185,7 +186,7 @@ function CartDrawer() {
 
                                         <div className="cart-drawer-item-img">
                                             <img
-                                                src={item.imagen || NoImage}
+                                                src={mediaUrl(item.imagen, NoImage)}
                                                 alt={item.producto_nombre}
                                                 onError={(e) => { e.currentTarget.src = NoImage; }}
                                             />

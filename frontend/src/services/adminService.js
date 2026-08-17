@@ -57,17 +57,48 @@ export const deleteTalla = (id) => api.delete(`/products/tallas/${id}/`);
 /* ===========================
    CATEGORIAS
 =========================== */
-export const getCategories = () => api.get("/categories/");
+export const getCategories = (params = {}) =>
+    api.get("/categories/", { params });
+
+export const getCategory = (id) => api.get(`/categories/${id}/`);
 export const createCategory = (data) => api.post("/categories/", data);
 export const updateCategory = (id, data) => api.put(`/categories/${id}/`, data);
-export const deleteCategory = (id) => api.delete(`/categories/${id}/`);
+
+/**
+ * Archiva una categoría.
+ * Si `cascade=true`, también archiva los productos vinculados a esta
+ * categoría y a todas sus descendientes.
+ */
+export const deleteCategory = (id, { cascade = false } = {}) =>
+    api.delete(`/categories/${id}/${cascade ? "?cascade=true" : ""}`);
+
+export const reactivateCategory = (id) =>
+    api.post(`/categories/${id}/reactivar/`);
 
 /* ===========================
    OFERTAS
 =========================== */
 export const getOffers = () => api.get("/offers/");
-export const createOffer = (data) => api.post("/offers/", data);
-export const updateOffer = (id, data) => api.put(`/offers/${id}/`, data);
+
+/* El backend espera categorias_ids (lista de PKs) para crear/actualizar
+ * la relación M2M con categorías. Si no viene, mandamos lista vacía
+ * para que el servidor desarme la relación anterior sin errores. */
+export const createOffer = (data) => {
+    const payload = {
+        ...data,
+        categorias_ids: Array.isArray(data.categorias_ids) ? data.categorias_ids : [],
+    };
+    return api.post("/offers/", payload);
+};
+
+export const updateOffer = (id, data) => {
+    const payload = {
+        ...data,
+        categorias_ids: Array.isArray(data.categorias_ids) ? data.categorias_ids : [],
+    };
+    return api.put(`/offers/${id}/`, payload);
+};
+
 export const deleteOffer = (id) => api.delete(`/offers/${id}/`);
 
 /* ===========================

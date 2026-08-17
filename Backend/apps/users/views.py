@@ -137,15 +137,6 @@ class UsuarioDetalleView(APIView):
 
 
 class CambiarPasswordView(APIView):
-    """
-    POST /api/users/<id>/cambiar-password/
-
-    Body:
-    {
-        "password_actual": "...",
-        "password_nuevo": "..."
-    }
-    """
 
     def post(self, request, id):
 
@@ -198,13 +189,6 @@ class CambiarPasswordView(APIView):
 
 
 class DireccionView(APIView):
-    """
-    GET:
-    /api/users/direcciones/?usuario_id=X
-
-    POST:
-    /api/users/direcciones/
-    """
 
     def get(self, request):
 
@@ -282,13 +266,6 @@ class DireccionView(APIView):
 
 
 class DireccionDetalleView(APIView):
-    """
-    PUT:
-    /api/users/direcciones/<id>/
-
-    DELETE:
-    /api/users/direcciones/<id>/
-    """
 
     def put(self, request, id):
 

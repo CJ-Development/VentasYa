@@ -1,33 +1,147 @@
-import { useState } from "react";
-import { X } from "lucide-react";
-import { createCategory } from "../../../services/adminService";
+import { useEffect, useMemo, useState } from "react";
+
+import {
+    ArrowLeft,
+    Check,
+    ChevronDown,
+    Folder,
+    FolderOpen
+} from "lucide-react";
+
+import {
+    createCategory,
+    updateCategory,
+    getCategories
+} from "../../../services/adminService";
+
 import "./CategoryForm.css";
 
-function CategoryForm({ onClose, onCreated }) {
+
+function CategoryForm({ category, onClose, onCreated }) {
+
+    const editing = Boolean(category);
+
 
     const [formData, setFormData] = useState({
 
-        nombre: "",
-        descripcion: "",
-        estado: "activo"
+        nombre: category?.nombre || "",
+
+        categoria_padre_id:
+            category?.id_categoria_padre ??
+            category?.categoria_padre?.id_categoria ??
+            "",
+
+        estado: category?.estado || "activo",
+
+        orden: category?.orden ?? 1
 
     });
 
+
+    const [categorias, setCategorias] = useState([]);
+
     const [submitting, setSubmitting] = useState(false);
+
+    const [loadingCategories, setLoadingCategories] = useState(true);
+
+
+    useEffect(() => {
+
+        const cargarCategorias = async () => {
+
+            try {
+
+                const { data } = await getCategories();
+
+                setCategorias(data || []);
+
+            }
+
+            catch (error) {
+
+                console.error(error);
+
+            }
+
+            finally {
+
+                setLoadingCategories(false);
+
+            }
+
+        };
+
+        cargarCategorias();
+
+    }, []);
+
 
     const handleChange = (e) => {
 
         const { name, value } = e.target;
 
-        setFormData({
+        setFormData((prev) => ({
 
-            ...formData,
+            ...prev,
 
             [name]: value
+
+        }));
+
+    };
+
+
+    const categoriaPadre = useMemo(() => {
+
+        return categorias.find(
+
+            (item) =>
+                Number(item.id_categoria) ===
+                Number(formData.categoria_padre_id)
+
+        );
+
+    }, [categorias, formData.categoria_padre_id]);
+
+
+    const categoriasPrincipales = useMemo(() => {
+
+        return categorias.filter((item) => {
+
+            const parent =
+                item.id_categoria_padre ??
+                item.categoria_padre?.id_categoria ??
+                item.categoria_padre;
+
+            return !parent;
+
+        });
+
+    }, [categorias]);
+
+
+    const obtenerHijas = (id) => {
+
+        return categorias.filter((item) => {
+
+            const parent =
+                item.id_categoria_padre ??
+                item.categoria_padre?.id_categoria ??
+                item.categoria_padre;
+
+            return Number(parent) === Number(id);
 
         });
 
     };
+
+
+    const previewChildren = categoriaPadre
+
+        ? obtenerHijas(categoriaPadre.id_categoria)
+
+        : [];
+
 
     const handleSubmit = async (e) => {
 
@@ -37,19 +151,65 @@ function CategoryForm({ onClose, onCreated }) {
 
         try {
 
-            await createCategory(formData);
+            /*
+             * El backend podrá adaptar posteriormente
+             * estos nombres de campos.
+             */
 
-            if (onCreated) await onCreated();
+            const payload = {
 
-            onClose();
+                nombre: formData.nombre,
+
+                categoria_padre_id:
+                    formData.categoria_padre_id || null,
+
+                estado: formData.estado,
+
+                orden: Number(formData.orden)
+
+            };
+
+
+            if (editing) {
+
+                await updateCategory(
+
+                    category.id_categoria,
+
+                    payload
+
+                );
+
+            }
+
+            else {
+
+                await createCategory(payload);
+
+            }
+
+
+            if (onCreated) {
+
+                onCreated();
+
+            }
 
         }
 
-        catch(error){
+        catch (error) {
 
             console.error(error);
 
-            alert("Error al crear la categoría.");
+            alert(
+
+                editing
+
+                    ? "No fue posible actualizar la categoría."
+
+                    : "No fue posible crear la categoría."
+
+            );
 
         }
 
@@ -60,193 +220,452 @@ function CategoryForm({ onClose, onCreated }) {
         }
 
     };
+
+
     return (
 
-        <div className="modal-overlay">
+        <div className="category-form-page">
 
-            <form
-                className="category-form"
-                onSubmit={handleSubmit}
-            >
+            <div className="category-form-top">
 
-                <div className="modal-header">
+                <button
+                    type="button"
+                    className="back-button"
+                    onClick={onClose}
+                >
 
-                    <div>
+                    <ArrowLeft size={18} />
 
-                        <h2>
+                    Categorías
 
-                            Nueva categoría
+                </button>
 
-                        </h2>
+            </div>
 
-                        <p>
 
-                            Organiza tus productos fácilmente.
+            <div className="category-form-heading">
 
-                        </p>
+                <div>
 
-                    </div>
+                    <h1>
 
-                    <button
+                        {editing
+                            ? "Editar categoría"
+                            : "Nueva categoría"
+                        }
 
-                        type="button"
+                    </h1>
 
-                        className="close-button"
+                    <p>
 
-                        onClick={onClose}
+                        {editing
 
-                    >
+                            ? "Actualiza la información de la categoría."
 
-                        <X size={20}/>
+                            : "Crea una categoría o subcategoría para organizar tu tienda."
+                        }
 
-                    </button>
+                    </p>
 
                 </div>
 
-                <div className="form-grid">
+            </div>
 
-                    <div className="form-group">
 
-                        <label>
+            <div className="category-form-layout">
 
-                            Nombre
 
-                        </label>
+                {/* =========================
+                    FORMULARIO
+                ========================= */}
 
-                        <input
+                <form
+                    className="category-form-card"
+                    onSubmit={handleSubmit}
+                >
 
-                            type="text"
+                    <div className="form-card-header">
 
-                            name="nombre"
+                        <div>
 
-                            value={formData.nombre}
+                            <h2>Información de la categoría</h2>
 
-                            onChange={handleChange}
+                            <p>
+                                Completa los datos principales.
+                            </p>
 
-                            placeholder="Ej: Hombre"
-
-                            required
-
-                        />
+                        </div>
 
                     </div>
 
-                    <div className="form-group">
 
-                        <label>
+                    <div className="category-form-content">
 
-                            Estado
 
-                        </label>
+                        <div className="form-group full">
 
-                        <select
+                            <label htmlFor="nombre">
 
-                            name="estado"
+                                Nombre
 
-                            value={formData.estado}
+                                <span>*</span>
 
-                            onChange={handleChange}
+                            </label>
+
+                            <input
+
+                                id="nombre"
+
+                                type="text"
+
+                                name="nombre"
+
+                                value={formData.nombre}
+
+                                onChange={handleChange}
+
+                                placeholder="Nombre de la categoría"
+
+                                required
+
+                            />
+
+                        </div>
+
+
+                        <div className="form-group full">
+
+                            <label htmlFor="categoria_padre_id">
+
+                                Categoría padre
+
+                            </label>
+
+                            <div className="select-wrapper">
+
+                                <select
+
+                                    id="categoria_padre_id"
+
+                                    name="categoria_padre_id"
+
+                                    value={formData.categoria_padre_id}
+
+                                    onChange={handleChange}
+
+                                    disabled={loadingCategories}
+
+                                >
+
+                                    <option value="">
+
+                                        Ninguna — categoría principal
+
+                                    </option>
+
+
+                                    {categoriasPrincipales
+
+                                        .filter((item) =>
+
+                                            !editing ||
+
+                                            item.id_categoria !==
+                                            category.id_categoria
+
+                                        )
+
+                                        .map((item) => (
+
+                                            <option
+
+                                                key={item.id_categoria}
+
+                                                value={item.id_categoria}
+
+                                            >
+
+                                                {item.nombre}
+
+                                            </option>
+
+                                        ))
+
+                                    }
+
+                                </select>
+
+                                <ChevronDown size={17} />
+
+                            </div>
+
+                            <small>
+
+                                Selecciona una categoría para crear una subcategoría.
+
+                            </small>
+
+                        </div>
+
+
+                        <div className="form-row">
+
+
+                            <div className="form-group">
+
+                                <label htmlFor="estado">
+
+                                    Estado
+
+                                </label>
+
+                                <div className="select-wrapper">
+
+                                    <select
+
+                                        id="estado"
+
+                                        name="estado"
+
+                                        value={formData.estado}
+
+                                        onChange={handleChange}
+
+                                    >
+
+                                        <option value="activo">
+
+                                            Activa
+
+                                        </option>
+
+                                        <option value="inactivo">
+
+                                            Inactiva
+
+                                        </option>
+
+                                    </select>
+
+                                    <ChevronDown size={17} />
+
+                                </div>
+
+                            </div>
+
+
+                            <div className="form-group">
+
+                                <label htmlFor="orden">
+
+                                    Orden
+
+                                </label>
+
+                                <input
+
+                                    id="orden"
+
+                                    type="number"
+
+                                    name="orden"
+
+                                    min="1"
+
+                                    value={formData.orden}
+
+                                    onChange={handleChange}
+
+                                />
+
+                            </div>
+
+
+                        </div>
+
+
+                    </div>
+
+
+                    <div className="form-actions">
+
+                        <button
+
+                            type="button"
+
+                            className="cancel-form-button"
+
+                            onClick={onClose}
+
+                            disabled={submitting}
 
                         >
 
-                            <option value="activo">
+                            Cancelar
 
-                                Activo
+                        </button>
 
-                            </option>
 
-                            <option value="inactivo">
+                        <button
 
-                                Inactivo
+                            type="submit"
 
-                            </option>
+                            className="save-form-button"
 
-                        </select>
+                            disabled={submitting}
+
+                        >
+
+                            <Check size={17} />
+
+                            {submitting
+
+                                ? "Guardando..."
+
+                                : editing
+
+                                    ? "Guardar cambios"
+
+                                    : "Crear categoría"
+
+                            }
+
+                        </button>
+
+                    </div>
+
+                </form>
+
+
+                {/* =========================
+                    VISTA PREVIA
+                ========================= */}
+
+                <div className="category-preview-card">
+
+                    <div className="preview-header">
+
+                        <div>
+
+                            <h2>Vista previa</h2>
+
+                            <p>
+                                Así se verá en la navegación.
+                            </p>
+
+                        </div>
+
+                    </div>
+
+
+                    <div className="preview-navigation">
+
+
+                        <div className="preview-column">
+
+                            <div className="preview-column-title">
+
+                                {categoriaPadre?.nombre ||
+
+                                    (formData.nombre ||
+
+                                        "Nueva categoría"
+                                    )
+                                }
+
+                            </div>
+
+
+                            <div className="preview-column-line" />
+
+
+                            {categoriaPadre ? (
+
+                                <>
+
+                                    {previewChildren.map((child) => (
+
+                                        <div
+
+                                            className="preview-item"
+
+                                            key={child.id_categoria}
+
+                                        >
+
+                                            {child.nombre}
+
+                                        </div>
+
+                                    ))}
+
+
+                                    {formData.nombre && (
+
+                                        <div className="preview-item preview-new">
+
+                                            <span>
+
+                                                {formData.nombre}
+
+                                            </span>
+
+                                            <small>
+
+                                                Nueva
+
+                                            </small>
+
+                                        </div>
+
+                                    )}
+
+                                </>
+
+                            ) : (
+
+                                <div className="preview-empty">
+
+                                    <FolderOpen size={18} />
+
+                                    <span>
+
+                                        Esta categoría será principal.
+
+                                    </span>
+
+                                </div>
+
+                            )}
+
+                        </div>
+
+
+                    </div>
+
+
+                    <div className="preview-note">
+
+                        <Folder size={16} />
+
+                        <span>
+
+                            La estructura se actualizará cuando guardes los cambios.
+
+                        </span>
 
                     </div>
 
                 </div>
 
-                <div className="form-group">
 
-                    <label>
-
-                        Descripción
-
-                    </label>
-
-                    <textarea
-
-                        rows="5"
-
-                        name="descripcion"
-
-                        value={formData.descripcion}
-
-                        onChange={handleChange}
-
-                        placeholder="Descripción de la categoría"
-
-                    />
-
-                </div>
-
-                <div className="form-group">
-
-                    <label>
-
-                        Imagen
-
-                    </label>
-
-                    <input
-
-                        type="file"
-
-                    />
-
-                </div>
-
-                <div className="form-buttons">
-
-                    <button
-
-                        type="button"
-
-                        className="cancel-button"
-
-                        onClick={onClose}
-
-                        disabled={submitting}
-
-                    >
-
-                        Cancelar
-
-                    </button>
-
-                    <button
-
-                        type="submit"
-
-                        className="save-button"
-
-                        disabled={submitting}
-
-                    >
-
-                        {submitting ? "Guardando..." : "Guardar categoría"}
-
-                    </button>
-
-                </div>
-
-            </form>
+            </div>
 
         </div>
 
     );
 
 }
+
 
 export default CategoryForm;

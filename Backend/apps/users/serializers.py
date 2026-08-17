@@ -34,7 +34,7 @@ class UsuarioSerializer(serializers.ModelSerializer):
         ]
 
     def get_tipo_usuario(self, obj):
-        return "admin" if obj.is_superuser else "cliente"
+        return "admin" if obj.is_staff or obj.is_superuser else "cliente"
 
 
 class UsuarioUpdateSerializer(serializers.ModelSerializer):

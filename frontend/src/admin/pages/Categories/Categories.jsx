@@ -4,82 +4,96 @@ import "./Categories.css";
 
 import CategoryForm from "../../components/CategoryForm/CategoryForm";
 import CategoryTable from "../../components/CategoryTable/CategoryTable";
-import { getCategories } from "../../../services/adminService";
 
 function Categories() {
 
-    const [showModal, setShowModal] = useState(false);
-
+    const [showForm, setShowForm] = useState(false);
+    const [selectedCategory, setSelectedCategory] = useState(null);
     const [refreshKey, setRefreshKey] = useState(0);
 
-    const handleCreated = async () => {
+    const handleNewCategory = () => {
 
-        // Confirmamos la creación contra la BD antes de refrescar la tabla.
-        try {
-
-            await getCategories();
-
-        } finally {
-
-            setRefreshKey((prev) => prev + 1);
-
-        }
+        setSelectedCategory(null);
+        setShowForm(true);
 
     };
+
+    const handleEditCategory = (category) => {
+
+        setSelectedCategory(category);
+        setShowForm(true);
+
+    };
+
+    const handleCloseForm = () => {
+
+        setSelectedCategory(null);
+        setShowForm(false);
+
+    };
+
+    const handleCreated = () => {
+
+        setRefreshKey((prev) => prev + 1);
+        setShowForm(false);
+        setSelectedCategory(null);
+
+    };
+
+    if (showForm) {
+
+        return (
+
+            <CategoryForm
+
+                category={selectedCategory}
+
+                onClose={handleCloseForm}
+
+                onCreated={handleCreated}
+
+            />
+
+        );
+
+    }
 
     return (
 
         <div className="categories-page">
 
-            <div className="page-header">
+            <div className="categories-header">
 
                 <div>
 
-                    <h1>
-
-                        Categorías
-
-                    </h1>
+                    <h1>Categorías</h1>
 
                     <p>
-
-                        Organiza los productos de la tienda.
-
+                        Organiza las categorías y subcategorías de la tienda.
                     </p>
 
                 </div>
 
                 <button
-
-                    className="new-category"
-
-                    onClick={() => setShowModal(true)}
-
+                    className="new-category-button"
+                    onClick={handleNewCategory}
                 >
 
-                    + Nueva categoría
+                    <span>+</span>
+
+                    Nueva categoría
 
                 </button>
 
             </div>
 
-            <CategoryTable refreshKey={refreshKey} />
+            <CategoryTable
 
-            {
+                refreshKey={refreshKey}
 
-                showModal && (
+                onEdit={handleEditCategory}
 
-                    <CategoryForm
-
-                        onClose={() => setShowModal(false)}
-
-                        onCreated={handleCreated}
-
-                    />
-
-                )
-
-            }
+            />
 
         </div>
 

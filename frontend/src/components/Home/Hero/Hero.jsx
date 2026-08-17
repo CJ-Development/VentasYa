@@ -53,7 +53,7 @@ function Hero() {
                 </>
             ),
             description:
-                "TE AMOOOOOOO PERAZA",
+                "Encuentra todo lo que tu mejor amigo necesita en un solo lugar.",
             image: Mascotas,
             button: "Ver mascotas",
             className: "hero-card--pets",
@@ -87,7 +87,7 @@ function Hero() {
         {
             icon: Tag,
             title: "Ofertas exclusivas",
-            description: "MELANIE TE AMO X2 ",
+            description: "Descuentos cada semana",
             color: "coral"
         },
         {
@@ -110,32 +110,7 @@ function Hero() {
         }
     ];
 
-    const highlights = [
-        {
-            icon: BadgePercent,
-            title: "Hasta 60% OFF",
-            description: "Melanie Te amo ",
-            color: "Morado mi amor "
-        },
-        {
-            icon: Truck,
-            title: "Envío gratis",
-            description: "En compras desde $99.900",
-            color: "turquoise"
-        },
-        {
-            icon: CreditCard,
-            title: "Paga como quieras",
-            description: "Tarjetas, PSE y más",
-            color: "turquoise"
-        },
-        {
-            icon: Gift,
-            title: "Nuevas ofertas cada día",
-            description: "No te las pierdas",
-            color: "orange"
-        }
-    ];
+
 
     return (
         <section className="hero">
@@ -263,53 +238,6 @@ function Hero() {
                                 </div>
 
                             </div>
-                        );
-                    })}
-
-                </div>
-
-
-                {/* =========================================
-                    DESTACADOS INFORMATIVOS
-                ========================================= */}
-
-                <div className="hero-highlights">
-
-                    {highlights.map((highlight) => {
-
-                        const Icon = highlight.icon;
-
-                        return (
-                            <a
-                                href="/offers"
-                                className="hero-highlight"
-                                key={highlight.title}
-                            >
-
-                                <span
-                                    className={`hero-highlight-icon hero-icon-${highlight.color}`}
-                                >
-                                    <Icon size={19} />
-                                </span>
-
-                                <div className="hero-highlight-text">
-
-                                    <strong>
-                                        {highlight.title}
-                                    </strong>
-
-                                    <span>
-                                        {highlight.description}
-                                    </span>
-
-                                </div>
-
-                                <ArrowRight
-                                    className="hero-highlight-arrow"
-                                    size={17}
-                                />
-
-                            </a>
                         );
                     })}
 

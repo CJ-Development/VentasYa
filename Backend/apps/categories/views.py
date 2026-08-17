@@ -1,6 +1,8 @@
-from rest_framework.views import APIView
-from rest_framework.response import Response
+from django.db import transaction
+from django.shortcuts import get_object_or_404
 from rest_framework import status
+from rest_framework.response import Response
+from rest_framework.views import APIView
 
 from .models import Categoria
 from .serializers import CategoriaSerializer
@@ -8,81 +10,121 @@ from .services import CategoriaService
 
 
 class CategoriaView(APIView):
+    """
+    GET /categories/                   → listado jerárquico (padres + hijos).
+    GET /categories/?solo_padres=true  → solo categorías principales.
+    GET /categories/?incluir_inactivos=false → solo activas.
+
+    POST /categories/ crea una categoría (o subcategoría si llega
+    `categoria_padre_id`).
+    """
 
     def get(self, request):
-
-        categorias = CategoriaService.listar()
-
-        serializer = CategoriaSerializer(
-            categorias,
-            many=True
+        solo_padres = self._parse_bool(request.query_params.get("solo_padres"))
+        incluir_inactivos = self._parse_bool(
+            request.query_params.get("incluir_inactivos", "true")
         )
 
+        categorias = CategoriaService.listar(
+            solo_padres=solo_padres,
+            incluir_inactivos=incluir_inactivos,
+        )
+
+        serializer = CategoriaSerializer(categorias, many=True)
         return Response(serializer.data)
 
     def post(self, request):
-
-        print("=" * 50)
-        print("REQUEST:")
-        print(request.data)
-
         serializer = CategoriaSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
 
-        if serializer.is_valid():
+        validated = serializer.validated_data
+        validated.pop("categoria_padre", None)  # viene del método, no se guarda
 
-            print("VALIDADO:")
-            print(serializer.validated_data)
-
-            categoria = serializer.save()
-
-            print("GUARDADO:")
-            print(categoria.id_categoria)
-
-            return Response(
-                CategoriaSerializer(categoria).data,
-                status=status.HTTP_201_CREATED
-            )
-
-        print(serializer.errors)
-
+        categoria = CategoriaService.crear(validated)
         return Response(
-            serializer.errors,
-            status=status.HTTP_400_BAD_REQUEST
+            CategoriaSerializer(categoria).data,
+            status=status.HTTP_201_CREATED,
         )
+
+    @staticmethod
+    def _parse_bool(value):
+        if value is None:
+            return False
+        return str(value).lower() in ("true", "1", "yes")
+
 
 class CategoriaDetalleView(APIView):
+    """
+    GET    /categories/<id>/
+    PUT    /categories/<id>/
+    DELETE /categories/<id>/               → archivado simple.
+    DELETE /categories/<id>/?cascade=true  → archiva también los productos
+                                            vinculados a esta categoría
+                                            y a todas sus descendientes.
+    """
 
     def get(self, request, id):
-
         categoria = CategoriaService.obtener(id)
-
-        return Response(
-            CategoriaSerializer(categoria).data
-        )
+        return Response(CategoriaSerializer(categoria).data)
 
     def put(self, request, id):
+        instancia = get_object_or_404(Categoria, id_categoria=id)
+        serializer = CategoriaSerializer(instancia, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
 
-        serializer = CategoriaSerializer(
-            data=request.data
-        )
+        validated = serializer.validated_data
+        validated.pop("categoria_padre", None)
 
-        serializer.is_valid(
-            raise_exception=True
-        )
-
-        categoria = CategoriaService.actualizar(
-            id,
-            serializer.validated_data
-        )
-
-        return Response(
-            CategoriaSerializer(categoria).data
-        )
+        categoria = CategoriaService.actualizar(id, validated)
+        return Response(CategoriaSerializer(categoria).data)
 
     def delete(self, request, id):
+        cascade = str(request.query_params.get("cascade", "")).lower() in (
+            "true",
+            "1",
+            "yes",
+        )
 
-        CategoriaService.eliminar(id)
+        # Primero archivamos la categoría (y descendientes) en cascada
+        # dentro del service.
+        categoria = CategoriaService.eliminar(id)
+
+        if not cascade:
+            return Response(
+                {
+                    "estado": "archivado",
+                    "id_categoria": categoria.id_categoria,
+                    "cascade": False,
+                },
+                status=status.HTTP_200_OK,
+            )
+
+        # Cascade a productos vinculados a la categoría archivada
+        # y a todas sus descendientes.
+        from apps.products.models import Producto
+
+        with transaction.atomic():
+            ids = [categoria.id_categoria]
+            visitados = set(ids)
+            pendientes = list(categoria.subcategorias.all())
+            while pendientes:
+                hijo = pendientes.pop()
+                if hijo.id_categoria in visitados:
+                    continue
+                visitados.add(hijo.id_categoria)
+                ids.append(hijo.id_categoria)
+                pendientes.extend(hijo.subcategorias.all())
+
+            actualizados = Producto.objects.filter(
+                categoria_id__in=ids, estado="activo"
+            ).update(estado="archivado")
 
         return Response(
-            status=status.HTTP_204_NO_CONTENT
+            {
+                "estado": "archivado",
+                "id_categoria": categoria.id_categoria,
+                "cascade": True,
+                "productos_archivados": actualizados,
+            },
+            status=status.HTTP_200_OK,
         )

@@ -9,6 +9,7 @@ import {
 
 import ProductCard from "./ProductCard/ProductCard";
 import ProductDetail from "./ProductDetail/ProductDetail";
+import Breadcrumb from "../../components/Breadcrumb/Breadcrumb";
 
 import { getCategories, getProducts } from "../../services/adminService";
 import { getOffers } from "../../services/clientService";
@@ -283,6 +284,24 @@ function Products() {
 
 
     /* =========================================================
+       CATEGORÍAS PADRE
+       - Solo las que no tienen padre.
+       - Excluimos las archivadas para no mostrarlas en el sidebar.
+    ========================================================= */
+
+    const categoriasPadres = useMemo(() => {
+
+        return (categorias || []).filter(
+            (cat) =>
+                !cat.categoria_padre_id &&
+                !cat.categoria_padre &&
+                cat.estado !== "archivado"
+        );
+
+    }, [categorias]);
+
+
+    /* =========================================================
        PRODUCTOS EN OFERTA
     ========================================================= */
 
@@ -396,7 +415,10 @@ function Products() {
             }
 
 
-            /* CATEGORIA */
+            /* CATEGORIA
+               - Si la categoría seleccionada es padre, también
+                 mostramos los productos de sus subcategorías.
+               - Si es hija, solo esa. */
 
             if (categoria) {
 
@@ -404,20 +426,43 @@ function Products() {
                     Number(categoria);
 
 
+                // IDs de la categoría seleccionada + sus descendientes
+                const idsValidos = new Set([idCategoria]);
+
+                categoriasPadres.forEach((padre) => {
+
+                    if (padre.id_categoria === idCategoria) {
+
+                        (padre.subcategorias || []).forEach((sub) => {
+
+                            if (sub.estado !== "archivado") {
+
+                                idsValidos.add(
+                                    Number(sub.id_categoria)
+                                );
+
+                            }
+
+                        });
+
+                    }
+
+                });
+
+
                 lista =
                     lista.filter(
                         (producto) => {
 
                             const id =
-                                producto.categoria
-                                    ?.id_categoria ??
-                                producto.categoria;
+                                Number(
+                                    producto.categoria
+                                        ?.id_categoria ??
+                                    producto.categoria
+                                );
 
 
-                            return (
-                                Number(id) ===
-                                idCategoria
-                            );
+                            return idsValidos.has(id);
 
                         }
                     );
@@ -544,7 +589,8 @@ function Products() {
             precioMax,
             soloConDescuento,
             productosEnOferta,
-            orden
+            orden,
+            categoriasPadres,
         ]);
 
 
@@ -667,8 +713,8 @@ function Products() {
                     type="button"
                     className={
                         !categoria
-                            ? "category-item active"
-                            : "category-item"
+                            ? "category-item category-item--parent active"
+                            : "category-item category-item--parent"
                     }
                     onClick={() => {
                         setCategoria("");
@@ -678,44 +724,103 @@ function Products() {
                 </button>
 
 
-                {categorias.map(
-                    (cat) => {
+                {categoriasPadres.map(
+                    (padre) => {
 
-                        const active =
-                            String(
-                                categoria
-                            ) ===
-                            String(
-                                cat.id_categoria
-                            );
+                        const subcats =
+                            (padre.subcategorias ||
+                                []).filter(
+                                    (s) =>
+                                        s.estado !==
+                                        "archivado"
+                                );
 
+                        const isPadreActive =
+                            String(categoria) ===
+                            String(padre.id_categoria);
 
                         return (
 
-                            <button
-                                key={
-                                    cat.id_categoria
-                                }
-                                type="button"
-                                className={
-                                    active
-                                        ? "category-item active"
-                                        : "category-item"
-                                }
-                                onClick={() => {
-
-                                    setCategoria(
-                                        String(
-                                            cat.id_categoria
-                                        )
-                                    );
-
-                                }}
+                            <div
+                                key={padre.id_categoria}
+                                className="category-group"
                             >
 
-                                {cat.nombre}
+                                <button
+                                    type="button"
+                                    className={
+                                        isPadreActive
+                                            ? "category-item category-item--parent active"
+                                            : "category-item category-item--parent"
+                                    }
+                                    onClick={() => {
 
-                            </button>
+                                        setCategoria(
+                                            String(
+                                                padre.id_categoria
+                                            )
+                                        );
+
+                                    }}
+                                >
+
+                                    {padre.nombre}
+
+                                </button>
+
+
+                                {subcats.length > 0 && (
+
+                                    <div className="category-sublist">
+
+                                        {subcats.map(
+                                            (sub) => {
+
+                                                const isSubActive =
+                                                    String(
+                                                        categoria
+                                                    ) ===
+                                                    String(
+                                                        sub.id_categoria
+                                                    );
+
+                                                return (
+
+                                                    <button
+                                                        key={
+                                                            sub.id_categoria
+                                                        }
+                                                        type="button"
+                                                        className={
+                                                            isSubActive
+                                                                ? "category-item category-item--sub active"
+                                                                : "category-item category-item--sub"
+                                                        }
+                                                        onClick={() => {
+
+                                                            setCategoria(
+                                                                String(
+                                                                    sub.id_categoria
+                                                                )
+                                                            );
+
+                                                        }}
+                                                    >
+
+                                                        {sub.nombre}
+
+                                                    </button>
+
+                                                );
+
+                                            }
+                                        )}
+
+                                    </div>
+
+                                )}
+
+                            </div>
 
                         );
 
@@ -885,11 +990,103 @@ function Products() {
        RENDER
     ========================================================= */
 
+    /* =========================================================
+       BREADCRUMB
+    ========================================================= */
+
+    const breadcrumbItems = useMemo(() => {
+
+        const items = [
+            {
+                label: "Productos",
+                to: "/products"
+            }
+        ];
+
+
+        if (categoria) {
+
+            const catActual =
+                categorias.find(
+                    (c) =>
+                        String(
+                            c.id_categoria
+                        ) ===
+                        String(categoria)
+                );
+
+
+            if (catActual) {
+
+                if (
+                    catActual.categoria_padre_id ||
+                    catActual.categoria_padre
+                ) {
+
+                    const padre =
+                        categorias.find(
+                            (c) =>
+                                String(
+                                    c.id_categoria
+                                ) ===
+                                String(
+                                    catActual.categoria_padre_id ||
+                                    catActual.categoria_padre
+                                )
+                        );
+
+
+                    if (padre) {
+
+                        items.push({
+                            label: padre.nombre,
+                            to: `/categoria/${slugify(padre.nombre)}`
+                        });
+
+                    }
+
+                }
+
+
+                items.push({
+                    label: catActual.nombre
+                });
+
+            }
+
+        }
+
+
+        if (query) {
+
+            items.push({
+                label: `Resultados: "${query}"`
+            });
+
+        }
+
+
+        return items;
+
+    }, [
+        categorias,
+        categoria,
+        query
+    ]);
+
+
     return (
 
         <main className="products-page">
 
             <div className="products-container">
+
+
+                {/* =================================================
+                    BREADCRUMB
+                ================================================= */}
+
+                <Breadcrumb items={breadcrumbItems} />
 
 
                 {/* =================================================

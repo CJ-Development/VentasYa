@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import {
     getCategories,
@@ -6,9 +6,19 @@ import {
     deleteCategory
 } from "../../../services/adminService";
 
+import {
+    ChevronDown,
+    ChevronRight,
+    Edit3,
+    Trash2,
+    Folder,
+    FolderOpen
+} from "lucide-react";
+
 import "./CategoryTable.css";
 
-function CategoryTable({ refreshKey }) {
+
+function CategoryTable({ refreshKey, onEdit }) {
 
     const [categorias, setCategorias] = useState([]);
 
@@ -16,27 +26,24 @@ function CategoryTable({ refreshKey }) {
 
     const [error, setError] = useState(null);
 
-    const [editTarget, setEditTarget] = useState(null);
+    const [expanded, setExpanded] = useState({});
 
-    const [editForm, setEditForm] = useState({
-        nombre: "",
-        descripcion: "",
-        estado: "activo"
-    });
 
     const cargarCategorias = async () => {
+
+        setLoading(true);
 
         try {
 
             const { data } = await getCategories();
 
-            setCategorias(data);
+            setCategorias(data || []);
 
             setError(null);
 
         }
 
-        catch(err){
+        catch (err) {
 
             console.error(err);
 
@@ -52,320 +59,459 @@ function CategoryTable({ refreshKey }) {
 
     };
 
+
     useEffect(() => {
 
         cargarCategorias();
 
     }, [refreshKey]);
 
-    const abrirEdicion = (categoria) => {
 
-        setEditTarget(categoria);
+    /*
+     * El backend posteriormente podrá enviar:
+     *
+     * categoria_padre
+     *
+     * o
+     *
+     * id_categoria_padre
+     *
+     * Este componente acepta ambas posibilidades.
+     */
 
-        setEditForm({
+    const categoriasPrincipales = useMemo(() => {
 
-            nombre: categoria.nombre,
-            descripcion: categoria.descripcion || "",
-            estado: categoria.estado
+        return categorias.filter((categoria) => {
+
+            const parent =
+                categoria.id_categoria_padre ??
+                categoria.categoria_padre?.id_categoria ??
+                categoria.categoria_padre;
+
+            return !parent;
+
+        });
+
+    }, [categorias]);
+
+
+    const obtenerHijas = (id) => {
+
+        return categorias.filter((categoria) => {
+
+            const parent =
+                categoria.id_categoria_padre ??
+                categoria.categoria_padre?.id_categoria ??
+                categoria.categoria_padre;
+
+            return Number(parent) === Number(id);
 
         });
 
     };
 
-    const cancelarEdicion = () => {
 
-        setEditTarget(null);
+    const toggleCategory = (id) => {
 
-    };
+        setExpanded((prev) => ({
 
-    const handleEditChange = (e) => {
+            ...prev,
 
-        const { name, value } = e.target;
+            [id]: !prev[id]
 
-        setEditForm({ ...editForm, [name]: value });
-
-    };
-
-    const guardarEdicion = async (e) => {
-
-        e.preventDefault();
-
-        try {
-
-            await updateCategory(editTarget.id_categoria, editForm);
-
-            setEditTarget(null);
-
-            await cargarCategorias();
-
-        }
-
-        catch(err){
-
-            console.error(err);
-
-            alert("No fue posible actualizar la categoría.");
-
-        }
+        }));
 
     };
 
-    const eliminarCategoria = async (id) => {
 
-        const confirmar = window.confirm("¿Eliminar esta categoría?");
+    const eliminarCategoria = async (id, nombre) => {
+
+        const etiqueta = nombre ? `"${nombre}"` : "esta categoría";
+
+        const confirmar = window.confirm(
+            `¿Archivar ${etiqueta}?`
+        );
 
         if (!confirmar) return;
 
+        const cascada = window.confirm(
+            `¿También archivar los productos vinculados a ${etiqueta} ` +
+            `y a todas sus subcategorías?\n\n` +
+            `• Aceptar = archivar en cascada (categoría, subcategorías y productos).\n` +
+            `• Cancelar = archivar solo la categoría (los productos quedarán intactos).`
+        );
+
         try {
 
-            await deleteCategory(id);
+            await deleteCategory(id, { cascade: cascada });
 
             await cargarCategorias();
 
         }
 
-        catch(err){
+        catch (err) {
 
             console.error(err);
 
-            alert("No fue posible eliminar la categoría.");
+            alert("No fue posible archivar la categoría.");
 
         }
 
     };
 
+
     if (loading) {
 
-        return <div className="category-table">Cargando categorías...</div>;
+        return (
+
+            <div className="category-container">
+
+                <div className="category-loading">
+
+                    Cargando categorías...
+
+                </div>
+
+            </div>
+
+        );
 
     }
+
 
     if (error) {
 
-        return <div className="category-table">{error}</div>;
+        return (
+
+            <div className="category-container">
+
+                <div className="category-error">
+
+                    {error}
+
+                </div>
+
+            </div>
+
+        );
 
     }
 
+
     return (
 
-        <div className="category-table">
+        <section className="category-container">
 
-            <h2>
+            <div className="category-section-header">
 
-                Categorías registradas
+                <div>
 
-            </h2>
+                    <h2>Categorías registradas</h2>
 
-            <table>
+                    <p>
+                        Administra las categorías principales y sus subcategorías.
+                    </p>
 
-                <thead>
+                </div>
 
-                    <tr>
+                <span className="category-count">
 
-                        <th>ID</th>
+                    {categoriasPrincipales.length}
 
-                        <th>Nombre</th>
-
-                        <th>Descripción</th>
-
-                        <th>Estado</th>
-
-                        <th>Acciones</th>
-
-                    </tr>
-
-                </thead>
-
-                <tbody>
-
-                    {
-
-                        categorias.length === 0 ?
-
-                        (
-
-                            <tr>
-
-                                <td
-                                    colSpan="5"
-                                    style={{textAlign:"center"}}
-                                >
-
-                                    No existen categorías.
-
-                                </td>
-
-                            </tr>
-
-                        )
-
-                        :
-
-                        categorias.map((categoria)=>(
-
-                            <tr
-                                key={categoria.id_categoria}
-                            >
-
-                                <td>
-
-                                    {categoria.id_categoria}
-
-                                </td>
-
-                                <td>
-
-                                    {categoria.nombre}
-
-                                </td>
-
-                                <td>
-
-                                    {categoria.descripcion}
-
-                                </td>
-
-                                <td>
-
-                                    <span
-                                        className={
-                                            categoria.estado === "activo"
-
-                                            ? "active"
-
-                                            : "inactive"
-                                        }
-                                    >
-
-                                        {categoria.estado}
-
-                                    </span>
-
-                                </td>
-
-                                <td>
-
-                                    <button
-                                        onClick={() => abrirEdicion(categoria)}
-                                    >
-
-                                        Editar
-
-                                    </button>
-                                    <button
-                                        className="delete"
-                                        onClick={() => eliminarCategoria(categoria.id_categoria)}
-                                    >
-
-                                        Quitar
-
-                                    </button>
-
-                                </td>
-
-                            </tr>
-
-                        ))
-
+                    {categoriasPrincipales.length === 1
+                        ? " categoría"
+                        : " categorías"
                     }
 
-                </tbody>
+                </span>
 
-            </table>
+            </div>
 
-            {
 
-                editTarget && (
+            {categorias.length === 0 ? (
 
-                    <div className="modal-overlay">
+                <div className="empty-categories">
 
-                        <form
-                            className="category-form"
-                            onSubmit={guardarEdicion}
-                        >
+                    <div className="empty-icon">
 
-                            <h2>
-
-                                Editar categoría
-
-                            </h2>
-
-                            <div className="form-group">
-
-                                <label>Nombre</label>
-
-                                <input
-                                    type="text"
-                                    name="nombre"
-                                    value={editForm.nombre}
-                                    onChange={handleEditChange}
-                                    required
-                                />
-
-                            </div>
-
-                            <div className="form-group">
-
-                                <label>Estado</label>
-
-                                <select
-                                    name="estado"
-                                    value={editForm.estado}
-                                    onChange={handleEditChange}
-                                >
-
-                                    <option value="activo">Activo</option>
-                                    <option value="inactivo">Inactivo</option>
-
-                                </select>
-
-                            </div>
-
-                            <div className="form-group">
-
-                                <label>Descripción</label>
-
-                                <textarea
-                                    rows="5"
-                                    name="descripcion"
-                                    value={editForm.descripcion}
-                                    onChange={handleEditChange}
-                                />
-
-                            </div>
-
-                            <div className="form-buttons">
-
-                                <button
-                                    type="button"
-                                    className="cancel-button"
-                                    onClick={cancelarEdicion}
-                                >
-
-                                    Cancelar
-
-                                </button>
-
-                                <button type="submit" className="save-button">
-
-                                    Guardar cambios
-
-                                </button>
-
-                            </div>
-
-                        </form>
+                        <Folder size={22} />
 
                     </div>
 
-                )
+                    <h3>No hay categorías registradas</h3>
 
-            }
+                    <p>
+                        Crea tu primera categoría para comenzar a organizar la tienda.
+                    </p>
 
-        </div>
+                </div>
+
+            ) : (
+
+                <div className="categories-list">
+
+                    {categoriasPrincipales.map((categoria) => {
+
+                        const children = obtenerHijas(
+                            categoria.id_categoria
+                        );
+
+                        const isExpanded =
+                            expanded[categoria.id_categoria] ?? true;
+
+                        return (
+
+                            <div
+                                className="category-group"
+                                key={categoria.id_categoria}
+                            >
+
+                                <div className="category-main">
+
+                                    <div className="category-main-left">
+
+                                        {children.length > 0 ? (
+
+                                            <button
+                                                className="expand-button"
+                                                onClick={() =>
+                                                    toggleCategory(
+                                                        categoria.id_categoria
+                                                    )
+                                                }
+                                            >
+
+                                                {isExpanded ? (
+
+                                                    <ChevronDown size={18} />
+
+                                                ) : (
+
+                                                    <ChevronRight size={18} />
+
+                                                )}
+
+                                            </button>
+
+                                        ) : (
+
+                                            <span className="expand-placeholder" />
+
+                                        )}
+
+
+                                        <div className="category-icon">
+
+                                            {isExpanded && children.length > 0 ? (
+
+                                                <FolderOpen size={19} />
+
+                                            ) : (
+
+                                                <Folder size={19} />
+
+                                            )}
+
+                                        </div>
+
+
+                                        <div className="category-info">
+
+                                            <div className="category-name">
+
+                                                {categoria.nombre}
+
+                                            </div>
+
+                                            <span className="category-type">
+
+                                                Categoría principal
+
+                                            </span>
+
+                                        </div>
+
+                                    </div>
+
+
+                                    <div className="category-main-right">
+
+                                        <span
+                                            className={
+                                                categoria.estado === "activo"
+                                                    ? "status-badge active"
+                                                    : "status-badge inactive"
+                                            }
+                                        >
+
+                                            {categoria.estado === "activo"
+                                                ? "Activa"
+                                                : "Inactiva"
+                                            }
+
+                                        </span>
+
+
+                                        <span className="subcategory-count">
+
+                                            {children.length}
+
+                                            {children.length === 1
+                                                ? " subcategoría"
+                                                : " subcategorías"
+                                            }
+
+                                        </span>
+
+
+                                        <div className="category-actions">
+
+                                            <button
+                                                className="icon-action edit"
+                                                onClick={() =>
+                                                    onEdit(categoria)
+                                                }
+                                                title="Editar categoría"
+                                            >
+
+                                                <Edit3 size={17} />
+
+                                            </button>
+
+
+                                            <button
+                                                className="icon-action delete"
+                                                onClick={() =>
+                                                    eliminarCategoria(
+                                                        categoria.id_categoria,
+                                                        categoria.nombre
+                                                    )
+                                                }
+                                                title="Eliminar categoría"
+                                            >
+
+                                                <Trash2 size={17} />
+
+                                            </button>
+
+                                        </div>
+
+                                    </div>
+
+                                </div>
+
+
+                                {isExpanded && children.length > 0 && (
+
+                                    <div className="subcategory-list">
+
+                                        {children.map((subcategoria) => (
+
+                                            <div
+                                                className="subcategory-row"
+                                                key={subcategoria.id_categoria}
+                                            >
+
+                                                <div className="subcategory-name-wrapper">
+
+                                                    <span className="tree-line" />
+
+                                                    <div className="subcategory-icon">
+
+                                                        <Folder size={16} />
+
+                                                    </div>
+
+                                                    <div>
+
+                                                        <div className="subcategory-name">
+
+                                                            {subcategoria.nombre}
+
+                                                        </div>
+
+                                                        <span className="subcategory-type">
+
+                                                            Subcategoría
+
+                                                        </span>
+
+                                                    </div>
+
+                                                </div>
+
+
+                                                <div className="subcategory-actions">
+
+                                                    <span
+                                                        className={
+                                                            subcategoria.estado === "activo"
+                                                                ? "status-badge active"
+                                                                : "status-badge inactive"
+                                                        }
+                                                    >
+
+                                                        {subcategoria.estado === "activo"
+                                                            ? "Activa"
+                                                            : "Inactiva"
+                                                        }
+
+                                                    </span>
+
+
+                                                    <button
+                                                        className="icon-action edit"
+                                                        onClick={() =>
+                                                            onEdit(subcategoria)
+                                                        }
+                                                        title="Editar subcategoría"
+                                                    >
+
+                                                        <Edit3 size={16} />
+
+                                                    </button>
+
+
+                                                    <button
+                                                        className="icon-action delete"
+                                                        onClick={() =>
+                                                            eliminarCategoria(
+                                                                subcategoria.id_categoria,
+                                                                subcategoria.nombre
+                                                            )
+                                                        }
+                                                        title="Eliminar subcategoría"
+                                                    >
+
+                                                        <Trash2 size={16} />
+
+                                                    </button>
+
+                                                </div>
+
+                                            </div>
+
+                                        ))}
+
+                                    </div>
+
+                                )}
+
+                            </div>
+
+                        );
+
+                    })}
+
+                </div>
+
+            )}
+
+        </section>
 
     );
 
 }
+
 
 export default CategoryTable;

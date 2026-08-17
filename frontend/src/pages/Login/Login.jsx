@@ -16,9 +16,10 @@ import {
     Tag
 } from "lucide-react";
 
-import { login } from "../../api/axios";
+import { login } from "../../services/api";
 import { useAuth } from "../../hooks/useAuth";
 import { useCart } from "../../hooks/useCart";
+import { useNotification } from "../../components/Notifications/NotificationProvider";
 
 
 function Login() {
@@ -29,6 +30,8 @@ function Login() {
     const { login: loginContext } = useAuth();
 
     const { syncOnLogin } = useCart();
+
+    const { success, error: showError } = useNotification();
 
 
     /* =====================================================
@@ -74,25 +77,58 @@ function Login() {
             setCargando(true);
 
 
+            /* =============================================
+               LOGIN
+            ============================================= */
+
             const { data } = await login(formData);
+
+
+            console.log("Respuesta login:", data);
+
+
+            /* =============================================
+               USUARIO
+
+               El backend actualmente devuelve directamente:
+
+               {
+                   id_usuario,
+                   nombres,
+                   ...
+                   is_superuser,
+                   is_staff,
+                   tipo_usuario
+               }
+
+               También dejamos compatibilidad con respuestas
+               que vengan dentro de "usuario".
+            ============================================= */
+
+            const usuarioData = data.usuario || data;
 
 
             /* =============================================
                GUARDAR SESIÓN
             ============================================= */
 
-            loginContext(data);
+            loginContext(usuarioData);
 
 
             /* =============================================
                SINCRONIZAR CARRITO
             ============================================= */
 
-            if (data?.id_usuario) {
+            const usuarioId =
+                usuarioData?.id_usuario ||
+                usuarioData?.id;
+
+
+            if (usuarioId) {
 
                 try {
 
-                    await syncOnLogin(data.id_usuario);
+                    await syncOnLogin(usuarioId);
 
                 } catch (syncErr) {
 
@@ -110,22 +146,64 @@ function Login() {
                MENSAJE
             ============================================= */
 
-            alert(`Bienvenido ${data.nombres}`);
+            success(
+                `¡Bienvenido de nuevo, ${usuarioData.nombres}!`
+            );
 
 
             /* =============================================
-               REDIRECCIÓN
+               DETERMINAR SI ES ADMINISTRADOR
+            ============================================= */
+
+            const esAdministrador =
+                usuarioData?.is_superuser === true ||
+                usuarioData?.tipo_usuario === "admin";
+
+
+            console.log(
+                "Usuario administrador:",
+                esAdministrador
+            );
+
+
+            /* =============================================
+               REDIRECCIÓN SOLICITADA
+               
+               Solo usamos "from" / "redirect" si existe
+               y el usuario NO está intentando entrar a
+               una zona administrativa.
+
+               Esto evita que un redirect viejo mande al
+               usuario a una ruta incorrecta.
             ============================================= */
 
             const params = new URLSearchParams(
                 location.search
             );
 
-
             const destino =
                 params.get("from") ||
                 params.get("redirect");
 
+
+            /* =============================================
+               ADMIN
+            ============================================= */
+
+            if (esAdministrador) {
+
+                navigate("/admin", {
+                    replace: true
+                });
+
+                return;
+
+            }
+
+
+            /* =============================================
+               CLIENTE
+            ============================================= */
 
             if (destino) {
 
@@ -138,34 +216,37 @@ function Login() {
             }
 
 
-            /* =============================================
-               REDIRECCIÓN POR ROL
-            ============================================= */
-
-            if (data.rol === 2) {
-
-                navigate("/admin");
-
-            } else {
-
-                navigate("/");
-
-            }
+            navigate("/", {
+                replace: true
+            });
 
 
         } catch (error) {
 
-            if (error.response) {
+            console.error(
+                "Error iniciando sesión:",
+                error
+            );
 
-                alert(
-                    error.response.data?.error ||
-                    "Los datos ingresados no son correctos"
-                );
+
+            const backendError =
+                error?.response?.data;
+
+
+            if (backendError) {
+
+                const mensaje =
+                    backendError.detail ||
+                    backendError.error ||
+                    backendError.non_field_errors?.[0] ||
+                    "Correo o contraseña incorrectos.";
+
+                showError(mensaje);
 
             } else {
 
-                alert(
-                    "No fue posible iniciar sesión"
+                showError(
+                    "No fue posible iniciar sesión. Verifica tus credenciales."
                 );
 
             }
@@ -429,12 +510,9 @@ function Login() {
                                 </label>
 
 
-                                <Link
-                                    to="/recuperar-password"
-                                    className="forgot-password"
-                                >
+                                <span className="forgot-password">
                                     ¿Olvidaste tu contraseña?
-                                </Link>
+                                </span>
 
                             </div>
 
@@ -615,7 +693,7 @@ function Login() {
 
                         ¿No tienes cuenta?
 
-                        <Link to="/registro">
+                        <Link to="/register">
                             Regístrate aquí
                         </Link>
 

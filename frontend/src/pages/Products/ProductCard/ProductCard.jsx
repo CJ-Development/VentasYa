@@ -1,5 +1,6 @@
 import "./ProductCard.css";
 import NoImage from "../../../assets/images/no-image.png";
+import { mediaUrl } from "../../../utils/mediaUrl";
 
 import { Heart, ShoppingCart } from "lucide-react";
 
@@ -46,7 +47,7 @@ function ProductCard({ product, onSelect }) {
             );
 
             if (imagenPrincipal?.imagen) {
-                return imagenPrincipal.imagen;
+                return mediaUrl(imagenPrincipal.imagen, NoImage);
             }
 
             /*
@@ -55,7 +56,7 @@ function ProductCard({ product, onSelect }) {
             */
 
             if (imagenes[0]?.imagen) {
-                return imagenes[0].imagen;
+                return mediaUrl(imagenes[0].imagen, NoImage);
             }
 
         }
@@ -67,11 +68,11 @@ function ProductCard({ product, onSelect }) {
         */
 
         if (product.imagen) {
-            return product.imagen;
+            return mediaUrl(product.imagen, NoImage);
         }
 
         if (product.imagen_url) {
-            return product.imagen_url;
+            return mediaUrl(product.imagen_url, NoImage);
         }
 
 
@@ -182,13 +183,21 @@ function ProductCard({ product, onSelect }) {
 
         /*
         Obtenemos la imagen de la variante.
+        Guardamos una URL absoluta en el carrito
+        para que cargue desde cualquier vista.
         */
 
         const imagen =
-            (variante.imagenes || []).find(
-                (imagen) => imagen.principal === true
-            )?.imagen ||
-            (variante.imagenes || [])[0]?.imagen ||
+            mediaUrl(
+                (variante.imagenes || []).find(
+                    (imagen) => imagen.principal === true
+                )?.imagen,
+                null
+            ) ||
+            mediaUrl(
+                (variante.imagenes || [])[0]?.imagen,
+                null
+            ) ||
             imageUrl;
 
 
@@ -283,7 +292,7 @@ function ProductCard({ product, onSelect }) {
     return (
 
         <article
-            className="product-card"
+            className="pc-card"
             onClick={handleOpenProduct}
         >
 
@@ -291,7 +300,7 @@ function ProductCard({ product, onSelect }) {
                 IMAGEN
             ================================================== */}
 
-            <div className="product-image">
+            <div className="pc-image">
 
                 <img
                     src={imageUrl}
@@ -307,7 +316,7 @@ function ProductCard({ product, onSelect }) {
                 <button
                     type="button"
 
-                    className={`favorite-button ${
+                    className={`pc-favorite ${
                         fav ? "is-favorite" : ""
                     }`}
 
@@ -353,7 +362,7 @@ function ProductCard({ product, onSelect }) {
 
                 {Number(product.descuento) > 0 && (
 
-                    <span className="discount-badge">
+                    <span className="pc-discount">
 
                         -{product.descuento}%
 
@@ -368,14 +377,14 @@ function ProductCard({ product, onSelect }) {
                 CONTENIDO
             ================================================== */}
 
-            <div className="product-content">
+            <div className="pc-content">
 
 
                 {/* ==================================================
                     CATEGORÍA
                 ================================================== */}
 
-                <span className="product-category">
+                <span className="pc-category">
 
                     {product.categoria?.nombre ||
                         product.categoria ||
@@ -399,11 +408,11 @@ function ProductCard({ product, onSelect }) {
                     PRECIO
                 ================================================== */}
 
-                <div className="product-price">
+                <div className="pc-price">
 
                     {product.precio_anterior && (
 
-                        <span className="old-price">
+                        <span className="pc-price-old">
 
                             $
                             {Number(
@@ -415,7 +424,7 @@ function ProductCard({ product, onSelect }) {
                     )}
 
 
-                    <span className="current-price">
+                    <span className="pc-price-current">
 
                         $
                         {Number(
@@ -433,7 +442,7 @@ function ProductCard({ product, onSelect }) {
 
                 <button
                     type="button"
-                    className="product-cart-button"
+                    className="pc-cart-button"
                     onClick={handleAddToCart}
                 >
 

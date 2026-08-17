@@ -1,6 +1,7 @@
 from django.db import models
 
 from apps.products.models import Producto
+from apps.categories.models import Categoria
 
 
 class Oferta(models.Model):
@@ -21,6 +22,15 @@ class Oferta(models.Model):
         on_delete=models.CASCADE,
         db_column="id_producto",
         related_name="ofertas",
+    )
+
+    # M2M con categorías: una oferta puede aplicar a varias
+    # categorías y/o subcategorías. La vista pública arma el
+    # mega-menú agrupando por estas categorías.
+    categorias = models.ManyToManyField(
+        Categoria,
+        related_name="ofertas",
+        blank=True,
     )
 
     tipo_descuento = models.CharField(

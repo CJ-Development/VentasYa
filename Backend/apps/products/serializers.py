@@ -84,13 +84,20 @@ class VarianteSerializer(serializers.ModelSerializer):
     producto_id = serializers.PrimaryKeyRelatedField(
         queryset=Producto.objects.all(),
         source="producto",
-        write_only=True,
-        required=False
+        write_only=True
     )
 
     class Meta:
         model = Variante
-        fields = "__all__"
+        fields = [
+            "id_variante",
+            "producto_id",
+            "color",
+            "talla",
+            "sku",
+            "stock",
+            "imagenes",
+        ]
 
 
 class ProductoSerializer(serializers.ModelSerializer):
@@ -113,4 +120,16 @@ class ProductoSerializer(serializers.ModelSerializer):
 
         model = Producto
 
-        fields = "__all__"
+        fields = [
+            "id_producto",
+            "categoria",
+            "categoria_id",
+            "nombre",
+            "slug",
+            "descripcion",
+            "precio",
+            "estado",
+            "created_at",
+            "updated_at",
+            "variantes",
+        ]

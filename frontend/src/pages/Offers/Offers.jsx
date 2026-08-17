@@ -7,8 +7,10 @@ import { Loader2, Tag } from "lucide-react";
 import { getOffers } from "../../services/clientService";
 
 import ProductDetail from "../Products/ProductDetail/ProductDetail";
+import Breadcrumb from "../../components/Breadcrumb/Breadcrumb";
 
 import NoImage from "../../assets/images/no-image.png";
+import { mediaUrl } from "../../utils/mediaUrl";
 
 import "./Offers.css";
 
@@ -119,7 +121,7 @@ function Offers() {
 
             .find((img) => img.principal);
 
-        if (principal) return principal.imagen;
+        if (principal) return mediaUrl(principal.imagen, NoImage);
 
         const cualquiera = (p.variantes || [])
 
@@ -127,7 +129,7 @@ function Offers() {
 
             .sort((a, b) => (a.orden || 0) - (b.orden || 0))[0];
 
-        return cualquiera?.imagen || NoImage;
+        return mediaUrl(cualquiera?.imagen, NoImage);
 
     };
 
@@ -136,6 +138,12 @@ function Offers() {
     return (
         <main className="offers-page">
             <div className="offers-container">
+
+                <Breadcrumb
+                    items={[
+                        { label: "Ofertas" }
+                    ]}
+                />
 
                 <div className="offers-header">
                     <h1>Ofertas</h1>

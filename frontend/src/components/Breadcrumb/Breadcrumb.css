@@ -1,0 +1,75 @@
+/* ============================================================
+   BREADCRUMB
+   VentasYa
+============================================================ */
+
+.breadcrumb {
+    display: flex;
+
+    align-items: center;
+
+    flex-wrap: wrap;
+
+    gap: 4px;
+
+    margin: 0 0 14px;
+
+    color: #64748b;
+
+    font-family: inherit;
+
+    font-size: 12px;
+
+    line-height: 1.4;
+}
+
+
+.breadcrumb-home,
+.breadcrumb-link {
+    display: inline-flex;
+
+    align-items: center;
+
+    gap: 4px;
+
+    color: #0b8fa1;
+
+    text-decoration: none;
+
+    font-weight: 500;
+
+    transition: color 0.15s ease;
+}
+
+
+.breadcrumb-home:hover,
+.breadcrumb-link:hover {
+    color: #087481;
+
+    text-decoration: underline;
+}
+
+
+.breadcrumb-sep {
+    display: inline-flex;
+
+    align-items: center;
+
+    color: #94a3b8;
+}
+
+
+.breadcrumb-segment {
+    display: inline-flex;
+
+    align-items: center;
+
+    gap: 4px;
+}
+
+
+.breadcrumb-current {
+    color: #334155;
+
+    font-weight: 700;
+}

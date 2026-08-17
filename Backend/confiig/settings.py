@@ -1,12 +1,10 @@
-"""
-Django settings for confiig project.
-"""
 
+import os
 from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = 'django-insecure-!a=s)h#mkm=+4cax!4euw3kx_p8_e9_#ni^y45g*v9zo_ho8@!'
+SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-!a=s)h#mkm=+4cax!4euw3kx_p8_e9_#ni^y45g*v9zo_ho8@!')
 DEBUG = True
 ALLOWED_HOSTS = []
 
