@@ -1,5 +1,7 @@
 from django.db import transaction
 from django.shortcuts import get_object_or_404
+from django.utils.decorators import method_decorator
+from django.views.decorators.csrf import ensure_csrf_cookie
 from rest_framework import status
 from rest_framework.permissions import AllowAny, IsAdminUser
 from rest_framework.response import Response
@@ -20,6 +22,14 @@ def _permisos_admin_en_mutacion(self):
     return [IsAdminUser()]
 
 
+# ensure_csrf_cookie en las vistas admin: cada respuesta del backend
+# garantiza que el navegador tiene la cookie `csrftoken`. Sin esto,
+# el admin entra → GET /categories/ abre sesión pero NO emite
+# csrftoken → POST /categories/ siguiente llega sin X-CSRFToken
+# → DRF responde 403 "CSRF Failed: CSRF token missing".
+# Aplicar el decorador tanto en el listado como en el detalle
+# cubre todos los flujos admin (crear, editar, archivar).
+@method_decorator(ensure_csrf_cookie, name="dispatch")
 class CategoriaView(APIView):
     """
     GET /categories/                   → listado jerárquico (padres + hijos).
@@ -66,6 +76,7 @@ class CategoriaView(APIView):
         return str(value).lower() in ("true", "1", "yes")
 
 
+@method_decorator(ensure_csrf_cookie, name="dispatch")
 class CategoriaDetalleView(APIView):
     """
     GET    /categories/<id>/           → público.

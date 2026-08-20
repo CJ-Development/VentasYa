@@ -4,6 +4,8 @@ from rest_framework import status
 from rest_framework.permissions import AllowAny, BasePermission
 from rest_framework.authentication import SessionAuthentication
 from django.shortcuts import get_object_or_404
+from django.utils.decorators import method_decorator
+from django.views.decorators.csrf import ensure_csrf_cookie
 
 from apps.users.models import Usuario
 
@@ -52,6 +54,7 @@ class IsStaffOrQueryStaff(BasePermission):
         return False
 
 
+@method_decorator(ensure_csrf_cookie, name="dispatch")
 class OfertaView(APIView):
     """
     Lista y crea ofertas.
@@ -91,6 +94,7 @@ class OfertaView(APIView):
         )
 
 
+@method_decorator(ensure_csrf_cookie, name="dispatch")
 class OfertaDetalleView(APIView):
     """
     Detalle, edición y eliminación de una oferta.

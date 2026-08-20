@@ -6,6 +6,8 @@ from rest_framework import status
 from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 from rest_framework.permissions import AllowAny, IsAdminUser
 from django.shortcuts import get_object_or_404
+from django.utils.decorators import method_decorator
+from django.views.decorators.csrf import ensure_csrf_cookie
 
 from .models import Producto, Variante, Color, Talla, ImagenProducto
 from .serializers import VarianteSerializer, ProductoSerializer, ColorSerializer, TallaSerializer, ImagenSerializer
@@ -22,6 +24,14 @@ def _permisos_admin_en_mutacion(self):
     return [IsAdminUser()]
 
 
+# ensure_csrf_cookie garantiza que el backend emita la cookie
+# `csrftoken` en cada respuesta. Sin esto, el admin entra → GET
+# abre sesión pero no fija csrftoken → POST/PUT/DELETE siguientes
+# llegan sin X-CSRFToken → DRF responde 403 "CSRF Failed".
+# Aplicado en TODAS las vistas admin (productos, variantes,
+# colores, tallas, imágenes) para no depender de un GET previo
+# concreto del admin.
+@method_decorator(ensure_csrf_cookie, name="dispatch")
 class ProductoView(APIView):
     """GET público (catálogo). POST requiere staff."""
     get_permissions = _permisos_admin_en_mutacion
@@ -56,6 +66,7 @@ class ProductoView(APIView):
         return Response(ProductoSerializer(producto).data, status=status.HTTP_201_CREATED)
 
 
+@method_decorator(ensure_csrf_cookie, name="dispatch")
 class ProductoCompletoView(APIView):
     """Solo staff: crea/edita producto + variantes + imágenes en una sola llamada."""
     get_permissions = _permisos_admin_en_mutacion
@@ -105,6 +116,7 @@ class ProductoCompletoView(APIView):
             return Response({"detail": str(exc)}, status=400)
 
 
+@method_decorator(ensure_csrf_cookie, name="dispatch")
 class LowStockVariantesView(APIView):
     """Solo staff (lo usa el dashboard admin)."""
     get_permissions = _permisos_admin_en_mutacion
@@ -119,6 +131,7 @@ class LowStockVariantesView(APIView):
         ])
 
 
+@method_decorator(ensure_csrf_cookie, name="dispatch")
 class ColorListView(APIView):
     """GET público (catálogo), POST staff."""
     get_permissions = _permisos_admin_en_mutacion
@@ -133,6 +146,7 @@ class ColorListView(APIView):
         return Response(ColorSerializer(color).data, status=status.HTTP_201_CREATED)
 
 
+@method_decorator(ensure_csrf_cookie, name="dispatch")
 class ColorDetalleView(APIView):
     """GET público, PUT/DELETE staff."""
     get_permissions = _permisos_admin_en_mutacion
@@ -152,6 +166,7 @@ class ColorDetalleView(APIView):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
+@method_decorator(ensure_csrf_cookie, name="dispatch")
 class TallaListView(APIView):
     """GET público (catálogo), POST staff."""
     get_permissions = _permisos_admin_en_mutacion
@@ -166,6 +181,7 @@ class TallaListView(APIView):
         return Response(TallaSerializer(talla).data, status=status.HTTP_201_CREATED)
 
 
+@method_decorator(ensure_csrf_cookie, name="dispatch")
 class TallaDetalleView(APIView):
     """GET público, PUT/DELETE staff."""
     get_permissions = _permisos_admin_en_mutacion
@@ -185,6 +201,7 @@ class TallaDetalleView(APIView):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
+@method_decorator(ensure_csrf_cookie, name="dispatch")
 class ProductoDetalleView(APIView):
     """GET público (ficha de producto), PUT/DELETE staff."""
     get_permissions = _permisos_admin_en_mutacion
@@ -205,6 +222,7 @@ class ProductoDetalleView(APIView):
         return Response({"estado": "archivado"}, status=status.HTTP_200_OK)
 
 
+@method_decorator(ensure_csrf_cookie, name="dispatch")
 class ProductoReactivarView(APIView):
     """Solo staff."""
     get_permissions = _permisos_admin_en_mutacion
@@ -214,6 +232,7 @@ class ProductoReactivarView(APIView):
         return Response(ProductoSerializer(ProductoService.reactivar(id)).data)
 
 
+@method_decorator(ensure_csrf_cookie, name="dispatch")
 class VariantesPorProductoView(APIView):
     """GET público (ficha de producto), POST staff."""
     get_permissions = _permisos_admin_en_mutacion
@@ -233,6 +252,7 @@ class VariantesPorProductoView(APIView):
         return Response(VarianteSerializer(variante).data, status=status.HTTP_201_CREATED)
 
 
+@method_decorator(ensure_csrf_cookie, name="dispatch")
 class VarianteDetalleView(APIView):
     """GET público, PUT/DELETE staff."""
     get_permissions = _permisos_admin_en_mutacion
@@ -254,6 +274,7 @@ class VarianteDetalleView(APIView):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
+@method_decorator(ensure_csrf_cookie, name="dispatch")
 class ImagenesPorVarianteView(APIView):
     """GET público (galería), POST staff."""
     get_permissions = _permisos_admin_en_mutacion
@@ -272,6 +293,7 @@ class ImagenesPorVarianteView(APIView):
         return Response(ImagenSerializer(imagen).data, status=status.HTTP_201_CREATED)
 
 
+@method_decorator(ensure_csrf_cookie, name="dispatch")
 class ImagenDetalleView(APIView):
     """PUT/DELETE staff."""
     get_permissions = _permisos_admin_en_mutacion

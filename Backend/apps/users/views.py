@@ -34,8 +34,16 @@ class CsrfExemptSessionAuthentication(SessionAuthentication):
 
 
 @method_decorator(csrf_exempt, name="dispatch")
+@method_decorator(ensure_csrf_cookie, name="dispatch")
 class RegisterView(APIView):
-    """Crea cuenta y abre sesión. CSRF exento (no hay sesión todavía)."""
+    """Crea cuenta y abre sesión. CSRF exento (no hay sesión todavía).
+
+    Se fuerza ``ensure_csrf_cookie`` para que el backend emita la cookie
+    ``csrftoken`` justo después del registro. Sin esa cookie, los
+    POST/PUT/DELETE posteriores del frontend (carrito, perfil,
+    checkout…) fallan con 403 "CSRF Failed" porque DRF exige el
+    token en cualquier método no-GET.
+    """
     authentication_classes = [CsrfExemptSessionAuthentication]
 
     def post(self, request):
@@ -120,6 +128,7 @@ class LogoutView(APIView):
         return Response({"ok": True}, status=status.HTTP_200_OK)
 
 
+@method_decorator(ensure_csrf_cookie, name="dispatch")
 class UserListView(APIView):
 
     def get(self, request):
@@ -172,6 +181,7 @@ class MeView(APIView):
         )
 
 
+@method_decorator(ensure_csrf_cookie, name="dispatch")
 class UsuarioDetalleView(APIView):
 
     def get(self, request, id):
@@ -220,6 +230,7 @@ class UsuarioDetalleView(APIView):
         )
 
 
+@method_decorator(ensure_csrf_cookie, name="dispatch")
 class CambiarPasswordView(APIView):
 
     def post(self, request, id):
