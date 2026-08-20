@@ -25,11 +25,11 @@ DEBUG = os.environ.get('DEBUG', 'True').lower() in ('1', 'true', 'yes')
 # Aceptamos tanto "localhost" como "127.0.0.1" para que el frontend Vite
 # pueda hablar con Django sin que el middleware rechace el Host.
 ALLOWED_HOSTS = [
-    h.strip() for h in os.environ.get(
-        'ALLOWED_HOSTS', 'localhost,127.0.0.1'
-    ).split(',') if h.strip()
+    "ventasya-backend.vercel.app",
+    ".vercel.app",
+    "localhost",
+    "127.0.0.1",
 ]
-
 INSTALLED_APPS = [
     'django.contrib.auth',
     'django.contrib.contenttypes',
