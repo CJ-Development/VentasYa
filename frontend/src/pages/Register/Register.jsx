@@ -1316,36 +1316,6 @@ function Register() {
 
 
                     {/* =================================
-                        DIVISOR
-                    ================================== */}
-
-                    <div className="divider">
-
-                        <span>
-                            o regístrate con
-                        </span>
-
-                    </div>
-
-
-                    {/* =================================
-                        REDES
-                    ================================== */}
-
-                    <div className="social-buttons">
-
-                        <button type="button">
-                            Google
-                        </button>
-
-                        <button type="button">
-                            Facebook
-                        </button>
-
-                    </div>
-
-
-                    {/* =================================
                         LOGIN
                     ================================== */}
 

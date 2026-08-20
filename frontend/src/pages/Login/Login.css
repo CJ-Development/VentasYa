@@ -728,112 +728,6 @@
 
 
 /* =========================================================
-   DIVISOR
-========================================================= */
-
-.divider {
-
-    display: flex;
-
-    align-items: center;
-
-    gap: 14px;
-
-    margin: 25px 0 22px;
-
-    color: #53677a;
-
-    font-size: 13px;
-
-}
-
-
-.divider::before,
-.divider::after {
-
-    content: "";
-
-    flex: 1;
-
-    height: 1px;
-
-    background: #e0e5e8;
-
-}
-
-
-.divider span {
-
-    white-space: nowrap;
-
-}
-
-
-/* =========================================================
-   REDES SOCIALES
-========================================================= */
-
-.social-buttons {
-
-    display: grid;
-
-    grid-template-columns: 1fr 1fr;
-
-    gap: 13px;
-
-}
-
-
-.social-button {
-
-    height: 53px;
-
-    display: flex;
-
-    align-items: center;
-
-    justify-content: center;
-
-    gap: 10px;
-
-    border: 1px solid #dce3e7;
-
-    border-radius: 12px;
-
-    background: #ffffff;
-
-    color: #071d2d;
-
-    font-size: 15px;
-
-    font-weight: 700;
-
-    cursor: pointer;
-
-    transition:
-        border-color 0.2s ease,
-        box-shadow 0.2s ease,
-        transform 0.2s ease;
-
-}
-
-
-.social-button:hover {
-
-    border-color: #0ea5b5;
-
-    color: #0ea5b5;
-
-    box-shadow:
-        0 5px 15px rgba(14, 165, 181, 0.08);
-
-    transform: translateY(-1px);
-
-}
-
-
-
-/* =========================================================
    REGISTRO
 ========================================================= */
 
@@ -1048,13 +942,6 @@
     .form-header p {
 
         font-size: 14px;
-
-    }
-
-
-    .social-buttons {
-
-        grid-template-columns: 1fr;
 
     }
 

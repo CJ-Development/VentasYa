@@ -638,53 +638,6 @@ function Login() {
 
 
                     {/* =================================================
-                       DIVISOR
-                    ================================================= */}
-
-                    <div className="divider">
-
-                        <span>
-                            o continúa con
-                        </span>
-
-                    </div>
-
-
-                    {/* =================================================
-                       REDES
-                    ================================================= */}
-
-                    <div className="social-buttons">
-
-
-                        <button
-                            type="button"
-                            className="social-button"
-                        >
-
-                            <span>
-                                Google
-                            </span>
-
-                        </button>
-
-
-                        <button
-                            type="button"
-                            className="social-button"
-                        >
-
-                            <span>
-                                Facebook
-                            </span>
-
-                        </button>
-
-
-                    </div>
-
-
-                    {/* =================================================
                        REGISTRO
                     ================================================= */}
 

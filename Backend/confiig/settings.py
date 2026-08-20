@@ -7,23 +7,38 @@ from pathlib import Path
 # ============================================================
 
 BASE_DIR = Path(__file__).resolve().parent.parent
+PROJECT_ROOT = BASE_DIR.parent
 
 
 # ============================================================
-# CARGA MANUAL DEL .env
+# CARGA MANUAL DE VARIABLES .env
 # ============================================================
 #
-# En local:
+# Local:
+#   VentasYa/.env
 #   Backend/.env
 #
-# En Vercel:
-#   Las variables se configuran desde Environment Variables.
+# Vercel:
+#   Las variables llegan directamente por os.environ.
+#
+# IMPORTANTE:
+# - No sobrescribimos variables que ya existan.
+# - Quitamos comillas externas de valores provenientes de .env.
 #
 
-_env_path = BASE_DIR / ".env"
+_ENV_FILES = [
+    PROJECT_ROOT / ".env",
+    BASE_DIR / ".env",
+]
 
-if _env_path.exists():
-    for _line in _env_path.read_text(encoding="utf-8").splitlines():
+for _env_path in _ENV_FILES:
+    if not _env_path.exists():
+        continue
+
+    for _line in _env_path.read_text(
+        encoding="utf-8"
+    ).splitlines():
+
         _line = _line.strip()
 
         if (
@@ -35,10 +50,25 @@ if _env_path.exists():
 
         _key, _value = _line.split("=", 1)
 
-        os.environ.setdefault(
-            _key.strip(),
-            _value.strip()
-        )
+        _key = _key.strip()
+        _value = _value.strip()
+
+        # El .env descargado por Vercel puede contener:
+        #
+        # POSTGRES_HOST="host.example.com"
+        #
+        # Django necesita:
+        #
+        # host.example.com
+        #
+        if (
+            len(_value) >= 2
+            and _value[0] == _value[-1]
+            and _value[0] in ('"', "'")
+        ):
+            _value = _value[1:-1]
+
+        os.environ.setdefault(_key, _value)
 
 
 # ============================================================
@@ -47,13 +77,17 @@ if _env_path.exists():
 
 SECRET_KEY = os.environ.get(
     "SECRET_KEY",
-    "django-insecure-development-key-change-me"
+    "django-insecure-development-key-change-me",
 )
 
 DEBUG = os.environ.get(
     "DEBUG",
-    "False"
-).lower() in ("1", "true", "yes")
+    "False",
+).lower() in (
+    "1",
+    "true",
+    "yes",
+)
 
 
 # ============================================================
@@ -149,26 +183,29 @@ TEMPLATES = [
         },
     },
 ]
-
 # ============================================================
 # DATABASE
 # ============================================================
 
-from urllib.parse import urlparse, unquote
+POSTGRES_HOST = os.environ.get("POSTGRES_HOST")
+POSTGRES_DATABASE = os.environ.get("POSTGRES_DATABASE")
+POSTGRES_USER = os.environ.get("POSTGRES_USER")
+POSTGRES_PASSWORD = os.environ.get("POSTGRES_PASSWORD")
 
-POSTGRES_URL = os.environ.get("POSTGRES_URL")
-
-if POSTGRES_URL:
-    db_url = urlparse(POSTGRES_URL)
-
+if all([
+    POSTGRES_HOST,
+    POSTGRES_DATABASE,
+    POSTGRES_USER,
+    POSTGRES_PASSWORD,
+]):
     DATABASES = {
         "default": {
             "ENGINE": "django.db.backends.postgresql",
-            "NAME": db_url.path.lstrip("/"),
-            "USER": unquote(db_url.username or ""),
-            "PASSWORD": unquote(db_url.password or ""),
-            "HOST": db_url.hostname,
-            "PORT": str(db_url.port or 5432),
+            "NAME": POSTGRES_DATABASE,
+            "USER": POSTGRES_USER,
+            "PASSWORD": POSTGRES_PASSWORD,
+            "HOST": POSTGRES_HOST,
+            "PORT": os.environ.get("POSTGRES_PORT", "5432"),
             "OPTIONS": {
                 "sslmode": "require",
             },
@@ -181,7 +218,6 @@ else:
             "NAME": BASE_DIR / "db.sqlite3",
         }
     }
-
 # ============================================================
 # USUARIO PERSONALIZADO
 # ============================================================
@@ -253,30 +289,21 @@ MEDIA_ROOT = BASE_DIR / "media"
 # ============================================================
 # CORS
 # ============================================================
-#
-# Local:
-#   Vite normalmente usa localhost:5173
-#
-# Producción:
-#   FRONTEND_URL se configurará en Vercel.
-#
 
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173",
     "http://127.0.0.1:5173",
 ]
 
-
-FRONTEND_URL = os.environ.get(
-    "FRONTEND_URL"
-)
+FRONTEND_URL = os.environ.get("FRONTEND_URL")
 
 if FRONTEND_URL:
+    FRONTEND_URL = FRONTEND_URL.rstrip("/")
 
-    CORS_ALLOWED_ORIGINS.append(
-        FRONTEND_URL.rstrip("/")
-    )
-
+    if FRONTEND_URL not in CORS_ALLOWED_ORIGINS:
+        CORS_ALLOWED_ORIGINS.append(
+            FRONTEND_URL
+        )
 
 CORS_ALLOW_CREDENTIALS = True
 
@@ -290,12 +317,11 @@ CSRF_TRUSTED_ORIGINS = [
     "http://127.0.0.1:5173",
 ]
 
-
 if FRONTEND_URL:
-
-    CSRF_TRUSTED_ORIGINS.append(
-        FRONTEND_URL.rstrip("/")
-    )
+    if FRONTEND_URL not in CSRF_TRUSTED_ORIGINS:
+        CSRF_TRUSTED_ORIGINS.append(
+            FRONTEND_URL
+        )
 
 
 # ============================================================
@@ -304,24 +330,18 @@ if FRONTEND_URL:
 
 if DEBUG:
 
-    # Desarrollo local
     SESSION_COOKIE_SAMESITE = "None"
-
     SESSION_COOKIE_SECURE = False
 
     CSRF_COOKIE_SAMESITE = "None"
-
     CSRF_COOKIE_SECURE = False
 
 else:
 
-    # Producción HTTPS
     SESSION_COOKIE_SAMESITE = "None"
-
     SESSION_COOKIE_SECURE = True
 
     CSRF_COOKIE_SAMESITE = "None"
-
     CSRF_COOKIE_SECURE = True
 
 

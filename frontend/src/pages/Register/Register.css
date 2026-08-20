@@ -333,14 +333,16 @@
    FILAS
    ========================================================= */
 
-.form-row {
-    width: 100%;
+.register-form .form-row {
+    width: 100% !important;
 
-    display: grid;
+    display: grid !important;
 
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) !important;
 
     gap: 18px;
+
+    box-sizing: border-box !important;
 }
 
 
@@ -348,17 +350,23 @@
    GRUPO
    ========================================================= */
 
-.form-group {
-    display: flex;
-    flex-direction: column;
+.register-form .form-group {
+    display: flex !important;
+
+    flex-direction: column !important;
 
     gap: 6px;
 
-    min-width: 0;
+    width: 100% !important;
+
+    min-width: 0 !important;
+    max-width: 100% !important;
+
+    box-sizing: border-box !important;
 }
 
 
-.form-group label {
+.register-form .form-group label {
     color: #031927;
 
     font-size: 0.71rem;
@@ -370,26 +378,29 @@
    INPUTS
    ========================================================= */
 
-.input-icon {
-    width: 100%;
-    height: 44px;
+.register-form .input-icon {
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
 
-    display: flex;
-    align-items: center;
+    height: 44px !important;
 
-    box-sizing: border-box;
+    display: flex !important;
+    align-items: center !important;
+
+    box-sizing: border-box !important;
 
     padding: 0 13px;
 
     gap: 10px;
 
-    background: #f8fafb;
+    background: #f8fafb !important;
 
-    border: 1px solid #dfe6e8;
+    border: 1px solid #dfe6e8 !important;
 
-    border-radius: 10px;
+    border-radius: 10px !important;
 
-    overflow: hidden;
+    overflow: hidden !important;
 
     transition:
         border-color 0.2s ease,
@@ -400,13 +411,13 @@
 
 /* Icono */
 
-.input-icon svg {
-    width: 17px;
-    height: 17px;
+.register-form .input-icon svg {
+    width: 17px !important;
+    height: 17px !important;
 
-    flex-shrink: 0;
+    flex-shrink: 0 !important;
 
-    color: #336769;
+    color: #336769 !important;
 
     stroke-width: 1.8;
 }
@@ -416,17 +427,19 @@
    INPUT INTERNO
    ========================================================= */
 
-.input-icon input {
-    width: 100%;
-    height: 100%;
+.register-form .input-icon input {
+    width: 100% !important;
+    max-width: 100% !important;
 
-    flex: 1;
+    height: 100% !important;
 
-    min-width: 0;
+    flex: 1 1 auto !important;
 
-    padding: 0;
+    min-width: 0 !important;
 
-    margin: 0;
+    padding: 0 !important;
+
+    margin: 0 !important;
 
     border: none !important;
     outline: none !important;
@@ -435,19 +448,22 @@
 
     box-shadow: none !important;
 
-    appearance: none;
+    appearance: none !important;
+    -webkit-appearance: none !important;
 
-    color: #031927;
+    color: #031927 !important;
 
-    font-family: inherit;
+    font-family: inherit !important;
 
-    font-size: 0.76rem;
+    font-size: 0.76rem !important;
+
+    box-sizing: border-box !important;
 }
 
 
 /* Placeholder */
 
-.input-icon input::placeholder {
+.register-form .input-icon input::placeholder {
     color: #9aa5a9;
 
     opacity: 1;
@@ -458,10 +474,10 @@
    FOCUS
    ========================================================= */
 
-.input-icon:focus-within {
-    background: #ffffff;
+.register-form .input-icon:focus-within {
+    background: #ffffff !important;
 
-    border-color: #336769;
+    border-color: #336769 !important;
 
     box-shadow:
         0 0 0 3px rgba(51, 103, 105, 0.10);
@@ -472,8 +488,8 @@
    DATE INPUT
    ========================================================= */
 
-.input-icon input[type="date"] {
-    color: #031927;
+.register-form .input-icon input[type="date"] {
+    color: #031927 !important;
 
     cursor: pointer;
 }
@@ -481,7 +497,7 @@
 
 /* Evita estilos extra del calendario */
 
-.input-icon input[type="date"]::-webkit-calendar-picker-indicator {
+.register-form .input-icon input[type="date"]::-webkit-calendar-picker-indicator {
     opacity: 0.65;
 
     cursor: pointer;
@@ -492,11 +508,12 @@
    PASSWORD / EMAIL / TELÉFONO
    ========================================================= */
 
-.input-icon input[type="email"],
-.input-icon input[type="text"],
-.input-icon input[type="password"],
-.input-icon input[type="tel"] {
-    appearance: none;
+.register-form .input-icon input[type="email"],
+.register-form .input-icon input[type="text"],
+.register-form .input-icon input[type="password"],
+.register-form .input-icon input[type="tel"] {
+    appearance: none !important;
+    -webkit-appearance: none !important;
 }
 
 
@@ -504,12 +521,12 @@
    AUTOCOMPLETE DEL NAVEGADOR
    ========================================================= */
 
-.input-icon input:-webkit-autofill,
-.input-icon input:-webkit-autofill:hover,
-.input-icon input:-webkit-autofill:focus {
-    -webkit-text-fill-color: #031927;
+.register-form .input-icon input:-webkit-autofill,
+.register-form .input-icon input:-webkit-autofill:hover,
+.register-form .input-icon input:-webkit-autofill:focus {
+    -webkit-text-fill-color: #031927 !important;
 
-    -webkit-box-shadow: 0 0 0 1000px #f8fafb inset;
+    -webkit-box-shadow: 0 0 0 1000px #f8fafb inset !important;
 
     transition: background-color 5000s ease-in-out 0s;
 }
@@ -634,83 +651,6 @@
 
 
 /* =========================================================
-   DIVISOR
-   ========================================================= */
-
-.divider {
-    display: flex;
-    align-items: center;
-
-    gap: 12px;
-
-    margin: 17px 0 12px;
-
-    color: #7b8589;
-
-    font-size: 0.68rem;
-
-    white-space: nowrap;
-}
-
-
-.divider::before,
-.divider::after {
-    content: "";
-
-    flex: 1;
-
-    height: 1px;
-
-    background: #e5e9ea;
-}
-
-
-/* =========================================================
-   REDES
-   ========================================================= */
-
-.social-buttons {
-    display: grid;
-
-    grid-template-columns: 1fr 1fr;
-
-    gap: 10px;
-}
-
-
-.social-buttons button {
-    height: 38px;
-
-    border: 1px solid #e0e5e7;
-
-    border-radius: 8px;
-
-    background: #ffffff;
-
-    color: #031927;
-
-    font-family: inherit;
-
-    font-size: 0.7rem;
-
-    font-weight: 650;
-
-    cursor: pointer;
-
-    transition: 0.2s ease;
-}
-
-
-.social-buttons button:hover {
-    border-color: #336769;
-
-    color: #336769;
-
-    background: #f7faf9;
-}
-
-
-/* =========================================================
    LOGIN
    ========================================================= */
 
@@ -755,8 +695,8 @@
         padding: 30px 28px;
     }
 
-    .form-row {
-        grid-template-columns: 1fr;
+    .register-form .form-row {
+        grid-template-columns: minmax(0, 1fr) !important;
 
         gap: 13px;
     }
@@ -783,9 +723,5 @@
 
     .register-form h1 {
         font-size: 1.55rem;
-    }
-
-    .social-buttons {
-        grid-template-columns: 1fr;
     }
 }
