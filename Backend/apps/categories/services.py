@@ -1,5 +1,6 @@
 from django.db import transaction
 from django.db.models import Prefetch
+from django.shortcuts import get_object_or_404
 
 from .models import Categoria
 
@@ -36,8 +37,12 @@ class CategoriaService:
 
     @staticmethod
     def obtener(id_categoria):
-        return Categoria.objects.prefetch_related("subcategorias").get(
-            id_categoria=id_categoria
+        # get_object_or_404 → 404 limpio en vez de DoesNotExist → 500.
+        # Es importante para el admin: si el usuario borra una categoría
+        # y refresca, la vista de detalle no debe explotar el servidor.
+        return get_object_or_404(
+            Categoria.objects.prefetch_related("subcategorias"),
+            id_categoria=id_categoria,
         )
 
     @staticmethod
