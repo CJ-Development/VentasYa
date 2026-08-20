@@ -94,50 +94,14 @@ api.interceptors.request.use(
 
         /*
         ---------------------------------------------
-        USUARIO_ID
-        ---------------------------------------------
-        Compatibilidad con endpoints existentes.
+        USUARIO_ID: eliminado.
+
+        Los endpoints admin se autentican por sesión Django
+        (request.user.is_staff), NO por ?usuario_id. Mete el
+        id_usuario como query param solo si el endpoint lo pide
+        explícitamente en su llamada (ej. /api/cart/?usuario_id=…).
         ---------------------------------------------
         */
-
-        if (
-            ["post", "put", "patch", "delete"].includes(method)
-        ) {
-
-            try {
-
-                const rawUsuario =
-                    localStorage.getItem("usuario");
-
-                if (rawUsuario) {
-
-                    const usuario =
-                        JSON.parse(rawUsuario);
-
-                    const usuarioId =
-                        usuario?.id_usuario ||
-                        usuario?.id;
-
-                    if (
-                        usuarioId &&
-                        !config.params?.usuario_id
-                    ) {
-
-                        config.params = {
-                            ...(config.params || {}),
-                            usuario_id: usuarioId,
-                        };
-                    }
-                }
-
-            } catch (error) {
-
-                console.warn(
-                    "[api] No fue posible leer usuario:",
-                    error
-                );
-            }
-        }
 
         return config;
     },
