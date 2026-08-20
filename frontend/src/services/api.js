@@ -234,4 +234,18 @@ export const getLowStockVariants = () => {
     );
 };
 
+/*
+=====================================================
+ CSRF TOKEN
+=====================================================
+Obtiene el token CSRF del backend. Es necesario llamar
+esto antes de hacer peticiones POST/PUT/DELETE para
+asegurarse de tener el token válido.
+=====================================================
+*/
+
+export const getCsrfToken = () => {
+    return api.get("users/csrf/");
+};
+
 export default api;

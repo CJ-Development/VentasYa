@@ -413,6 +413,19 @@ else:
 
 
 # ============================================================
+# SESSION ENGINE (CRITICAL FOR VERCEL SERVERLESS)
+# ============================================================
+# En Vercel serverless, las sesiones en memoria no funcionan
+# porque cada request es independiente. Usamos sesiones basadas
+# en cookies firmadas que no requieren almacenamiento del lado
+# del servidor.
+# ============================================================
+
+SESSION_ENGINE = "django.contrib.sessions.backends.signed_cookies"
+SESSION_COOKIE_HTTPONLY = True
+
+
+# ============================================================
 # DJANGO REST FRAMEWORK
 # ============================================================
 
@@ -443,8 +456,6 @@ if not DEBUG:
     )
 
     SECURE_SSL_REDIRECT = False
-
-    SESSION_COOKIE_HTTPONLY = True
 
     CSRF_COOKIE_HTTPONLY = False
 

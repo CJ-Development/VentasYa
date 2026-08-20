@@ -5,13 +5,27 @@ from django.views.decorators.csrf import ensure_csrf_cookie
 
 from rest_framework import status
 from rest_framework.authentication import SessionAuthentication
-from rest_framework.permissions import AllowAny, IsAdminUser
+from rest_framework.permissions import AllowAny, BasePermission
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from .models import Categoria
 from .serializers import CategoriaSerializer
 from .services import CategoriaService
+
+
+class IsAdminUserCustom(BasePermission):
+    """
+    Permiso personalizado que verifica explícitamente is_staff.
+    Funciona mejor con sesiones basadas en cookies en Vercel.
+    """
+
+    def has_permission(self, request, view):
+        return (
+            request.user and
+            request.user.is_authenticated and
+            request.user.is_staff
+        )
 
 
 def permisos_admin_en_mutacion(self):
@@ -26,7 +40,7 @@ def permisos_admin_en_mutacion(self):
     if self.request.method == "GET":
         return [AllowAny()]
 
-    return [IsAdminUser()]
+    return [IsAdminUserCustom()]
 
 
 @method_decorator(

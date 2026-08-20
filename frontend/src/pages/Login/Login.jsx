@@ -16,7 +16,7 @@ import {
     Tag
 } from "lucide-react";
 
-import { login } from "../../services/api";
+import { login, getCsrfToken } from "../../services/api";
 import { useAuth } from "../../hooks/useAuth";
 import { useCart } from "../../hooks/useCart";
 import { useNotification } from "../../components/Notifications/NotificationProvider";
@@ -76,6 +76,19 @@ function Login() {
         try {
 
             setCargando(true);
+
+
+            /* =============================================
+               OBTENER TOKEN CSRF
+            ============================================= */
+
+            try {
+                await getCsrfToken();
+                console.log("Token CSRF obtenido exitosamente");
+            } catch (csrfError) {
+                console.error("Error obteniendo token CSRF:", csrfError);
+                // No fallamos el login si falla el CSRF, el interceptor lo manejará
+            }
 
 
             /* =============================================
