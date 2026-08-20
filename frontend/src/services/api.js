@@ -11,10 +11,17 @@ import axios from "axios";
    - xsrfCookieName / xsrfHeaderName: axios lee la cookie csrftoken
      automáticamente y la envía como X-CSRFToken en POST/PUT/DELETE.
      Es más confiable que leer document.cookie a mano.
+
+   URL del backend:
+   - Producción: VITE_API_URL (inyectada por Vercel al build).
+   - Desarrollo: fallback a http://127.0.0.1:8000/api/.
 ===================================================== */
 
+const API_BASE_URL =
+    import.meta.env.VITE_API_URL || "http://127.0.0.1:8000/api/";
+
 const api = axios.create({
-    baseURL: "http://127.0.0.1:8000/api/",
+    baseURL: API_BASE_URL,
     headers: {
         "Content-Type": "application/json",
     },
