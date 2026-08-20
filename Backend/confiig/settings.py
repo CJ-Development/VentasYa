@@ -150,65 +150,37 @@ TEMPLATES = [
     },
 ]
 
-
 # ============================================================
 # DATABASE
 # ============================================================
-#
-# LOCAL
-#   Django → SQLite → db.sqlite3
-#
-# VERCEL
-#   Django → PostgreSQL → Supabase
-#
 
-if os.environ.get("POSTGRES_URL"):
+from urllib.parse import urlparse, unquote
+
+POSTGRES_URL = os.environ.get("POSTGRES_URL")
+
+if POSTGRES_URL:
+    db_url = urlparse(POSTGRES_URL)
 
     DATABASES = {
         "default": {
             "ENGINE": "django.db.backends.postgresql",
-
-            "NAME": os.environ.get(
-                "POSTGRES_DATABASE"
-            ),
-
-            "USER": os.environ.get(
-                "POSTGRES_USER"
-            ),
-
-            "PASSWORD": os.environ.get(
-                "POSTGRES_PASSWORD"
-            ),
-
-            "HOST": os.environ.get(
-                "POSTGRES_HOST"
-            ),
-
-            "PORT": os.environ.get(
-                "POSTGRES_PORT",
-                "5432"
-            ),
-
+            "NAME": db_url.path.lstrip("/"),
+            "USER": unquote(db_url.username or ""),
+            "PASSWORD": unquote(db_url.password or ""),
+            "HOST": db_url.hostname,
+            "PORT": str(db_url.port or 5432),
             "OPTIONS": {
                 "sslmode": "require",
             },
-
-            # Serverless:
-            # no mantenemos conexiones persistentes
-            "CONN_MAX_AGE": 0,
         }
     }
-
 else:
-
     DATABASES = {
         "default": {
             "ENGINE": "django.db.backends.sqlite3",
-
             "NAME": BASE_DIR / "db.sqlite3",
         }
     }
-
 
 # ============================================================
 # USUARIO PERSONALIZADO
