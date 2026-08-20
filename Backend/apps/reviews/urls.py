@@ -8,6 +8,11 @@ from .views import (
 urlpatterns = [
 
     path(
+        "",
+        ResenaView.as_view()
+    ),
+
+    path(
         "producto/<int:id_producto>/",
         ResenaView.as_view()
     ),

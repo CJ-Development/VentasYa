@@ -102,6 +102,14 @@ ALLOWED_HOSTS = [
     ".vercel.app",
 ]
 
+# Dominio actual de Vercel (inyectado por la plataforma, sin protocolo)
+VERCEL_URL = os.environ.get("VERCEL_URL")
+
+if VERCEL_URL:
+    _vercel_host = VERCEL_URL.strip()
+    if _vercel_host and _vercel_host not in ALLOWED_HOSTS:
+        ALLOWED_HOSTS.append(_vercel_host)
+
 
 # ============================================================
 # APLICACIONES
@@ -209,7 +217,9 @@ if all([
             "PORT": os.environ.get("POSTGRES_PORT", "5432"),
             "OPTIONS": {
                 "sslmode": "require",
+                "connect_timeout": 10,
             },
+            "CONN_MAX_AGE": 60,
         }
     }
 else:
@@ -295,6 +305,14 @@ CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173",
     "http://127.0.0.1:5173",
     "https://ventas-ya.vercel.app",
+    "https://ventasya-backend.vercel.app",
+]
+
+# También aceptar cualquier preview-*.vercel.app del propio Vercel
+# (necesario porque cada PR/branch genera un subdominio distinto).
+CORS_ALLOWED_ORIGIN_REGEXES = [
+    r"^https://([a-z0-9-]+\.)?ventas-ya\.vercel\.app$",
+    r"^https://([a-z0-9-]+\.)?ventasya-backend\.vercel\.app$",
 ]
 
 FRONTEND_URL = os.environ.get("FRONTEND_URL")
@@ -318,6 +336,7 @@ CSRF_TRUSTED_ORIGINS = [
     "http://localhost:5173",
     "http://127.0.0.1:5173",
     "https://ventas-ya.vercel.app",
+    "https://ventasya-backend.vercel.app",
 ]
 
 if FRONTEND_URL:
