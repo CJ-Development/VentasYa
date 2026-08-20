@@ -9,7 +9,6 @@ import {
 } from "lucide-react";
 
 import ProductCard from "../Products/ProductCard/ProductCard";
-import ProductDetail from "../Products/ProductDetail/ProductDetail";
 
 import {
     getCategories,
@@ -71,8 +70,6 @@ function New() {
         useState(null);
 
     const [orden, setOrden] = useState("recientes");
-
-    const [selectedProductId, setSelectedProductId] = useState(null);
 
 
     /* =========================================================
@@ -464,9 +461,6 @@ function New() {
                                             product={
                                                 producto
                                             }
-                                            onSelect={
-                                                setSelectedProductId
-                                            }
                                         />
 
                                     </div>
@@ -544,21 +538,6 @@ function New() {
             {/* =================================================
                 DETALLE DE PRODUCTO
             ================================================= */}
-
-            {selectedProductId !== null && (
-
-                <ProductDetail
-                    productId={
-                        selectedProductId
-                    }
-                    onClose={() =>
-                        setSelectedProductId(
-                            null
-                        )
-                    }
-                />
-
-            )}
 
         </main>
 

@@ -20,6 +20,7 @@ import { login } from "../../services/api";
 import { useAuth } from "../../hooks/useAuth";
 import { useCart } from "../../hooks/useCart";
 import { useNotification } from "../../components/Notifications/NotificationProvider";
+import { esAdmin } from "../../utils/esAdmin";
 
 
 function Login() {
@@ -155,9 +156,7 @@ function Login() {
                DETERMINAR SI ES ADMINISTRADOR
             ============================================= */
 
-            const esAdministrador =
-                usuarioData?.is_superuser === true ||
-                usuarioData?.tipo_usuario === "admin";
+            const esAdministrador = esAdmin(usuarioData);
 
 
             console.log(

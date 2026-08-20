@@ -41,7 +41,11 @@ function UserMenu() {
         );
     }
 
-    const esAdmin = usuario.rol === 2;
+    // El backend envía is_superuser / is_staff / tipo_usuario.
+    // El campo `rol` no existe, por eso siempre daba cliente.
+    const esAdmin =
+        usuario?.is_superuser === true ||
+        usuario?.tipo_usuario === "admin";
 
     /* ==========================================
        USUARIO AUTENTICADO — ADMIN (rol === 2)

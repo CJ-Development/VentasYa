@@ -1,98 +1,71 @@
-import "./Offers.css";
-
 import { useState } from "react";
+
+import "./Offers.css";
 
 import OfferForm from "../../components/OfferForm/OfferForm";
 import OfferTable from "../../components/OfferTable/OfferTable";
 
+
 function Offers() {
 
-    const [showModal, setShowModal] = useState(false);
-
+    const [showForm, setShowForm] = useState(false);
     const [selectedOffer, setSelectedOffer] = useState(null);
-
     const [refreshKey, setRefreshKey] = useState(0);
 
     const handleNewOffer = () => {
-
         setSelectedOffer(null);
-
-        setShowModal(true);
-
+        setShowForm(true);
     };
 
     const handleEditOffer = (oferta) => {
-
         setSelectedOffer(oferta);
-
-        setShowModal(true);
-
+        setShowForm(true);
     };
 
-    const handleSaved = () => {
-
-        setRefreshKey((prev) => prev + 1);
-
-    };
-
-    const closeModal = () => {
-
-        setShowModal(false);
-
+    const handleCloseForm = () => {
         setSelectedOffer(null);
-
+        setShowForm(false);
     };
+
+    const handleCreated = () => {
+        setRefreshKey((prev) => prev + 1);
+        setShowForm(false);
+        setSelectedOffer(null);
+    };
+
+    if (showForm) {
+        return (
+            <OfferForm
+                offer={selectedOffer}
+                onClose={handleCloseForm}
+                onCreated={handleCreated}
+            />
+        );
+    }
 
     return (
-
         <div className="offers-page">
-
-            <div className="page-header">
-
-                <div>
-
+            <div className="offers-header">
+                <div className="offers-header-content">
                     <h1>Ofertas</h1>
-
-                    <p>
-                        Crea y administra las promociones de la tienda.
-                    </p>
-
+                    <p>Crea y administra las promociones de tu tienda.</p>
                 </div>
-
                 <button
+                    type="button"
                     className="new-offer-button"
                     onClick={handleNewOffer}
                 >
-
-                    + Nueva oferta
-
+                    <span className="new-offer-plus">+</span>
+                    Nueva oferta
                 </button>
-
             </div>
 
             <OfferTable
                 refreshKey={refreshKey}
                 onEdit={handleEditOffer}
             />
-
-            {
-
-                showModal && (
-
-                    <OfferForm
-                        offer={selectedOffer}
-                        onClose={closeModal}
-                        onSaved={handleSaved}
-                    />
-
-                )
-
-            }
-
         </div>
-
     );
-
 }
 
 export default Offers;

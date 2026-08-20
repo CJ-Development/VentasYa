@@ -1,30 +1,89 @@
 import "./OfferTable.css";
 
-import { useEffect, useState } from "react";
+import {
+    useEffect,
+    useMemo,
+    useState
+} from "react";
 
-import { Pencil, Trash2 } from "lucide-react";
+import {
+    Search,
+    Eye,
+    Pencil,
+    Trash2,
+    CalendarDays,
+    ChevronLeft,
+    ChevronRight
+} from "lucide-react";
 
 import {
     getOffers,
     deleteOffer
 } from "../../../services/adminService";
 
+import { useToast } from "../Toast/ToastHost";
+
+
+/* =====================================================
+   FORMATEAR FECHA
+===================================================== */
+
 const formatearFecha = (iso) => {
-    if (!iso) return "—";
+
+    if (!iso) {
+        return "—";
+    }
+
     const fecha = new Date(iso);
-    if (Number.isNaN(fecha.getTime())) return iso;
+
+    if (Number.isNaN(fecha.getTime())) {
+        return iso;
+    }
+
     return fecha.toLocaleDateString("es-CO", {
-        year: "numeric",
-        month: "2-digit",
         day: "2-digit",
+        month: "short",
+        year: "numeric"
     });
+
 };
+
+
+/* =====================================================
+   FORMATEAR HORA
+===================================================== */
+
+const formatearHora = (iso) => {
+
+    if (!iso) {
+        return "";
+    }
+
+    const fecha = new Date(iso);
+
+    if (Number.isNaN(fecha.getTime())) {
+        return "";
+    }
+
+    return fecha.toLocaleTimeString("es-CO", {
+        hour: "2-digit",
+        minute: "2-digit"
+    });
+
+};
+
+
+/* =====================================================
+   FORMATEAR DESCUENTO
+===================================================== */
 
 const formatearDescuento = (oferta) => {
 
     const numero = Number(oferta.valor);
 
-    if (Number.isNaN(numero)) return "—";
+    if (Number.isNaN(numero)) {
+        return "—";
+    }
 
     if (oferta.tipo_descuento === "porcentaje") {
         return `${numero}%`;
@@ -34,30 +93,187 @@ const formatearDescuento = (oferta) => {
 
 };
 
-/* Normaliza el listado de categorías para mostrarlo en la tabla.
- * Acepta tanto el array anidado (categorias_detalle) como la lista
- * plana de IDs (categorias_ids). */
+
+/* =====================================================
+   OBTENER NOMBRE DEL PRODUCTO
+===================================================== */
+
+const obtenerNombreProducto = (oferta) => {
+
+    if (oferta.producto_detalle?.nombre) {
+        return oferta.producto_detalle.nombre;
+    }
+
+    if (typeof oferta.producto === "string") {
+        return oferta.producto;
+    }
+
+    if (oferta.producto?.nombre) {
+        return oferta.producto.nombre;
+    }
+
+    if (oferta.producto_id) {
+        return `Producto #${oferta.producto_id}`;
+    }
+
+    return "Todos los productos";
+
+};
+
+
+/* =====================================================
+   OBTENER SKU / VARIANTE
+===================================================== */
+
+const obtenerSkuVariante = (oferta) => {
+
+    if (oferta.variante_detalle?.sku) {
+        return oferta.variante_detalle.sku;
+    }
+
+    if (
+        oferta.producto &&
+        typeof oferta.producto === "object" &&
+        oferta.producto.sku
+    ) {
+        return oferta.producto.sku;
+    }
+
+    if (oferta.sku) {
+        return oferta.sku;
+    }
+
+    return null;
+
+};
+
+
+/* =====================================================
+   CATEGORÍAS
+===================================================== */
+
 const nombresCategorias = (oferta) => {
 
-    const detalle = Array.isArray(oferta.categorias_detalle)
+    const detalle = Array.isArray(
+        oferta.categorias_detalle
+    )
         ? oferta.categorias_detalle
         : null;
 
-    if (detalle && detalle.length > 0) {
-        return detalle.map((c) => c.nombre);
+
+    if (
+        detalle &&
+        detalle.length > 0
+    ) {
+
+        return detalle
+            .map((categoria) => categoria?.nombre)
+            .filter(Boolean);
+
     }
 
-    if (Array.isArray(oferta.categorias) && oferta.categorias.length > 0) {
+
+    if (
+        Array.isArray(oferta.categorias) &&
+        oferta.categorias.length > 0
+    ) {
+
         return oferta.categorias
-            .map((c) => (typeof c === "string" ? c : c?.nombre))
+            .map((categoria) => {
+
+                if (typeof categoria === "string") {
+                    return categoria;
+                }
+
+                return categoria?.nombre;
+
+            })
             .filter(Boolean);
+
     }
+
 
     return [];
 
 };
 
-function OfferTable({ refreshKey, onEdit }) {
+
+/* =====================================================
+   ESTADO VISUAL
+===================================================== */
+
+const obtenerEstado = (oferta) => {
+
+    const ahora = new Date();
+
+    const inicio = oferta.fecha_inicio
+        ? new Date(oferta.fecha_inicio)
+        : null;
+
+    const fin = oferta.fecha_fin
+        ? new Date(oferta.fecha_fin)
+        : null;
+
+
+    if (
+        fin &&
+        !Number.isNaN(fin.getTime()) &&
+        ahora > fin
+    ) {
+
+        return "finalizada";
+
+    }
+
+
+    if (
+        inicio &&
+        !Number.isNaN(inicio.getTime()) &&
+        ahora < inicio
+    ) {
+
+        return "programada";
+
+    }
+
+
+    if (oferta.activa) {
+        return "activa";
+    }
+
+
+    return "finalizada";
+
+};
+
+
+/* =====================================================
+   LABELS
+===================================================== */
+
+const ESTADOS = {
+
+    todas: "Todas",
+
+    activa: "Activas",
+
+    programada: "Programadas",
+
+    finalizada: "Finalizadas"
+
+};
+
+
+/* =====================================================
+   COMPONENTE
+===================================================== */
+
+function OfferTable({
+    refreshKey,
+    onEdit
+}) {
+
+    const toast = useToast();
 
     const [ofertas, setOfertas] = useState([]);
 
@@ -67,15 +283,26 @@ function OfferTable({ refreshKey, onEdit }) {
 
     const [busqueda, setBusqueda] = useState("");
 
-    const [filtroActiva, setFiltroActiva] = useState("");
+    const [filtroEstado, setFiltroEstado] = useState("todas");
+
+
+    /* =================================================
+       CARGAR OFERTAS
+    ================================================= */
 
     const cargarOfertas = async () => {
 
         try {
 
+            setLoading(true);
+
             const { data } = await getOffers();
 
-            setOfertas(data);
+            setOfertas(
+                Array.isArray(data)
+                    ? data
+                    : []
+            );
 
             setError(null);
 
@@ -85,7 +312,9 @@ function OfferTable({ refreshKey, onEdit }) {
 
             console.error(err);
 
-            setError("No fue posible cargar las ofertas.");
+            setError(
+                "No fue posible cargar las ofertas."
+            );
 
         }
 
@@ -97,17 +326,28 @@ function OfferTable({ refreshKey, onEdit }) {
 
     };
 
+
     useEffect(() => {
 
         cargarOfertas();
 
     }, [refreshKey]);
 
+
+    /* =================================================
+       ELIMINAR
+    ================================================= */
+
     const eliminarOferta = async (id) => {
 
-        const confirmar = window.confirm("¿Eliminar esta oferta?");
+        const confirmar = window.confirm(
+            "¿Eliminar esta oferta?"
+        );
 
-        if (!confirmar) return;
+        if (!confirmar) {
+            return;
+        }
+
 
         try {
 
@@ -115,114 +355,373 @@ function OfferTable({ refreshKey, onEdit }) {
 
             await cargarOfertas();
 
+            toast.success("La oferta fue eliminada.", {
+                title: "Oferta eliminada"
+            });
+
         }
 
         catch (err) {
 
             console.error(err);
 
-            alert("No fue posible eliminar la oferta.");
+            toast.error(
+                "No fue posible eliminar la oferta.",
+                { title: "Error al eliminar" }
+            );
 
         }
 
     };
 
-    const ofertasFiltradas = ofertas.filter((oferta) => {
 
-        const texto = busqueda.toLowerCase();
+    /* =================================================
+       OFERTAS CON ESTADO
+    ================================================= */
 
-        const producto = typeof oferta.producto === "string"
-            ? oferta.producto
-            : oferta.producto?.nombre || "";
+    const ofertasConEstado = useMemo(() => {
 
-        const coincideBusqueda = !busqueda
-            || oferta.nombre.toLowerCase().includes(texto)
-            || producto.toLowerCase().includes(texto);
+        return ofertas.map((oferta) => ({
 
-        const coincideActiva = !filtroActiva
-            || (filtroActiva === "activas" ? oferta.activa : !oferta.activa);
+            ...oferta,
 
-        return coincideBusqueda && coincideActiva;
+            estadoVisual:
+                obtenerEstado(oferta)
 
-    });
+        }));
+
+    }, [ofertas]);
+
+
+    /* =================================================
+       FILTRAR
+    ================================================= */
+
+    const ofertasFiltradas = useMemo(() => {
+
+        const texto =
+            busqueda
+                .toLowerCase()
+                .trim();
+
+
+        return ofertasConEstado.filter(
+            (oferta) => {
+
+                const producto =
+                    obtenerNombreProducto(
+                        oferta
+                    );
+
+
+                const coincideBusqueda =
+                    !texto ||
+                    oferta.nombre
+                        ?.toLowerCase()
+                        .includes(texto) ||
+                    producto
+                        .toLowerCase()
+                        .includes(texto);
+
+
+                const coincideEstado =
+                    filtroEstado === "todas" ||
+                    oferta.estadoVisual ===
+                        filtroEstado;
+
+
+                return (
+                    coincideBusqueda &&
+                    coincideEstado
+                );
+
+            }
+        );
+
+    }, [
+        ofertasConEstado,
+        busqueda,
+        filtroEstado
+    ]);
+
+
+    /* =================================================
+       CONTADOR
+    ================================================= */
+
+    const cantidadEstado = (estado) => {
+
+        if (estado === "todas") {
+            return ofertasConEstado.length;
+        }
+
+        return ofertasConEstado.filter(
+            (oferta) =>
+                oferta.estadoVisual === estado
+        ).length;
+
+    };
+
+
+    /* =================================================
+       LOADING
+    ================================================= */
 
     if (loading) {
 
-        return <div className="offer-table">Cargando ofertas...</div>;
+        return (
+
+            <div className="offer-table">
+
+                <div className="offer-state">
+
+                    Cargando ofertas...
+
+                </div>
+
+            </div>
+
+        );
 
     }
+
+
+    /* =================================================
+       ERROR
+    ================================================= */
 
     if (error) {
 
-        return <div className="offer-table">{error}</div>;
+        return (
+
+            <div className="offer-table">
+
+                <div className="offer-state offer-state-error">
+
+                    {error}
+
+                </div>
+
+            </div>
+
+        );
 
     }
+
 
     return (
 
         <div className="offer-table">
 
-            <div className="table-toolbar">
+            {/* ==========================================
+                TOOLBAR
+            =========================================== */}
 
-                <input
-                    type="text"
-                    placeholder="Buscar oferta..."
-                    value={busqueda}
-                    onChange={(e) => setBusqueda(e.target.value)}
-                />
+            <div className="offer-toolbar">
+
+                <div className="offer-search">
+
+                    <Search size={16} />
+
+                    <input
+                        type="text"
+                        placeholder="Buscar oferta por nombre o producto..."
+                        value={busqueda}
+                        onChange={(event) =>
+                            setBusqueda(
+                                event.target.value
+                            )
+                        }
+                    />
+
+                </div>
+
 
                 <select
-                    value={filtroActiva}
-                    onChange={(e) => setFiltroActiva(e.target.value)}
+                    className="offer-filter"
+                    value={filtroEstado}
+                    onChange={(event) =>
+                        setFiltroEstado(
+                            event.target.value
+                        )
+                    }
                 >
-                    <option value="">Todas</option>
-                    <option value="activas">Activas</option>
-                    <option value="inactivas">Inactivas</option>
+
+                    <option value="todas">
+                        Todas las ofertas
+                    </option>
+
+                    <option value="activa">
+                        Activas
+                    </option>
+
+                    <option value="programada">
+                        Programadas
+                    </option>
+
+                    <option value="finalizada">
+                        Finalizadas
+                    </option>
+
                 </select>
 
             </div>
 
-            <h2>Ofertas registradas</h2>
 
-            <table>
+            {/* ==========================================
+                TABS
+            =========================================== */}
 
-                <thead>
+            <div className="offer-status-tabs">
 
-                    <tr>
+                <button
+                    type="button"
+                    className={
+                        filtroEstado === "todas"
+                            ? "offer-status-tab is-all is-selected"
+                            : "offer-status-tab is-all"
+                    }
+                    onClick={() =>
+                        setFiltroEstado("todas")
+                    }
+                >
 
-                        <th>Oferta</th>
+                    <span>
+                        {ESTADOS.todas}
+                    </span>
 
-                        <th>Producto</th>
+                    <strong>
+                        {cantidadEstado("todas")}
+                    </strong>
 
-                        <th>Categorías</th>
+                </button>
 
-                        <th>Descuento</th>
 
-                        <th>Inicio</th>
+                <button
+                    type="button"
+                    className={
+                        filtroEstado === "activa"
+                            ? "offer-status-tab is-active is-selected"
+                            : "offer-status-tab is-active"
+                    }
+                    onClick={() =>
+                        setFiltroEstado("activa")
+                    }
+                >
 
-                        <th>Fin</th>
+                    <span>
+                        {ESTADOS.activa}
+                    </span>
 
-                        <th>Estado</th>
+                    <strong>
+                        {cantidadEstado("activa")}
+                    </strong>
 
-                        <th>Acciones</th>
+                </button>
 
-                    </tr>
 
-                </thead>
+                <button
+                    type="button"
+                    className={
+                        filtroEstado === "programada"
+                            ? "offer-status-tab is-scheduled is-selected"
+                            : "offer-status-tab is-scheduled"
+                    }
+                    onClick={() =>
+                        setFiltroEstado("programada")
+                    }
+                >
 
-                <tbody>
+                    <span>
+                        {ESTADOS.programada}
+                    </span>
 
-                    {
+                    <strong>
+                        {cantidadEstado("programada")}
+                    </strong>
 
-                        ofertasFiltradas.length === 0 ?
+                </button>
 
-                        (
+
+                <button
+                    type="button"
+                    className={
+                        filtroEstado === "finalizada"
+                            ? "offer-status-tab is-finished is-selected"
+                            : "offer-status-tab is-finished"
+                    }
+                    onClick={() =>
+                        setFiltroEstado("finalizada")
+                    }
+                >
+
+                    <span>
+                        {ESTADOS.finalizada}
+                    </span>
+
+                    <strong>
+                        {cantidadEstado("finalizada")}
+                    </strong>
+
+                </button>
+
+            </div>
+
+
+            {/* ==========================================
+                TABLA
+            =========================================== */}
+
+            <div className="offer-table-wrapper">
+
+                <table>
+
+                    <thead>
+
+                        <tr>
+
+                            <th>
+                                Oferta
+                            </th>
+
+                            <th>
+                                Producto
+                            </th>
+
+                            <th>
+                                Categorías
+                            </th>
+
+                            <th>
+                                Descuento
+                            </th>
+
+                            <th>
+                                Período
+                            </th>
+
+                            <th>
+                                Estado
+                            </th>
+
+                            <th>
+                                Acciones
+                            </th>
+
+                        </tr>
+
+                    </thead>
+
+
+                    <tbody>
+
+                        {ofertasFiltradas.length === 0 ? (
 
                             <tr>
 
                                 <td
-                                    colSpan="8"
-                                    style={{ textAlign: "center", padding: "40px" }}
+                                    colSpan="7"
+                                    className="offer-empty"
                                 >
 
                                     No hay ofertas que coincidan con los filtros.
@@ -231,131 +730,412 @@ function OfferTable({ refreshKey, onEdit }) {
 
                             </tr>
 
-                        )
+                        ) : (
 
-                        :
+                            ofertasFiltradas.map(
+                                (oferta) => {
 
-                        ofertasFiltradas.map((oferta) => {
+                                    const productoNombre =
+                                        obtenerNombreProducto(
+                                            oferta
+                                        );
 
-                            const productoNombre = typeof oferta.producto === "string"
-                                ? oferta.producto
-                                : oferta.producto?.nombre || `Producto #${oferta.producto_id || oferta.producto}`;
 
-                            const categorias = nombresCategorias(oferta);
+                                    const sku =
+                                        obtenerSkuVariante(
+                                            oferta
+                                        );
 
-                            return (
 
-                                <tr key={oferta.id_oferta}>
+                                    const categorias =
+                                        nombresCategorias(
+                                            oferta
+                                        );
 
-                                    <td>
 
-                                        <strong>{oferta.nombre}</strong>
+                                    const estado =
+                                        oferta.estadoVisual;
 
-                                        <span className="offer-desc">
 
-                                            {oferta.descripcion || "Sin descripción"}
+                                    return (
 
-                                        </span>
-
-                                    </td>
-
-                                    <td>{productoNombre}</td>
-
-                                    <td>
-
-                                        {categorias.length === 0 ? (
-                                            <span className="offer-categories-empty">
-                                                Sin categorías
-                                            </span>
-                                        ) : (
-                                            <div className="offer-categories-list">
-                                                {categorias.slice(0, 3).map((nombre, idx) => (
-                                                    <span
-                                                        key={`${oferta.id_oferta}-cat-${idx}`}
-                                                        className="offer-category-pill"
-                                                    >
-                                                        {nombre}
-                                                    </span>
-                                                ))}
-                                                {categorias.length > 3 && (
-                                                    <span
-                                                        className="offer-category-pill offer-category-pill--more"
-                                                        title={categorias.slice(3).join(", ")}
-                                                    >
-                                                        +{categorias.length - 3}
-                                                    </span>
-                                                )}
-                                            </div>
-                                        )}
-
-                                    </td>
-
-                                    <td>{formatearDescuento(oferta)}</td>
-
-                                    <td>{formatearFecha(oferta.fecha_inicio)}</td>
-
-                                    <td>{formatearFecha(oferta.fecha_fin)}</td>
-
-                                    <td>
-
-                                        <span
-                                            className={
-                                                oferta.activa
-                                                    ? "active"
-                                                    : "inactive"
+                                        <tr
+                                            key={
+                                                oferta.id_oferta
                                             }
                                         >
 
-                                            {oferta.activa ? "Activa" : "Inactiva"}
+                                            {/* =================
+                                                OFERTA
+                                            ================== */}
 
-                                        </span>
+                                            <td>
 
-                                    </td>
+                                                <div className="offer-info">
 
-                                    <td>
+                                                    <div className="offer-image">
 
-                                        <div className="actions">
+                                                        <span>
+                                                            %
+                                                        </span>
 
-                                            <button
-                                                className="edit"
-                                                title="Editar"
-                                                onClick={() => onEdit(oferta)}
-                                            >
+                                                    </div>
 
-                                                <Pencil size={18} />
 
-                                            </button>
+                                                    <div className="offer-info-content">
 
-                                            <button
-                                                className="delete"
-                                                title="Eliminar"
-                                                onClick={() => eliminarOferta(oferta.id_oferta)}
-                                            >
+                                                        <div className="offer-title-row">
 
-                                                <Trash2 size={18} />
+                                                            <strong>
+                                                                {
+                                                                    oferta.nombre
+                                                                }
+                                                            </strong>
 
-                                            </button>
+                                                            <span
+                                                                className={`offer-mini-status ${estado}`}
+                                                            >
+                                                                {
+                                                                    ESTADOS[
+                                                                        estado
+                                                                    ]
+                                                                }
+                                                            </span>
 
-                                        </div>
+                                                        </div>
 
-                                    </td>
 
-                                </tr>
+                                                        <span className="offer-desc">
 
-                            );
+                                                            {
+                                                                oferta.descripcion ||
+                                                                "Sin descripción"
+                                                            }
 
-                        })
+                                                        </span>
 
-                    }
+                                                    </div>
 
-                </tbody>
+                                                </div>
 
-            </table>
+                                            </td>
+
+
+                                            {/* =================
+                                                PRODUCTO
+                                            ================== */}
+
+                                            <td>
+
+                                                <div className="offer-product">
+
+                                                    <strong>
+                                                        {
+                                                            productoNombre
+                                                        }
+                                                    </strong>
+
+                                                    {sku ? (
+
+                                                        <span className="offer-product-variant">
+                                                            Variante: {sku}
+                                                        </span>
+
+                                                    ) : (
+
+                                                        <span className="offer-product-all">
+                                                            Todas las variantes
+                                                        </span>
+
+                                                    )}
+
+                                                </div>
+
+                                            </td>
+
+
+                                            {/* =================
+                                                CATEGORÍAS
+                                            ================== */}
+
+                                            <td>
+
+                                                {categorias.length === 0 ? (
+
+                                                    <span className="offer-categories-empty">
+                                                        Todas las categorías
+                                                    </span>
+
+                                                ) : (
+
+                                                    <div className="offer-categories">
+
+                                                        <span>
+                                                            {
+                                                                categorias
+                                                                    .slice(0, 3)
+                                                                    .join(", ")
+                                                            }
+                                                        </span>
+
+                                                        {categorias.length > 3 && (
+
+                                                            <span className="offer-category-more">
+                                                                +{categorias.length - 3}
+                                                            </span>
+
+                                                        )}
+
+                                                    </div>
+
+                                                )}
+
+                                            </td>
+
+
+                                            {/* =================
+                                                DESCUENTO
+                                            ================== */}
+
+                                            <td>
+
+                                                <div className="offer-discount">
+
+                                                    <strong>
+                                                        {
+                                                            formatearDescuento(
+                                                                oferta
+                                                            )
+                                                        }
+                                                    </strong>
+
+                                                    <span>
+                                                        {
+                                                            oferta.tipo_descuento ===
+                                                            "porcentaje"
+                                                                ? "Porcentaje"
+                                                                : "Valor fijo"
+                                                        }
+                                                    </span>
+
+                                                </div>
+
+                                            </td>
+
+
+                                            {/* =================
+                                                PERÍODO
+                                            ================== */}
+
+                                            <td>
+
+                                                <div className="offer-period">
+
+                                                    <CalendarDays
+                                                        size={14}
+                                                    />
+
+                                                    <div>
+
+                                                        <span>
+                                                            {
+                                                                formatearFecha(
+                                                                    oferta.fecha_inicio
+                                                                )
+                                                            }
+                                                        </span>
+
+                                                        <small>
+                                                            {
+                                                                formatearHora(
+                                                                    oferta.fecha_inicio
+                                                                )
+                                                            }
+                                                        </small>
+
+                                                        <span>
+                                                            {
+                                                                formatearFecha(
+                                                                    oferta.fecha_fin
+                                                                )
+                                                            }
+                                                        </span>
+
+                                                        <small>
+                                                            {
+                                                                formatearHora(
+                                                                    oferta.fecha_fin
+                                                                )
+                                                            }
+                                                        </small>
+
+                                                    </div>
+
+                                                </div>
+
+                                            </td>
+
+
+                                            {/* =================
+                                                ESTADO
+                                            ================== */}
+
+                                            <td>
+
+                                                <span
+                                                    className={`offer-status ${estado}`}
+                                                >
+
+                                                    {
+                                                        ESTADOS[
+                                                            estado
+                                                        ]
+                                                    }
+
+                                                </span>
+
+                                            </td>
+
+
+                                            {/* =================
+                                                ACCIONES
+                                            ================== */}
+
+                                            <td>
+
+                                                <div className="offer-actions">
+
+                                                    <button
+                                                        type="button"
+                                                        className="offer-action-button"
+                                                        title="Ver oferta"
+                                                    >
+
+                                                        <Eye
+                                                            size={15}
+                                                        />
+
+                                                    </button>
+
+
+                                                    <button
+                                                        type="button"
+                                                        className="offer-action-button"
+                                                        title="Editar"
+                                                        onClick={() =>
+                                                            onEdit(
+                                                                oferta
+                                                            )
+                                                        }
+                                                    >
+
+                                                        <Pencil
+                                                            size={15}
+                                                        />
+
+                                                    </button>
+
+
+                                                    <button
+                                                        type="button"
+                                                        className="offer-action-button is-delete"
+                                                        title="Eliminar"
+                                                        onClick={() =>
+                                                            eliminarOferta(
+                                                                oferta.id_oferta
+                                                            )
+                                                        }
+                                                    >
+
+                                                        <Trash2
+                                                            size={15}
+                                                        />
+
+                                                    </button>
+
+                                                </div>
+
+                                            </td>
+
+                                        </tr>
+
+                                    );
+
+                                }
+                            )
+
+                        )}
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+
+            {/* ==========================================
+                FOOTER
+            =========================================== */}
+
+            <div className="offer-table-footer">
+
+                <span>
+
+                    Mostrando{" "}
+
+                    <strong>
+                        {ofertasFiltradas.length}
+                    </strong>
+
+                    {" "}de{" "}
+
+                    <strong>
+                        {ofertas.length}
+                    </strong>
+
+                    {" "}ofertas
+
+                </span>
+
+
+                <div className="offer-pagination">
+
+                    <button
+                        type="button"
+                        disabled
+                    >
+                        <ChevronLeft
+                            size={15}
+                        />
+                    </button>
+
+
+                    <button
+                        type="button"
+                        className="is-current"
+                    >
+                        1
+                    </button>
+
+
+                    <button
+                        type="button"
+                        disabled
+                    >
+                        <ChevronRight
+                            size={15}
+                        />
+                    </button>
+
+                </div>
+
+            </div>
 
         </div>
 
     );
 
 }
+
 
 export default OfferTable;

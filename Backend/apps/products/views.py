@@ -4,6 +4,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
+from rest_framework.permissions import AllowAny, IsAdminUser
 from django.shortcuts import get_object_or_404
 
 from .models import Producto, Variante, Color, Talla, ImagenProducto
@@ -11,7 +12,20 @@ from .serializers import VarianteSerializer, ProductoSerializer, ColorSerializer
 from .services import ProductoService
 
 
+def _permisos_admin_en_mutacion(self):
+    """
+    Helper común: GET es público (catálogo), cualquier
+    mutación requiere usuario staff (IsAdminUser).
+    """
+    if self.request.method == "GET":
+        return [AllowAny()]
+    return [IsAdminUser()]
+
+
 class ProductoView(APIView):
+    """GET público (catálogo). POST requiere staff."""
+    get_permissions = _permisos_admin_en_mutacion
+
     def get(self, request):
         solo_nuevos = self._parse_bool(request.query_params.get("solo_nuevos"))
         categoria_id = self._parse_int(request.query_params.get("categoria"))
@@ -43,6 +57,9 @@ class ProductoView(APIView):
 
 
 class ProductoCompletoView(APIView):
+    """Solo staff: crea/edita producto + variantes + imágenes en una sola llamada."""
+    get_permissions = _permisos_admin_en_mutacion
+
     parser_classes = [MultiPartParser, FormParser, JSONParser]
 
     def post(self, request):
@@ -89,6 +106,9 @@ class ProductoCompletoView(APIView):
 
 
 class LowStockVariantesView(APIView):
+    """Solo staff (lo usa el dashboard admin)."""
+    get_permissions = _permisos_admin_en_mutacion
+
     UMBRAL_STOCK = 5
 
     def get(self, request):
@@ -100,6 +120,9 @@ class LowStockVariantesView(APIView):
 
 
 class ColorListView(APIView):
+    """GET público (catálogo), POST staff."""
+    get_permissions = _permisos_admin_en_mutacion
+
     def get(self, request):
         return Response(ColorSerializer(Color.objects.all().order_by("nombre"), many=True).data)
 
@@ -111,6 +134,9 @@ class ColorListView(APIView):
 
 
 class ColorDetalleView(APIView):
+    """GET público, PUT/DELETE staff."""
+    get_permissions = _permisos_admin_en_mutacion
+
     def get(self, request, id):
         return Response(ColorSerializer(get_object_or_404(Color, id_color=id)).data)
 
@@ -127,6 +153,9 @@ class ColorDetalleView(APIView):
 
 
 class TallaListView(APIView):
+    """GET público (catálogo), POST staff."""
+    get_permissions = _permisos_admin_en_mutacion
+
     def get(self, request):
         return Response(TallaSerializer(Talla.objects.all().order_by("nombre"), many=True).data)
 
@@ -138,6 +167,9 @@ class TallaListView(APIView):
 
 
 class TallaDetalleView(APIView):
+    """GET público, PUT/DELETE staff."""
+    get_permissions = _permisos_admin_en_mutacion
+
     def get(self, request, id):
         return Response(TallaSerializer(get_object_or_404(Talla, id_talla=id)).data)
 
@@ -154,6 +186,9 @@ class TallaDetalleView(APIView):
 
 
 class ProductoDetalleView(APIView):
+    """GET público (ficha de producto), PUT/DELETE staff."""
+    get_permissions = _permisos_admin_en_mutacion
+
     def get(self, request, id):
         return Response(ProductoSerializer(get_object_or_404(Producto, id_producto=id)).data)
 
@@ -171,12 +206,18 @@ class ProductoDetalleView(APIView):
 
 
 class ProductoReactivarView(APIView):
+    """Solo staff."""
+    get_permissions = _permisos_admin_en_mutacion
+
     def post(self, request, id):
         get_object_or_404(Producto, id_producto=id)
         return Response(ProductoSerializer(ProductoService.reactivar(id)).data)
 
 
 class VariantesPorProductoView(APIView):
+    """GET público (ficha de producto), POST staff."""
+    get_permissions = _permisos_admin_en_mutacion
+
     def get(self, request, id):
         variantes = Variante.objects.select_related("color", "talla").filter(producto_id=id).order_by("id_variante")
         return Response(VarianteSerializer(variantes, many=True).data)
@@ -193,6 +234,9 @@ class VariantesPorProductoView(APIView):
 
 
 class VarianteDetalleView(APIView):
+    """GET público, PUT/DELETE staff."""
+    get_permissions = _permisos_admin_en_mutacion
+
     def get(self, request, variante_id):
         variante = get_object_or_404(Variante.objects.select_related("color", "talla"), id_variante=variante_id)
         return Response(VarianteSerializer(variante).data)
@@ -211,6 +255,9 @@ class VarianteDetalleView(APIView):
 
 
 class ImagenesPorVarianteView(APIView):
+    """GET público (galería), POST staff."""
+    get_permissions = _permisos_admin_en_mutacion
+
     def get(self, request, variante_id):
         imagenes = ImagenProducto.objects.filter(variante_id=variante_id).order_by("orden", "id_imagen")
         return Response(ImagenSerializer(imagenes, many=True).data)
@@ -226,6 +273,9 @@ class ImagenesPorVarianteView(APIView):
 
 
 class ImagenDetalleView(APIView):
+    """PUT/DELETE staff."""
+    get_permissions = _permisos_admin_en_mutacion
+
     def put(self, request, imagen_id):
         imagen = get_object_or_404(ImagenProducto.objects.select_related("variante"), id_imagen=imagen_id)
         nuevo_principal = request.data.get("principal")

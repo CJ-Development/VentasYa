@@ -15,6 +15,7 @@ import New from "../pages/New/New";
 // ============================================================
 
 import ClientProducts from "../pages/Products/Products";
+import ProductDetailPage from "../pages/Products/ProductDetailPage/ProductDetailPage";
 import ClientOffers from "../pages/Offers/Offers";
 
 import Profile from "../pages/Profile/Profile";
@@ -22,6 +23,7 @@ import Favorites from "../pages/Favorites/Favorites";
 import Settings from "../pages/Settings/Settings";
 import Checkout from "../pages/Checkout/Checkout";
 import Cart from "../pages/Cart/Cart";
+import ClientOrders from "../pages/Orders/Orders";
 
 // ============================================================
 // ADMIN
@@ -63,6 +65,14 @@ function AppRouter() {
                 <Route
                     path="/products"
                     element={<ClientProducts />}
+                />
+
+
+                {/* DETALLE DE PRODUCTO POR SLUG */}
+
+                <Route
+                    path="/producto/:slug"
+                    element={<ProductDetailPage />}
                 />
 
 
@@ -147,7 +157,7 @@ function AppRouter() {
 
                 <Route
                     path="/orders"
-                    element={<Orders />}
+                    element={<ClientOrders />}
                 />
 
                 <Route

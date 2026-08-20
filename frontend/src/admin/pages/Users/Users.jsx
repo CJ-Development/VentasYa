@@ -18,20 +18,14 @@ function Users() {
 
         <div className="users-page">
 
-            <div className="page-header">
+            <div className="users-page-header">
 
                 <div>
 
-                    <h1>
-
-                        Usuarios
-
-                    </h1>
+                    <h1>Usuarios</h1>
 
                     <p>
-
                         Administra todos los usuarios registrados en la plataforma.
-
                     </p>
 
                 </div>

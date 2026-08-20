@@ -8,7 +8,6 @@ import {
 } from "lucide-react";
 
 import ProductCard from "./ProductCard/ProductCard";
-import ProductDetail from "./ProductDetail/ProductDetail";
 import Breadcrumb from "../../components/Breadcrumb/Breadcrumb";
 
 import { getCategories, getProducts } from "../../services/adminService";
@@ -70,9 +69,6 @@ function Products() {
 
     const [unknownSlug, setUnknownSlug] =
         useState(false);
-
-    const [selectedProductId, setSelectedProductId] =
-        useState(null);
 
     const [filtrosAbiertos, setFiltrosAbiertos] =
         useState(false);
@@ -1297,10 +1293,6 @@ function Products() {
                                                     producto.descuento ||
                                                     0
                                             }}
-
-                                            onSelect={
-                                                setSelectedProductId
-                                            }
                                         />
 
                                     )
@@ -1440,21 +1432,6 @@ function Products() {
             {/* =====================================================
                 DETALLE PRODUCTO
             ===================================================== */}
-
-            {selectedProductId !== null && (
-
-                <ProductDetail
-                    productId={
-                        selectedProductId
-                    }
-                    onClose={() =>
-                        setSelectedProductId(
-                            null
-                        )
-                    }
-                />
-
-            )}
 
         </main>
 

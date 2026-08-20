@@ -2,21 +2,27 @@ import "./AdminLayout.css";
 import Sidebar from "../components/Sidebar";
 import { Outlet } from "react-router-dom";
 
+import { ToastProvider } from "../components/Toast/ToastHost";
+
 function AdminLayout() {
 
     return (
 
-        <div className="admin-layout">
+        <ToastProvider>
 
-            <Sidebar />
+            <div className="admin-layout">
 
-            <main className="admin-content">
+                <Sidebar />
 
-                <Outlet />
+                <main className="admin-content">
 
-            </main>
+                    <Outlet />
 
-        </div>
+                </main>
+
+            </div>
+
+        </ToastProvider>
 
     );
 

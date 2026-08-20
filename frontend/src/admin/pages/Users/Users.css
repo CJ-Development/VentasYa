@@ -1,33 +1,110 @@
-.users-page{
+/* =====================================================
+   PÁGINA DE USUARIOS
+   ===================================================== */
 
-    display:flex;
+.users-page {
 
-    flex-direction:column;
+    width: 100%;
 
-    gap:30px;
+    min-height: 100%;
 
-}
+    display: flex;
 
-.page-header{
+    flex-direction: column;
 
-    display:flex;
+    gap: 24px;
 
-    justify-content:space-between;
-
-    align-items:center;
-
-}
-
-.page-header h1{
-
-    color:var(--secondary);
-
-    margin-bottom:8px;
+    padding: 4px 0 30px;
 
 }
 
-.page-header p{
 
-    color:var(--text-light);
+/* =====================================================
+   ENCABEZADO
+   ===================================================== */
+
+.users-page-header {
+
+    display: flex;
+
+    align-items: flex-start;
+
+    justify-content: space-between;
+
+    padding: 0 2px;
+
+}
+
+
+.users-page-header h1 {
+
+    margin: 0 0 6px;
+
+    color: #111827;
+
+    font-size: 30px;
+
+    line-height: 1.2;
+
+    font-weight: 700;
+
+    letter-spacing: -0.5px;
+
+}
+
+
+.users-page-header p {
+
+    margin: 0;
+
+    color: #111827;
+
+    font-size: 15px;
+
+    line-height: 1.5;
+
+}
+
+
+/* =====================================================
+   RESPONSIVE
+   ===================================================== */
+
+@media (max-width: 900px) {
+
+    .users-page {
+
+        gap: 20px;
+
+    }
+
+    .users-page-header h1 {
+
+        font-size: 26px;
+
+    }
+
+}
+
+
+@media (max-width: 650px) {
+
+    .users-page {
+
+        padding-bottom: 20px;
+
+    }
+
+    .users-page-header h1 {
+
+        font-size: 24px;
+
+    }
+
+    .users-page-header p {
+
+        font-size: 13px;
+
+    }
 
 }

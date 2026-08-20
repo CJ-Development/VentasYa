@@ -10,6 +10,8 @@ import {
     ShieldCheck,
     LockKeyhole,
     PackageCheck,
+    ArrowRight,
+    CheckCircle2,
 } from "lucide-react";
 
 import { useAuth } from "../../hooks/useAuth";
@@ -31,7 +33,6 @@ const formatearPesos = (valor) => {
 };
 
 function Cart() {
-
     const { usuario } = useAuth();
 
     const {
@@ -45,7 +46,6 @@ function Cart() {
     const navigate = useNavigate();
 
     const cambiarCantidad = (item, delta) => {
-
         const nuevaCantidad = Math.max(
             1,
             Number(item.cantidad || 1) + delta
@@ -57,7 +57,6 @@ function Cart() {
     };
 
     const eliminarItem = (item) => {
-
         const confirmar = window.confirm(
             "¿Eliminar este producto del carrito?"
         );
@@ -68,7 +67,6 @@ function Cart() {
     };
 
     const finalizarCompra = () => {
-
         if (!usuario) {
             navigate("/login?from=/checkout", {
                 replace: false,
@@ -83,30 +81,34 @@ function Cart() {
     /*
      * META PARA ENVÍO GRATIS
      *
-     * Puedes cambiar este valor cuando definas
-     * la regla definitiva del ecommerce.
+     * Valor utilizado en el diseño actual:
+     * $99.900
+     *
+     * Si después defines otro valor en backend,
+     * solo cambia esta constante.
      */
-    const envioGratisDesde = 999900;
+    const envioGratisDesde = 99900;
+
+    const totalNumerico = Number(total || 0);
 
     const faltanteEnvioGratis = Math.max(
-        envioGratisDesde - Number(total || 0),
+        envioGratisDesde - totalNumerico,
         0
     );
 
+    const tieneEnvioGratis = faltanteEnvioGratis <= 0;
+
     const progresoEnvio = Math.min(
-        (Number(total || 0) / envioGratisDesde) * 100,
+        (totalNumerico / envioGratisDesde) * 100,
         100
     );
 
     /*
      * CARRITO SIN SESIÓN
      */
-
     if (!usuario) {
-
         return (
             <main className="cart-page">
-
                 <div className="cart-container">
 
                     <Breadcrumb
@@ -116,15 +118,17 @@ function Cart() {
                     />
 
                     <header className="cart-header">
-
                         <div>
+                            <span className="cart-eyebrow">
+                                TU COMPRA
+                            </span>
+
                             <h1>Tu carrito</h1>
 
                             <p>
                                 Revisa los productos que has seleccionado.
                             </p>
                         </div>
-
                     </header>
 
                     <div className="cart-empty">
@@ -149,6 +153,7 @@ function Cart() {
                                 className="cart-primary-button"
                             >
                                 Iniciar sesión y conservar mi carrito
+                                <ArrowRight size={17} />
                             </Link>
 
                             <Link
@@ -161,22 +166,18 @@ function Cart() {
                         </div>
 
                     </div>
-
                 </div>
-
             </main>
         );
     }
 
-    /*
-     * CARRITO
-     */
-
     return (
-
         <main className="cart-page">
-
             <div className="cart-container">
+
+                {/* =====================================================
+                    BREADCRUMB
+                ====================================================== */}
 
                 <Breadcrumb
                     items={[
@@ -184,9 +185,17 @@ function Cart() {
                     ]}
                 />
 
+                {/* =====================================================
+                    HEADER
+                ====================================================== */}
+
                 <header className="cart-header">
 
-                    <div>
+                    <div className="cart-header-content">
+
+                        <span className="cart-eyebrow">
+                            TU COMPRA
+                        </span>
 
                         <h1>
                             Tu carrito
@@ -199,12 +208,10 @@ function Cart() {
                     </div>
 
                     {items.length > 0 && (
-
                         <button
                             type="button"
                             className="cart-clear-button"
                             onClick={() => {
-
                                 const confirmar = window.confirm(
                                     "¿Quieres vaciar todo el carrito?"
                                 );
@@ -216,30 +223,43 @@ function Cart() {
                                 });
                             }}
                         >
-                            <Trash2 size={17} />
+                            <Trash2 size={16} />
                             Vaciar carrito
                         </button>
-
                     )}
 
                 </header>
+
+                {/* =====================================================
+                    LOADING
+                ====================================================== */}
 
                 {loading ? (
 
                     <div className="cart-loading">
 
-                        <Loader2
-                            size={34}
-                            className="spin"
-                        />
+                        <div className="cart-loading-icon">
+                            <Loader2
+                                size={32}
+                                className="spin"
+                            />
+                        </div>
+
+                        <h2>
+                            Cargando tu carrito
+                        </h2>
 
                         <p>
-                            Cargando tu carrito...
+                            Estamos actualizando tus productos...
                         </p>
 
                     </div>
 
                 ) : items.length === 0 ? (
+
+                    /* =================================================
+                       EMPTY
+                    ================================================== */
 
                     <div className="cart-empty">
 
@@ -261,21 +281,28 @@ function Cart() {
                             className="cart-primary-button"
                         >
                             Ir a comprar
+                            <ArrowRight size={17} />
                         </Link>
 
                     </div>
 
                 ) : (
 
+                    /* =================================================
+                       CONTENIDO PRINCIPAL
+                    ================================================== */
+
                     <div className="cart-layout">
 
-                        {/* =========================================
+                        {/* =================================================
                             PRODUCTOS
-                        ========================================== */}
+                        ================================================== */}
 
                         <section className="cart-products-section">
 
                             <div className="cart-products-card">
+
+                                {/* CABECERA DE TABLA */}
 
                                 <div className="cart-table-header">
 
@@ -295,42 +322,53 @@ function Cart() {
                                         Subtotal
                                     </span>
 
-                                    <span></span>
+                                    <span />
 
                                 </div>
+
+                                {/* LISTA */}
 
                                 <ul className="cart-list">
 
                                     {items.map((item) => {
 
+                                        const precioUnitario =
+                                            Number(
+                                                item.producto_precio || 0
+                                            );
+
+                                        const cantidad =
+                                            Number(
+                                                item.cantidad || 0
+                                            );
+
                                         const subtotal =
-                                            Number(item.producto_precio || 0) *
-                                            Number(item.cantidad || 0);
+                                            precioUnitario * cantidad;
 
                                         const key =
                                             item.id_item ||
                                             item.variante_id;
 
                                         return (
-
                                             <li
                                                 key={key}
                                                 className="cart-item"
                                             >
+
+                                                {/* PRODUCTO */}
 
                                                 <div className="cart-product">
 
                                                     <div className="cart-item-image">
 
                                                         <img
-                                                            src={
-                                                                mediaUrl(
-                                                                    item.imagen,
-                                                                    NoImage
-                                                                )
-                                                            }
+                                                            src={mediaUrl(
+                                                                item.imagen,
+                                                                NoImage
+                                                            )}
                                                             alt={
-                                                                item.producto_nombre
+                                                                item.producto_nombre ||
+                                                                "Producto"
                                                             }
                                                             onError={(e) => {
                                                                 e.currentTarget.src =
@@ -348,39 +386,50 @@ function Cart() {
                                                             }
                                                         </h3>
 
-                                                        <p className="cart-item-variant">
+                                                        {(item.color ||
+                                                            item.talla) && (
+                                                            <p className="cart-item-variant">
 
-                                                            {item.color &&
-                                                                `Color: ${item.color}`}
+                                                                {item.color &&
+                                                                    `Color: ${item.color}`}
 
-                                                            {item.color &&
-                                                                item.talla &&
-                                                                " · "}
+                                                                {item.color &&
+                                                                    item.talla &&
+                                                                    " · "}
 
-                                                            {item.talla &&
-                                                                `Talla: ${item.talla}`}
+                                                                {item.talla &&
+                                                                    `Talla: ${item.talla}`}
 
-                                                        </p>
+                                                            </p>
+                                                        )}
 
                                                         {item.sku && (
-
                                                             <p className="cart-item-sku">
                                                                 SKU: {item.sku}
                                                             </p>
-
                                                         )}
 
                                                     </div>
 
                                                 </div>
 
+                                                {/* PRECIO UNITARIO */}
+
                                                 <div className="cart-item-unit-price">
 
-                                                    {formatearPesos(
-                                                        item.producto_precio
-                                                    )}
+                                                    <span>
+                                                        {formatearPesos(
+                                                            precioUnitario
+                                                        )}
+                                                    </span>
+
+                                                    <small>
+                                                        por unidad
+                                                    </small>
 
                                                 </div>
+
+                                                {/* CANTIDAD */}
 
                                                 <div className="cart-item-qty">
 
@@ -393,17 +442,16 @@ function Cart() {
                                                             )
                                                         }
                                                         disabled={
-                                                            Number(
-                                                                item.cantidad
-                                                            ) <= 1
+                                                            cantidad <= 1
                                                         }
-                                                        title="Disminuir"
+                                                        title="Disminuir cantidad"
+                                                        aria-label="Disminuir cantidad"
                                                     >
                                                         <Minus size={14} />
                                                     </button>
 
                                                     <span>
-                                                        {item.cantidad}
+                                                        {cantidad}
                                                     </span>
 
                                                     <button
@@ -416,20 +464,21 @@ function Cart() {
                                                         }
                                                         disabled={
                                                             item.stock
-                                                                ? Number(
-                                                                      item.cantidad
-                                                                  ) >=
+                                                                ? cantidad >=
                                                                   Number(
                                                                       item.stock
                                                                   )
                                                                 : false
                                                         }
-                                                        title="Aumentar"
+                                                        title="Aumentar cantidad"
+                                                        aria-label="Aumentar cantidad"
                                                     >
                                                         <Plus size={14} />
                                                     </button>
 
                                                 </div>
+
+                                                {/* SUBTOTAL */}
 
                                                 <div className="cart-item-price">
 
@@ -441,6 +490,8 @@ function Cart() {
 
                                                 </div>
 
+                                                {/* ELIMINAR */}
+
                                                 <button
                                                     type="button"
                                                     className="cart-item-remove"
@@ -448,85 +499,86 @@ function Cart() {
                                                         eliminarItem(item)
                                                     }
                                                     title="Eliminar producto"
+                                                    aria-label={`Eliminar ${item.producto_nombre}`}
                                                 >
-                                                    <Trash2 size={17} />
+                                                    <Trash2 size={16} />
                                                 </button>
 
                                             </li>
-
                                         );
-
                                     })}
 
                                 </ul>
 
-                                {/* =====================================
+                                {/* =================================================
                                     ENVÍO GRATIS
-                                ====================================== */}
+                                ================================================== */}
 
-                                <div className="shipping-progress">
+                                <div
+                                    className={`cart-shipping-progress ${
+                                        tieneEnvioGratis
+                                            ? "cart-shipping-progress--success"
+                                            : ""
+                                    }`}
+                                >
 
-                                    <div className="shipping-progress-icon">
+                                    <div className="cart-shipping-icon">
 
-                                        <Truck size={28} />
+                                        {tieneEnvioGratis ? (
+                                            <CheckCircle2 size={22} />
+                                        ) : (
+                                            <Truck size={22} />
+                                        )}
 
                                     </div>
 
-                                    <div className="shipping-progress-content">
+                                    <div className="cart-shipping-info">
 
-                                        {faltanteEnvioGratis > 0 ? (
-
+                                        {tieneEnvioGratis ? (
                                             <>
-
-                                                <div className="shipping-progress-title">
-
-                                                    <strong>
-                                                        ¡Envío gratis!
-                                                    </strong>
-
-                                                    <span>
-                                                        Te faltan{" "}
-                                                        <b>
-                                                            {formatearPesos(
-                                                                faltanteEnvioGratis
-                                                            )}
-                                                        </b>{" "}
-                                                        para obtener envío gratis
-                                                    </span>
-
-                                                </div>
-
-                                            </>
-
-                                        ) : (
-
-                                            <div className="shipping-progress-title">
-
                                                 <strong>
-                                                    ¡Has conseguido envío gratis!
+                                                    ¡Envío gratis desbloqueado! 🎉
                                                 </strong>
 
                                                 <span>
-                                                    Tu pedido cumple con el
-                                                    mínimo para envío gratis.
+                                                    Tu pedido ya cumple con
+                                                    el monto mínimo para envío
+                                                    gratis.
                                                 </span>
+                                            </>
+                                        ) : (
+                                            <>
+                                                <strong>
+                                                    ¡Envío gratis!
+                                                </strong>
+
+                                                <span>
+                                                    Te faltan{" "}
+                                                    <b>
+                                                        {formatearPesos(
+                                                            faltanteEnvioGratis
+                                                        )}
+                                                    </b>{" "}
+                                                    para obtener envío gratis.
+                                                </span>
+                                            </>
+                                        )}
+
+                                        <div className="cart-shipping-progress-row">
+
+                                            <div className="cart-shipping-bar">
+
+                                                <span
+                                                    style={{
+                                                        width: `${progresoEnvio}%`,
+                                                    }}
+                                                />
 
                                             </div>
 
-                                        )}
-
-                                        <div className="shipping-progress-bar">
-
-                                            <div
-                                                className="shipping-progress-fill"
-                                                style={{
-                                                    width: `${progresoEnvio}%`,
-                                                }}
-                                            />
-
                                         </div>
 
-                                        <div className="shipping-progress-values">
+                                        <div className="cart-shipping-values">
 
                                             <span>
                                                 $0
@@ -548,17 +600,33 @@ function Cart() {
 
                         </section>
 
-                        {/* =========================================
-                            RESUMEN
-                        ========================================== */}
+                        {/* =================================================
+                            SIDEBAR
+                        ================================================== */}
 
                         <aside className="cart-sidebar">
 
+                            {/* RESUMEN */}
+
                             <div className="cart-summary">
 
-                                <h2>
-                                    Resumen del pedido
-                                </h2>
+                                <div className="cart-summary-heading">
+
+                                    <div>
+                                        <span>
+                                            TU PEDIDO
+                                        </span>
+
+                                        <h2>
+                                            Resumen del pedido
+                                        </h2>
+                                    </div>
+
+                                    <div className="cart-summary-badge">
+                                        {items.length}
+                                    </div>
+
+                                </div>
 
                                 <div className="cart-summary-row">
 
@@ -570,7 +638,7 @@ function Cart() {
                                     </span>
 
                                     <strong>
-                                        {formatearPesos(total)}
+                                        {formatearPesos(totalNumerico)}
                                     </strong>
 
                                 </div>
@@ -581,27 +649,23 @@ function Cart() {
                                         Envío
                                     </span>
 
-                                    <strong className="shipping-free">
-
-                                        {faltanteEnvioGratis <= 0
+                                    <strong
+                                        className={
+                                            tieneEnvioGratis
+                                                ? "shipping-free"
+                                                : "shipping-pending"
+                                        }
+                                    >
+                                        {tieneEnvioGratis
                                             ? "Gratis"
                                             : "Por calcular"}
-
                                     </strong>
 
                                 </div>
 
-                                <div className="cart-summary-row">
-
-                                    <span>
-                                        Descuento
-                                    </span>
-
-                                    <strong>
-                                        -$0
-                                    </strong>
-
-                                </div>
+                                {/* Solo mostramos descuento cuando exista.
+                                    Actualmente no hay lógica de descuento,
+                                    por eso no mostramos "-$0". */}
 
                                 <div className="cart-summary-divider" />
 
@@ -620,7 +684,7 @@ function Cart() {
                                     </div>
 
                                     <strong>
-                                        {formatearPesos(total)}
+                                        {formatearPesos(totalNumerico)}
                                     </strong>
 
                                 </div>
@@ -633,21 +697,35 @@ function Cart() {
 
                                     <LockKeyhole size={18} />
 
-                                    Finalizar compra
+                                    <span>
+                                        Finalizar compra
+                                    </span>
+
+                                    <ArrowRight size={17} />
 
                                 </button>
 
+                                <div className="cart-checkout-security">
+
+                                    <ShieldCheck size={15} />
+
+                                    <span>
+                                        Pago seguro y protegido
+                                    </span>
+
+                                </div>
+
                             </div>
 
-                            {/* =====================================
+                            {/* =================================================
                                 CUPÓN
-                            ====================================== */}
+                            ================================================== */}
 
                             <div className="cart-coupon">
 
                                 <div className="cart-coupon-title">
 
-                                    <Tag size={18} />
+                                    <Tag size={17} />
 
                                     <strong>
                                         ¿Tienes un código de descuento?
@@ -660,6 +738,7 @@ function Cart() {
                                     <input
                                         type="text"
                                         placeholder="Ingresa tu código"
+                                        aria-label="Código de descuento"
                                     />
 
                                     <button type="button">
@@ -670,14 +749,14 @@ function Cart() {
 
                             </div>
 
-                            {/* =====================================
+                            {/* =================================================
                                 COMPRA SEGURA
-                            ====================================== */}
+                            ================================================== */}
 
                             <div className="cart-secure">
 
                                 <div className="cart-secure-icon">
-                                    <ShieldCheck size={25} />
+                                    <ShieldCheck size={23} />
                                 </div>
 
                                 <div>
@@ -695,9 +774,15 @@ function Cart() {
 
                             </div>
 
-                            <div className="cart-back-shop">
+                            {/* =================================================
+                                CONFIANZA
+                            ================================================== */}
 
-                                <PackageCheck size={18} />
+                            <div className="cart-confidence">
+
+                                <div className="cart-confidence-icon">
+                                    <PackageCheck size={19} />
+                                </div>
 
                                 <div>
 
@@ -713,6 +798,10 @@ function Cart() {
 
                             </div>
 
+                            {/* =================================================
+                                CONTINUAR
+                            ================================================== */}
+
                             <Link
                                 to="/"
                                 className="cart-continue-shopping"
@@ -723,11 +812,9 @@ function Cart() {
                         </aside>
 
                     </div>
-
                 )}
 
             </div>
-
         </main>
     );
 }

@@ -1,12 +1,23 @@
 from django.db import transaction
 from django.shortcuts import get_object_or_404
 from rest_framework import status
+from rest_framework.permissions import AllowAny, IsAdminUser
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from .models import Categoria
 from .serializers import CategoriaSerializer
 from .services import CategoriaService
+
+
+def _permisos_admin_en_mutacion(self):
+    """
+    Helper común: GET es público (catálogo), cualquier
+    mutación requiere usuario staff (IsAdminUser).
+    """
+    if self.request.method == "GET":
+        return [AllowAny()]
+    return [IsAdminUser()]
 
 
 class CategoriaView(APIView):
@@ -16,8 +27,10 @@ class CategoriaView(APIView):
     GET /categories/?incluir_inactivos=false → solo activas.
 
     POST /categories/ crea una categoría (o subcategoría si llega
-    `categoria_padre_id`).
+    `categoria_padre_id`). Requiere staff.
     """
+
+    get_permissions = _permisos_admin_en_mutacion
 
     def get(self, request):
         solo_padres = self._parse_bool(request.query_params.get("solo_padres"))
@@ -55,13 +68,14 @@ class CategoriaView(APIView):
 
 class CategoriaDetalleView(APIView):
     """
-    GET    /categories/<id>/
-    PUT    /categories/<id>/
-    DELETE /categories/<id>/               → archivado simple.
-    DELETE /categories/<id>/?cascade=true  → archiva también los productos
-                                            vinculados a esta categoría
-                                            y a todas sus descendientes.
+    GET    /categories/<id>/           → público.
+    PUT    /categories/<id>/           → staff.
+    DELETE /categories/<id>/           → archivado simple (staff).
+    DELETE /categories/<id>/?cascade=true → archiva también los productos
+                                            vinculados (staff).
     """
+
+    get_permissions = _permisos_admin_en_mutacion
 
     def get(self, request, id):
         categoria = CategoriaService.obtener(id)

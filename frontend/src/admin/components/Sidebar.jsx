@@ -13,7 +13,8 @@ import {
     LogOut,
     Menu,
     ChevronsLeft,
-    ChevronsRight
+    ChevronsRight,
+    Store
 } from "lucide-react";
 
 import { NavLink } from "react-router-dom";
@@ -185,6 +186,18 @@ function Sidebar() {
                     <Settings size={19} />
 
                     {!collapsed && <span>Configuración</span>}
+
+                </NavLink>
+
+
+                <NavLink
+                    to="/"
+                    title="Ir a la página principal"
+                >
+
+                    <Store size={19} />
+
+                    {!collapsed && <span>Página principal</span>}
 
                 </NavLink>
 

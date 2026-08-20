@@ -1,178 +1,1142 @@
-.order-table{
+/* =====================================================
+   CONTENEDOR PRINCIPAL
+   ===================================================== */
 
-    background:white;
+.order-table {
 
-    padding:30px;
+    width: 100%;
 
-    border-radius:18px;
+    background: #ffffff;
 
-    box-shadow:var(--shadow-md);
+    padding: 28px 30px 22px;
 
-}
+    border-radius: 16px;
 
-.order-table h2{
+    box-shadow:
+        0 2px 5px rgba(15, 23, 42, 0.04),
+        0 8px 20px rgba(15, 23, 42, 0.06);
 
-    margin-bottom:25px;
+    border: 1px solid #f0f1f3;
 
-}
-
-table{
-
-    width:100%;
-
-    border-collapse:collapse;
+    box-sizing: border-box;
 
 }
 
-thead{
 
-    background:#f5f7fb;
+/* =====================================================
+   BARRA DE HERRAMIENTAS
+   ===================================================== */
 
-}
+.order-table-toolbar {
 
-th,
-td{
+    width: 100%;
 
-    padding:16px;
+    display: flex;
 
-    border-bottom:1px solid #ececec;
+    align-items: center;
 
-    text-align:left;
+    justify-content: space-between;
 
-}
+    gap: 20px;
 
-.pending{
-
-    background:#fff3cd;
-
-    color:#856404;
-
-    padding:6px 14px;
-
-    border-radius:25px;
+    margin-bottom: 28px;
 
 }
 
-.completed{
 
-    background:#dff8e4;
+.order-search {
 
-    color:#18893d;
+    width: 390px;
 
-    padding:6px 14px;
-
-    border-radius:25px;
+    max-width: 100%;
 
 }
 
-td button{
 
-    background:var(--primary);
+.order-search input {
 
-    color:white;
+    width: 100%;
 
-    border:none;
+    height: 44px;
 
-    padding:8px 14px;
+    box-sizing: border-box;
 
-    border-radius:8px;
+    padding: 0 14px;
 
-    cursor:pointer;
+    border: 1px solid #dfe3e8;
 
-    margin-right:8px;
+    border-radius: 9px;
 
-}
+    background: #ffffff;
 
-td button:hover{
+    color: #1f2937;
 
-    background:var(--secondary);
+    font-size: 13px;
 
-}
+    outline: none;
 
-.contact-cell{
-
-    display:inline-flex;
-
-    align-items:center;
-
-    gap:6px;
-
-    color:var(--primary);
-
-    font-weight:600;
+    transition:
+        border-color 0.2s ease,
+        box-shadow 0.2s ease;
 
 }
 
-.contact-cell a{
 
-    color:inherit;
+.order-search input::placeholder {
 
-    text-decoration:none;
-
-}
-
-.contact-cell a:hover{
-
-    text-decoration:underline;
+    color: #9ca3af;
 
 }
 
-.add-contact-button{
 
-    background:transparent !important;
+.order-search input:focus {
 
-    color:var(--primary) !important;
+    border-color: #0ea5b5;
 
-    border:1px dashed var(--primary) !important;
-
-    padding:6px 10px !important;
-
-    border-radius:8px !important;
-
-    display:inline-flex !important;
-
-    align-items:center !important;
-
-    gap:4px !important;
-
-    font-size:12px !important;
-
-    font-weight:600 !important;
-
-    margin-right:0 !important;
-
-    cursor:pointer;
+    box-shadow:
+        0 0 0 3px rgba(14, 165, 181, 0.10);
 
 }
 
-.add-contact-button:hover{
 
-    background:rgba(56,77,72,0.06) !important;
+.order-filter {
 
-}
-
-.empty-contact{
-
-    color:#9ca3af;
-
-    font-style:italic;
-
-    font-size:13px;
+    min-width: 180px;
 
 }
 
-.form-group label{
 
-    display:flex;
+.order-filter select {
 
-    align-items:center;
+    width: 100%;
 
-    gap:6px;
+    height: 44px;
 
-    margin-bottom:8px;
+    padding: 0 34px 0 13px;
 
-    font-weight:600;
+    border: 1px solid #dfe3e8;
 
-    color:var(--primary);
+    border-radius: 9px;
+
+    background: #ffffff;
+
+    color: #172554;
+
+    font-size: 13px;
+
+    outline: none;
+
+    cursor: pointer;
+
+}
+
+
+.order-filter select:focus {
+
+    border-color: #0ea5b5;
+
+    box-shadow:
+        0 0 0 3px rgba(14, 165, 181, 0.10);
+
+}
+
+
+/* =====================================================
+   TÍTULO
+   ===================================================== */
+
+.order-table-title {
+
+    margin: 0 0 18px;
+
+    color: #172554;
+
+    font-size: 14px;
+
+    font-weight: 600;
+
+}
+
+
+/* =====================================================
+   WRAPPER TABLA
+   ===================================================== */
+
+.order-table-wrapper {
+
+    width: 100%;
+
+    overflow-x: auto;
+
+}
+
+
+/* =====================================================
+   TABLA
+   ===================================================== */
+
+.orders-data-table {
+
+    width: 100%;
+
+    min-width: 1050px;
+
+    border-collapse: collapse;
+
+    table-layout: auto;
+
+}
+
+
+/* =====================================================
+   ENCABEZADO
+   ===================================================== */
+
+.orders-data-table thead {
+
+    background: #f5f6fa;
+
+}
+
+
+.orders-data-table thead tr {
+
+    border: none;
+
+}
+
+
+.orders-data-table th {
+
+    padding: 13px 15px;
+
+    color: #111827;
+
+    font-size: 11px;
+
+    font-weight: 700;
+
+    text-align: left;
+
+    white-space: nowrap;
+
+    border-bottom: 1px solid #e6e8ed;
+
+}
+
+
+/* =====================================================
+   CELDAS
+   ===================================================== */
+
+.orders-data-table td {
+
+    padding: 16px 15px;
+
+    color: #334155;
+
+    font-size: 12px;
+
+    line-height: 1.45;
+
+    border-bottom: 1px solid #edf0f2;
+
+    vertical-align: middle;
+
+}
+
+
+.orders-data-table tbody tr {
+
+    transition:
+        background 0.15s ease;
+
+}
+
+
+.orders-data-table tbody tr:hover {
+
+    background: #fafcfd;
+
+}
+
+
+.orders-data-table tbody tr:last-child td {
+
+    border-bottom: none;
+
+}
+
+
+/* =====================================================
+   PEDIDO
+   ===================================================== */
+
+.order-id {
+
+    color: #1d4ed8 !important;
+
+    font-weight: 600;
+
+    white-space: nowrap;
+
+}
+
+
+.order-client {
+
+    color: #243b64 !important;
+
+    font-weight: 500;
+
+    min-width: 150px;
+
+}
+
+
+.order-date {
+
+    color: #64748b !important;
+
+    white-space: nowrap;
+
+}
+
+
+.order-total {
+
+    color: #172554 !important;
+
+    font-weight: 700;
+
+    white-space: nowrap;
+
+}
+
+
+.payment-method {
+
+    color: #475569;
+
+    white-space: nowrap;
+
+}
+
+
+/* =====================================================
+   CONTACTO
+   ===================================================== */
+
+.contact-cell {
+
+    display: inline-flex;
+
+    align-items: center;
+
+    gap: 6px;
+
+    color: #0ea5b5;
+
+    font-weight: 600;
+
+    white-space: nowrap;
+
+}
+
+
+.contact-cell a {
+
+    color: inherit;
+
+    text-decoration: none;
+
+}
+
+
+.contact-cell a:hover {
+
+    text-decoration: underline;
+
+}
+
+
+.empty-contact {
+
+    color: #9ca3af;
+
+    font-style: italic;
+
+    font-size: 12px;
+
+}
+
+
+.add-contact-button {
+
+    display: inline-flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    gap: 5px;
+
+    padding: 6px 10px;
+
+    margin: 0;
+
+    background: #ffffff !important;
+
+    color: #0ea5b5 !important;
+
+    border: 1px dashed #0ea5b5 !important;
+
+    border-radius: 7px !important;
+
+    font-size: 11px !important;
+
+    font-weight: 600 !important;
+
+    cursor: pointer;
+
+    transition:
+        background 0.18s ease,
+        border-color 0.18s ease;
+
+}
+
+
+.add-contact-button:hover {
+
+    background: #effbfc !important;
+
+    border-color: #0891a2 !important;
+
+}
+
+
+/* =====================================================
+   ESTADOS
+   ===================================================== */
+
+.order-status {
+
+    display: inline-flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    min-width: 70px;
+
+    padding: 5px 11px;
+
+    border-radius: 999px;
+
+    font-size: 11px;
+
+    font-weight: 600;
+
+    line-height: 1;
+
+    white-space: nowrap;
+
+}
+
+
+.order-status--pending {
+
+    background: #fff4d6;
+
+    color: #a16207;
+
+}
+
+
+.order-status--success {
+
+    background: #e7f8ef;
+
+    color: #16834c;
+
+}
+
+
+.order-status--shipping {
+
+    background: #e8f1ff;
+
+    color: #2563eb;
+
+}
+
+
+.order-status--completed {
+
+    background: #e4f8eb;
+
+    color: #18864b;
+
+}
+
+
+.order-status--cancelled {
+
+    background: #fef0f0;
+
+    color: #dc2626;
+
+}
+
+
+/* =====================================================
+   ACCIONES
+   ===================================================== */
+
+.order-actions {
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 8px;
+
+}
+
+
+.order-action {
+
+    width: 30px;
+
+    height: 30px;
+
+    display: inline-flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    padding: 0;
+
+    margin: 0;
+
+    background: #ffffff;
+
+    border: 1px solid #e1e5ea;
+
+    border-radius: 7px;
+
+    color: #334155;
+
+    cursor: pointer;
+
+    transition:
+        background 0.18s ease,
+        border-color 0.18s ease,
+        color 0.18s ease,
+        transform 0.18s ease;
+
+}
+
+
+.order-action:hover {
+
+    transform: translateY(-1px);
+
+}
+
+
+.order-action--view:hover {
+
+    background: #eff8ff;
+
+    border-color: #bfdbfe;
+
+    color: #2563eb;
+
+}
+
+
+.order-action--edit:hover {
+
+    background: #effbfc;
+
+    border-color: #a5e3e9;
+
+    color: #0ea5b5;
+
+}
+
+
+.order-action--delete {
+
+    color: #ef4444;
+
+}
+
+
+.order-action--delete:hover {
+
+    background: #fff1f2;
+
+    border-color: #fecdd3;
+
+    color: #dc2626;
+
+}
+
+
+/* =====================================================
+   ESTADO VACÍO
+   ===================================================== */
+
+.order-empty-cell {
+
+    height: 125px;
+
+    padding: 30px !important;
+
+    text-align: center !important;
+
+    color: #64748b !important;
+
+    font-size: 12px !important;
+
+}
+
+
+/* =====================================================
+   LOADING / ERROR
+   ===================================================== */
+
+.order-loading,
+.order-error {
+
+    min-height: 180px;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    color: #64748b;
+
+    font-size: 13px;
+
+}
+
+
+.order-error {
+
+    color: #dc2626;
+
+}
+
+
+/* =====================================================
+   MODALES
+   ===================================================== */
+
+.modal-overlay {
+
+    position: fixed;
+
+    inset: 0;
+
+    z-index: 1000;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    padding: 25px;
+
+    background: rgba(15, 23, 42, 0.45);
+
+    backdrop-filter: blur(2px);
+
+}
+
+
+.order-detail-modal,
+.order-status-modal {
+
+    width: 100%;
+
+    max-width: 570px;
+
+    max-height: 90vh;
+
+    overflow-y: auto;
+
+    background: #ffffff;
+
+    border-radius: 16px;
+
+    border: 1px solid #eef0f3;
+
+    box-shadow:
+        0 20px 50px rgba(15, 23, 42, 0.18);
+
+}
+
+
+.order-status-modal {
+
+    max-width: 460px;
+
+}
+
+
+/* =====================================================
+   HEADER MODAL
+   ===================================================== */
+
+.modal-header {
+
+    display: flex;
+
+    align-items: flex-start;
+
+    justify-content: space-between;
+
+    gap: 20px;
+
+    padding: 22px 24px;
+
+    border-bottom: 1px solid #edf0f2;
+
+}
+
+
+.modal-header h2 {
+
+    margin: 0 0 5px;
+
+    color: #172554;
+
+    font-size: 18px;
+
+    font-weight: 700;
+
+}
+
+
+.modal-header p {
+
+    margin: 0;
+
+    color: #64748b;
+
+    font-size: 12px;
+
+}
+
+
+.close-button {
+
+    width: 34px;
+
+    height: 34px;
+
+    display: inline-flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    flex-shrink: 0;
+
+    padding: 0;
+
+    background: #ffffff;
+
+    border: 1px solid #e1e5ea;
+
+    border-radius: 8px;
+
+    color: #334155;
+
+    cursor: pointer;
+
+    transition:
+        background 0.18s ease,
+        color 0.18s ease;
+
+}
+
+
+.close-button:hover {
+
+    background: #f8fafc;
+
+    color: #0f172a;
+
+}
+
+
+/* =====================================================
+   DETALLE
+   ===================================================== */
+
+.detail-section {
+
+    padding: 20px 24px;
+
+    border-bottom: 1px solid #edf0f2;
+
+}
+
+
+.detail-section:last-child {
+
+    border-bottom: none;
+
+}
+
+
+.detail-section h3 {
+
+    margin: 0 0 12px;
+
+    color: #172554;
+
+    font-size: 13px;
+
+    font-weight: 700;
+
+}
+
+
+.detail-section p {
+
+    margin: 0;
+
+    color: #475569;
+
+    font-size: 13px;
+
+    line-height: 1.7;
+
+}
+
+
+.detail-section p strong {
+
+    color: #172554;
+
+}
+
+
+.detail-info-row {
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: space-between;
+
+    gap: 20px;
+
+    padding: 8px 0;
+
+    color: #64748b;
+
+    font-size: 13px;
+
+}
+
+
+.detail-info-row strong {
+
+    color: #172554;
+
+}
+
+
+.detail-products {
+
+    margin: 0;
+
+    padding: 0;
+
+    list-style: none;
+
+    border: 1px solid #e8ebef;
+
+    border-radius: 9px;
+
+    overflow: hidden;
+
+}
+
+
+.detail-products li {
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: space-between;
+
+    gap: 15px;
+
+    padding: 12px 14px;
+
+    color: #475569;
+
+    font-size: 12px;
+
+    border-bottom: 1px solid #edf0f2;
+
+}
+
+
+.detail-products li:last-child {
+
+    border-bottom: none;
+
+}
+
+
+.detail-products strong {
+
+    color: #172554;
+
+}
+
+
+/* =====================================================
+   FORMULARIO DE ESTADO
+   ===================================================== */
+
+.order-status-modal .form-group {
+
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 7px;
+
+    padding: 18px 24px 0;
+
+}
+
+
+.order-status-modal .form-group label {
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 6px;
+
+    color: #172554;
+
+    font-size: 12px;
+
+    font-weight: 600;
+
+}
+
+
+.order-status-modal .form-group select,
+.order-status-modal .form-group input {
+
+    width: 100%;
+
+    height: 42px;
+
+    box-sizing: border-box;
+
+    padding: 0 12px;
+
+    border: 1px solid #dfe3e8;
+
+    border-radius: 8px;
+
+    background: #ffffff;
+
+    color: #334155;
+
+    font-size: 13px;
+
+    outline: none;
+
+}
+
+
+.order-status-modal .form-group select:focus,
+.order-status-modal .form-group input:focus {
+
+    border-color: #0ea5b5;
+
+    box-shadow:
+        0 0 0 3px rgba(14, 165, 181, 0.10);
+
+}
+
+
+/* =====================================================
+   BOTONES MODAL
+   ===================================================== */
+
+.form-buttons {
+
+    display: flex;
+
+    justify-content: flex-end;
+
+    gap: 10px;
+
+    padding: 22px 24px;
+
+    margin-top: 18px;
+
+    border-top: 1px solid #edf0f2;
+
+}
+
+
+.cancel-button,
+.save-button {
+
+    height: 40px;
+
+    padding: 0 18px;
+
+    border-radius: 8px;
+
+    font-size: 12px;
+
+    font-weight: 600;
+
+    cursor: pointer;
+
+}
+
+
+.cancel-button {
+
+    background: #ffffff;
+
+    color: #334155;
+
+    border: 1px solid #dfe3e8;
+
+}
+
+
+.cancel-button:hover {
+
+    background: #f8fafc;
+
+}
+
+
+.save-button {
+
+    background: #0ea5b5;
+
+    color: #ffffff;
+
+    border: 1px solid #0ea5b5;
+
+}
+
+
+.save-button:hover {
+
+    background: #078f9e;
+
+}
+
+
+/* =====================================================
+   RESPONSIVE
+   ===================================================== */
+
+@media (max-width: 900px) {
+
+    .order-table {
+
+        padding: 22px;
+
+    }
+
+    .order-table-toolbar {
+
+        align-items: stretch;
+
+        flex-direction: column;
+
+    }
+
+    .order-search {
+
+        width: 100%;
+
+    }
+
+    .order-filter {
+
+        width: 100%;
+
+    }
+
+}
+
+
+@media (max-width: 600px) {
+
+    .order-table {
+
+        padding: 18px;
+
+        border-radius: 12px;
+
+    }
+
+    .order-table-title {
+
+        margin-bottom: 14px;
+
+    }
+
+    .modal-overlay {
+
+        padding: 12px;
+
+    }
+
+    .order-detail-modal,
+    .order-status-modal {
+
+        max-height: 94vh;
+
+        border-radius: 13px;
+
+    }
+
+    .modal-header {
+
+        padding: 18px;
+
+    }
+
+    .detail-section {
+
+        padding: 17px 18px;
+
+    }
+
+    .form-buttons {
+
+        padding: 18px;
+
+    }
 
 }

@@ -1,5 +1,6 @@
 import { Navigate } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
+import { esAdmin } from "../utils/esAdmin";
 
 function AdminRoute({ children }) {
 
@@ -17,11 +18,7 @@ function AdminRoute({ children }) {
 
     }
 
-    const esAdministrador =
-        usuario?.is_superuser === true ||
-        usuario?.tipo_usuario === "admin";
-
-    if (!esAdministrador) {
+    if (!esAdmin(usuario)) {
 
         return <Navigate to="/" replace />;
 

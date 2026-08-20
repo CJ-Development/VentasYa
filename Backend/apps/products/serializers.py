@@ -81,19 +81,34 @@ class VarianteSerializer(serializers.ModelSerializer):
         source="imagenproducto_set"
     )
 
-    producto_id = serializers.PrimaryKeyRelatedField(
-        queryset=Producto.objects.all(),
-        source="producto",
-        write_only=True
+    color = ColorSerializer(read_only=True)
+
+    talla = TallaSerializer(read_only=True)
+
+    color_id = serializers.PrimaryKeyRelatedField(
+        queryset=Color.objects.all(),
+        source="color",
+        write_only=True,
+        required=False,
+        allow_null=True
+    )
+
+    talla_id = serializers.PrimaryKeyRelatedField(
+        queryset=Talla.objects.all(),
+        source="talla",
+        write_only=True,
+        required=False,
+        allow_null=True
     )
 
     class Meta:
         model = Variante
         fields = [
             "id_variante",
-            "producto_id",
             "color",
+            "color_id",
             "talla",
+            "talla_id",
             "sku",
             "stock",
             "imagenes",

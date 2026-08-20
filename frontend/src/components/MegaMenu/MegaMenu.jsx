@@ -104,89 +104,83 @@ const armarColumnasProductos = (categorias) => {
 
 };
 
-/* Columna "Por categoría" del mega-menú de ofertas:
- * sólo aparecen las categorías con al menos una oferta
- * activa y vigente. */
-const armarColumnaCategoriasOferta = (ofertas, categorias) => {
+/* Columnas del mega-menú de ofertas: misma estructura raíz/hijos
+ * que armarColumnasProductos, pero filtrando las categorías a las
+ * que tienen al menos una oferta activa y vigente. */
+const armarColumnasOfertas = (categorias, ofertas) => {
 
-    const hoy = new Date().toISOString().split("T")[0];
+    const ahora = Date.now();
 
     const ofertaVigente = (o) => {
         if (o.activa === false) return false;
-        if (o.fecha_inicio && hoy < o.fecha_inicio) return false;
-        if (o.fecha_fin && hoy > o.fecha_fin) return false;
+        if (o.fecha_inicio) {
+            const ts = new Date(o.fecha_inicio).getTime();
+            if (Number.isNaN(ts)) return false;
+            if (ahora < ts) return false;
+        }
+        if (o.fecha_fin) {
+            const ts = new Date(o.fecha_fin).getTime();
+            if (Number.isNaN(ts)) return false;
+            if (ahora > ts) return false;
+        }
         return true;
     };
 
-    const vigentes = (ofertas || []).filter(ofertaVigente);
+    const idsConOferta = new Set();
 
-    if (vigentes.length === 0) return [];
-
-    const mapaCategorias = new Map(
-        (categorias || []).map((c) => [c.id_categoria, c.nombre])
-    );
-
-    const nombresUnicos = new Set();
-
-    vigentes.forEach((oferta) => {
-        const detalle = Array.isArray(oferta.categorias_detalle)
-            ? oferta.categorias_detalle
+    (ofertas || []).filter(ofertaVigente).forEach((o) => {
+        const detalle = Array.isArray(o.categorias_detalle)
+            ? o.categorias_detalle
             : null;
         if (detalle && detalle.length > 0) {
-            detalle.forEach((c) => nombresUnicos.add(c.nombre));
-            return;
-        }
-        const cat = oferta.producto_detalle?.categoria;
-        if (cat?.nombre) {
-            nombresUnicos.add(cat.nombre);
-            return;
-        }
-        if (Array.isArray(oferta.categorias_ids)) {
-            oferta.categorias_ids.forEach((id) => {
-                const nombre = mapaCategorias.get(id);
-                if (nombre) nombresUnicos.add(nombre);
+            detalle.forEach((c) => {
+                if (c.id_categoria) idsConOferta.add(c.id_categoria);
+                if (c.id_categoria_padre) {
+                    idsConOferta.add(c.id_categoria_padre);
+                }
             });
+            return;
         }
+        const idCat = o.producto_detalle?.categoria?.id_categoria;
+        const idPadre = o.producto_detalle?.categoria?.categoria_padre?.id_categoria;
+        if (idCat) idsConOferta.add(idCat);
+        if (idPadre) idsConOferta.add(idPadre);
     });
 
-    return Array.from(nombresUnicos)
-        .sort((a, b) => a.localeCompare(b))
-        .map((nombre) => ({ label: nombre }));
+    const activas = (categorias || [])
+        .filter((c) => c.estado !== "archivado")
+        .filter((c) => idsConOferta.has(c.id_categoria));
 
-};
+    if (activas.length === 0) return [];
 
-const OFERTAS_BASE = {
-    columns: [
-        {
-            titulo: "Flash 24h",
-            items: [
-                { label: "Solo hoy", href: "/offers", badge: "Hoy" },
-                { label: "Últimas unidades", href: "/offers", badge: "Stock" },
-                { label: "Hasta 70% off", href: "/offers", badge: "-70%" },
-                { label: "Envío gratis", href: "/offers", badge: "Free" },
-            ],
-        },
-        {
-            titulo: "Por categoría",
-            items: [],
-        },
-        {
-            titulo: "Más vendidos",
-            items: [
-                { label: "Top 10 semanal" },
-                { label: "Tendencia" },
-                { label: "Mejor valorados" },
-                { label: "Recomendados" },
-            ],
-        },
-    ],
-    panel: {
-        tag: "Top de la semana",
-        title: "Hasta 60% OFF en miles de productos",
-        description: "Aprovecha descuentos exclusivos por tiempo limitado.",
-        cta: "Ver todas las ofertas",
-        href: "/offers",
-    },
+    const raices = activas.filter((c) => !c.categoria_padre);
+    const hijosDe = (idPadre) => activas
+        .filter((c) => c.categoria_padre?.id_categoria === idPadre)
+        .sort((a, b) => (a.orden || 0) - (b.orden || 0));
+
+    if (raices.length === 0) {
+        return [
+            {
+                titulo: "Categorías en oferta",
+                items: activas
+                    .sort((a, b) => a.nombre.localeCompare(b.nombre))
+                    .map((c) => ({ label: c.nombre })),
+            },
+        ];
+    }
+
+    return raices.map((raiz) => {
+        const subs = hijosDe(raiz.id_categoria);
+        const items = subs.length > 0
+            ? subs.map((s) => ({ label: s.nombre }))
+            : [{ label: raiz.nombre }];
+        return {
+            titulo: raiz.nombre,
+            href: itemHref(raiz.nombre),
+            items,
+        };
+    });
+
 };
 
 function MegaMenu({ variant = "productos" }) {
@@ -225,14 +219,15 @@ function MegaMenu({ variant = "productos" }) {
     const data = useMemo(() => {
 
         if (variant === "ofertas") {
-            const colsCategoria = armarColumnaCategoriasOferta(ofertas, categorias);
             return {
-                ...OFERTAS_BASE,
-                columns: OFERTAS_BASE.columns.map((col) =>
-                    col.titulo === "Por categoría"
-                        ? { ...col, items: colsCategoria }
-                        : col
-                ),
+                columns: armarColumnasOfertas(categorias, ofertas),
+                panel: {
+                    tag: "Ofertas",
+                    title: "Promociones vigentes",
+                    description: "Descuentos activos organizados por categoría.",
+                    cta: "Ver todas las ofertas",
+                    href: "/offers",
+                },
             };
         }
 
@@ -252,7 +247,7 @@ function MegaMenu({ variant = "productos" }) {
     const Icon = variant === "ofertas" ? Tag : Sparkles;
 
     const tieneDatos = variant === "ofertas"
-        ? true
+        ? ofertas.length > 0
         : categorias.length > 0;
 
     return (

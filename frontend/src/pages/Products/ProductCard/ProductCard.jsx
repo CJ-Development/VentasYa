@@ -124,6 +124,10 @@ function ProductCard({ product, onSelect }) {
     ============================================================
     ABRIR PRODUCTO
     ============================================================
+    Por defecto navega a la página de detalle propia
+    (/producto/:slug). Si el consumidor pasa explícitamente
+    onSelect, mantenemos compatibilidad con el modal legacy.
+    ============================================================
     */
 
     const handleOpenProduct = () => {
@@ -131,6 +135,15 @@ function ProductCard({ product, onSelect }) {
         if (onSelect) {
 
             onSelect(product.id_producto);
+
+            return;
+
+        }
+
+
+        if (product?.slug) {
+
+            navigate(`/producto/${product.slug}`);
 
         }
 

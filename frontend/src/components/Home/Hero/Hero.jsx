@@ -37,6 +37,7 @@ function Hero() {
                 "Descubre las últimas tendencias en ropa y accesorios.",
             image: Moda,
             button: "Ver moda",
+            link: "/new",
             className: "hero-card--fashion",
             iconOne: Shirt,
             iconOneText: "Ropa para todos",
@@ -56,6 +57,7 @@ function Hero() {
                 "Encuentra todo lo que tu mejor amigo necesita en un solo lugar.",
             image: Mascotas,
             button: "Ver mascotas",
+            link: "/categoria/mascotas",
             className: "hero-card--pets",
             iconOne: PawPrint,
             iconOneText: "Mejores marcas",
@@ -75,6 +77,7 @@ function Hero() {
                 "Productos para el hogar, bebés y mucho más.",
             image: Familia,
             button: "Ver familia",
+            link: "/categoria/tecnologia",
             className: "hero-card--family",
             iconOne: Home,
             iconOneText: "Hogar y cocina",
@@ -173,13 +176,7 @@ function Hero() {
                                     </div>
 
                                     <a
-                                        href={
-                                            category.id === "moda"
-                                                ? "/products?category=moda"
-                                                : category.id === "mascotas"
-                                                    ? "/products?category=mascotas"
-                                                    : "/products?category=familia"
-                                        }
+                                        href={category.link}
                                         className="hero-card-button"
                                     >
                                         {category.button}

@@ -4,13 +4,11 @@
 
 .admin-sidebar {
     width: 280px;
-    min-height: 100vh;
 
     background: #062C3B;
 
     display: flex;
     flex-direction: column;
-    justify-content: space-between;
 
     padding: 24px 18px;
 
@@ -18,10 +16,13 @@
 
     position: sticky;
     top: 0;
+    align-self: flex-start;
+
+    max-height: 100vh;
 
     border-right: 1px solid rgba(255, 255, 255, 0.06);
 
-    overflow: hidden;
+    overflow-y: auto;
 
     transition: width 0.28s ease;
 
@@ -161,9 +162,11 @@
 
     gap: 7px;
 
-    flex: 1;
+    flex: 0 1 auto;
 
     width: 100%;
+
+    margin-top: 4px;
 }
 
 .admin-sidebar nav a {
@@ -239,7 +242,7 @@
 
     padding-top: 22px;
 
-    margin-top: 20px;
+    margin-top: auto;
 
     width: 100%;
 }

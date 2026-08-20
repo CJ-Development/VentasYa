@@ -1,6 +1,6 @@
 from django.db import models
 
-from apps.products.models import Producto
+from apps.products.models import Producto, Variante
 from apps.categories.models import Categoria
 
 
@@ -24,6 +24,17 @@ class Oferta(models.Model):
         related_name="ofertas",
     )
 
+    # Variante opcional: si se define, la oferta aplica sólo a esa
+    # variante; si es NULL, aplica a todas las variantes del producto.
+    variante = models.ForeignKey(
+        Variante,
+        on_delete=models.SET_NULL,
+        db_column="id_variante",
+        related_name="ofertas",
+        null=True,
+        blank=True,
+    )
+
     # M2M con categorías: una oferta puede aplicar a varias
     # categorías y/o subcategorías. La vista pública arma el
     # mega-menú agrupando por estas categorías.
@@ -44,9 +55,9 @@ class Oferta(models.Model):
         decimal_places=2,
     )
 
-    fecha_inicio = models.DateField()
+    fecha_inicio = models.DateTimeField()
 
-    fecha_fin = models.DateField()
+    fecha_fin = models.DateTimeField()
 
     activa = models.BooleanField(default=True)
 

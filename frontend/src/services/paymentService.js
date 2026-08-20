@@ -15,3 +15,14 @@ export const getMetodosPago = () =>
 
 export const checkout = (payload) =>
     api.post(`/orders/checkout/`, payload);
+
+
+/* ===========================
+   WOMPI
+=========================== */
+
+export const crearTransaccionWompi = (compraId) =>
+    api.post(`/payments/wompi/crear/`, { compra_id: compraId });
+
+export const consultarEstadoPago = (compraId) =>
+    api.get(`/payments/wompi/status/`, { params: { compra_id: compraId } });

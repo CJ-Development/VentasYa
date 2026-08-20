@@ -1,3 +1,4 @@
+
 // Convierte un nombre de categoría a un slug URL-safe.
 // "Ropa de Mujer" -> "ropa-de-mujer", "Niños" -> "ninos".
 export function slugify(value) {

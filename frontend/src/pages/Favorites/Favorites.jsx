@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 import {
     Heart,
@@ -39,6 +39,7 @@ const formatearPesos = (valor) => {
 function Favorites() {
 
     const { usuario } = useAuth();
+    const navigate = useNavigate();
 
     const [favoritos, setFavoritos] = useState([]);
 
@@ -318,7 +319,11 @@ function Favorites() {
                                 <article
                                     key={fav.id_favorito}
                                     className="favorite-card"
-                                    onClick={() => setSelectedProductId(producto.id_producto)}
+                                    onClick={() => {
+                                        if (producto?.slug) {
+                                            navigate(`/producto/${producto.slug}`);
+                                        }
+                                    }}
                                 >
 
                                     <div className="favorite-card-image">
@@ -360,7 +365,9 @@ function Favorites() {
                                                 className="favorite-card-buy"
                                                 onClick={(e) => {
                                                     e.stopPropagation();
-                                                    setSelectedProductId(producto.id_producto);
+                                                    if (producto?.slug) {
+                                                        navigate(`/producto/${producto.slug}`);
+                                                    }
                                                 }}
                                             >
                                                 <ShoppingBag size={14} />

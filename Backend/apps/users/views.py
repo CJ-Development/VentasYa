@@ -1,8 +1,12 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
+from rest_framework.authentication import SessionAuthentication
 
+from django.contrib.auth import login as django_login, logout as django_logout
 from django.shortcuts import get_object_or_404
+from django.utils.decorators import method_decorator
+from django.views.decorators.csrf import csrf_exempt, ensure_csrf_cookie
 
 from .serializers import (
     UsuarioSerializer,
@@ -18,7 +22,21 @@ from .models import Usuario, Direccion
 from .services import UserService
 
 
+class CsrfExemptSessionAuthentication(SessionAuthentication):
+    """
+    Igual que SessionAuthentication pero no exige CSRF en el método.
+    Se usa en endpoints que crean o destruyen la sesión (login, register,
+    logout) porque en esos casos todavía no hay token CSRF disponible.
+    """
+
+    def enforce_csrf(self, request):
+        return  # no-op
+
+
+@method_decorator(csrf_exempt, name="dispatch")
 class RegisterView(APIView):
+    """Crea cuenta y abre sesión. CSRF exento (no hay sesión todavía)."""
+    authentication_classes = [CsrfExemptSessionAuthentication]
 
     def post(self, request):
 
@@ -34,13 +52,28 @@ class RegisterView(APIView):
             serializer.validated_data
         )
 
+        # Iniciamos sesión automáticamente al registrarse para que
+        # la cookie de sesión y el token CSRF queden disponibles.
+        django_login(request, usuario)
+
         return Response(
             UsuarioSerializer(usuario).data,
             status=status.HTTP_201_CREATED
         )
 
 
+@method_decorator(csrf_exempt, name="dispatch")
+@method_decorator(ensure_csrf_cookie, name="dispatch")
 class LoginView(APIView):
+    """
+    Autentica credenciales y abre sesión Django.
+
+    - csrf_exempt: sin sesión previa no se puede pedir CSRF.
+    - ensure_csrf_cookie: fuerza al navegador a guardar la cookie
+      `csrftoken` para que el frontend pueda usarla en los
+      siguientes POST/PUT/DELETE.
+    """
+    authentication_classes = [CsrfExemptSessionAuthentication]
 
     def post(self, request):
 
@@ -66,10 +99,25 @@ class LoginView(APIView):
                 status=status.HTTP_401_UNAUTHORIZED
             )
 
+        # Creamos la sesión Django (cookie sessionid) para que las
+        # siguientes llamadas con withCredentials viajen autenticadas
+        # y el CSRF funcione en POST/PUT/DELETE.
+        django_login(request, usuario)
+
         return Response(
             UsuarioSerializer(usuario).data,
             status=status.HTTP_200_OK
         )
+
+
+@method_decorator(csrf_exempt, name="dispatch")
+class LogoutView(APIView):
+    """Cierra la sesión Django (borra sessionid)."""
+    authentication_classes = [CsrfExemptSessionAuthentication]
+
+    def post(self, request):
+        django_logout(request)
+        return Response({"ok": True}, status=status.HTTP_200_OK)
 
 
 class UserListView(APIView):
@@ -85,6 +133,42 @@ class UserListView(APIView):
 
         return Response(
             serializer.data
+        )
+
+
+class MeView(APIView):
+    """
+    Devuelve el usuario asociado a la sesión actual.
+    Sirve para diagnosticar si el cliente está enviando la cookie
+    de sesión y qué flags (is_staff / is_superuser / is_active) ve
+    el backend. No requiere autenticación: si no hay sesión,
+    responde 200 con `autenticado: False`.
+    """
+
+    def get(self, request):
+
+        user = request.user
+
+        if not user or not user.is_authenticated:
+            return Response(
+                {
+                    "autenticado": False,
+                    "is_staff": False,
+                    "is_superuser": False,
+                    "is_active": False,
+                    "email": None,
+                }
+            )
+
+        return Response(
+            {
+                "autenticado": True,
+                "is_staff": bool(user.is_staff),
+                "is_superuser": bool(user.is_superuser),
+                "is_active": bool(user.is_active),
+                "email": user.email,
+                "id_usuario": user.id_usuario,
+            }
         )
 
 

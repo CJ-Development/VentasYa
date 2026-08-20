@@ -18,20 +18,14 @@ function Orders() {
 
         <div className="orders-page">
 
-            <div className="page-header">
+            <div className="orders-page-header">
 
                 <div>
 
-                    <h1>
-
-                        Pedidos
-
-                    </h1>
+                    <h1>Pedidos</h1>
 
                     <p>
-
                         Consulta y administra los pedidos realizados por los clientes.
-
                     </p>
 
                 </div>

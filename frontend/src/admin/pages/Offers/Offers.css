@@ -1,23 +1,160 @@
-.offers-page{
+/* =====================================================
+   PÁGINA DE OFERTAS (lista + header)
+===================================================== */
 
-    display:flex;
-
-    flex-direction:column;
-
-    gap:30px;
-
+.offers-page {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 22px;
+    box-sizing: border-box;
 }
 
-.page-header h1{
 
-    color:var(--secondary);
+/* =====================================================
+   HEADER
+===================================================== */
 
-    margin-bottom:8px;
-
+.offers-header {
+    width: 100%;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 24px;
 }
 
-.page-header p{
+.offers-header-content {
+    display: flex;
+    flex-direction: column;
+}
 
-    color:var(--text-light);
+.offers-header h1 {
+    margin: 0;
+    color: #1f2937;
+    font-size: 28px;
+    line-height: 1.2;
+    font-weight: 700;
+    letter-spacing: -0.4px;
+}
 
+.offers-header p {
+    margin: 6px 0 0;
+    color: #6b7280;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+
+/* =====================================================
+   BOTÓN NUEVA OFERTA
+===================================================== */
+
+.new-offer-button {
+    height: 48px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 0 20px;
+    border: none;
+    border-radius: 8px;
+    background: #0ea5b5;
+    color: #ffffff;
+    font-size: 14px;
+    font-weight: 600;
+    white-space: nowrap;
+    cursor: pointer;
+    box-shadow: 0 3px 8px rgba(14, 165, 181, 0.18);
+    transition:
+        background 0.2s ease,
+        transform 0.2s ease,
+        box-shadow 0.2s ease;
+}
+
+.new-offer-button:hover {
+    background: #0b92a1;
+    transform: translateY(-1px);
+    box-shadow: 0 5px 14px rgba(14, 165, 181, 0.26);
+}
+
+.new-offer-button:active {
+    transform: translateY(0);
+}
+
+.new-offer-plus {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    line-height: 1;
+    font-weight: 400;
+}
+
+
+/* =====================================================
+   BOTÓN VOLVER (sticky en la página del formulario)
+===================================================== */
+
+.offer-form-page {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    box-sizing: border-box;
+}
+
+.offer-form-top {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    padding: 6px 0 10px;
+    border-bottom: 1px solid #f3f4f6;
+    margin-bottom: 4px;
+}
+
+.back-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 14px;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    background: #ffffff;
+    color: #374151;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition:
+        background 0.15s ease,
+        border-color 0.15s ease,
+        transform 0.15s ease;
+}
+
+.back-button:hover {
+    background: #f9fafb;
+    border-color: #d1d5db;
+}
+
+.back-button:active {
+    transform: translateY(1px);
+}
+
+
+/* =====================================================
+   RESPONSIVE
+===================================================== */
+
+@media (max-width: 700px) {
+    .offers-header {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .new-offer-button {
+        width: fit-content;
+    }
+
+    .offers-header h1 {
+        font-size: 22px;
+    }
 }
