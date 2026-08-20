@@ -1,6 +1,7 @@
 import os
 from pathlib import Path
 
+
 # ============================================================
 # BASE
 # ============================================================
@@ -51,7 +52,7 @@ SECRET_KEY = os.environ.get(
 
 DEBUG = os.environ.get(
     "DEBUG",
-    "True"
+    "False"
 ).lower() in ("1", "true", "yes")
 
 
@@ -151,42 +152,59 @@ TEMPLATES = [
 
 
 # ============================================================
-# BASE DE DATOS
+# DATABASE
 # ============================================================
 #
 # LOCAL
-# -----
-# Si no existe DATABASE_URL, usamos SQLite.
+#   Django → SQLite → db.sqlite3
 #
 # VERCEL
-# ------
-# Si existe DATABASE_URL, usamos PostgreSQL.
-#
-# Esto permite que el mismo proyecto funcione en ambos lugares.
+#   Django → PostgreSQL → Supabase
 #
 
-DATABASE_URL = os.environ.get("DATABASE_URL")
-
-
-if DATABASE_URL:
-
-    # PostgreSQL para producción
-    import dj_database_url
+if os.environ.get("POSTGRES_URL"):
 
     DATABASES = {
-        "default": dj_database_url.parse(
-            DATABASE_URL,
-            conn_max_age=600,
-            conn_health_checks=True,
-        )
+        "default": {
+            "ENGINE": "django.db.backends.postgresql",
+
+            "NAME": os.environ.get(
+                "POSTGRES_DATABASE"
+            ),
+
+            "USER": os.environ.get(
+                "POSTGRES_USER"
+            ),
+
+            "PASSWORD": os.environ.get(
+                "POSTGRES_PASSWORD"
+            ),
+
+            "HOST": os.environ.get(
+                "POSTGRES_HOST"
+            ),
+
+            "PORT": os.environ.get(
+                "POSTGRES_PORT",
+                "5432"
+            ),
+
+            "OPTIONS": {
+                "sslmode": "require",
+            },
+
+            # Serverless:
+            # no mantenemos conexiones persistentes
+            "CONN_MAX_AGE": 0,
+        }
     }
 
 else:
 
-    # SQLite para desarrollo local
     DATABASES = {
         "default": {
             "ENGINE": "django.db.backends.sqlite3",
+
             "NAME": BASE_DIR / "db.sqlite3",
         }
     }
@@ -268,7 +286,7 @@ MEDIA_ROOT = BASE_DIR / "media"
 #   Vite normalmente usa localhost:5173
 #
 # Producción:
-#   Vercel nos permitirá definir FRONTEND_URL
+#   FRONTEND_URL se configurará en Vercel.
 #
 
 CORS_ALLOWED_ORIGINS = [
@@ -277,9 +295,12 @@ CORS_ALLOWED_ORIGINS = [
 ]
 
 
-FRONTEND_URL = os.environ.get("FRONTEND_URL")
+FRONTEND_URL = os.environ.get(
+    "FRONTEND_URL"
+)
 
 if FRONTEND_URL:
+
     CORS_ALLOWED_ORIGINS.append(
         FRONTEND_URL.rstrip("/")
     )
@@ -299,6 +320,7 @@ CSRF_TRUSTED_ORIGINS = [
 
 
 if FRONTEND_URL:
+
     CSRF_TRUSTED_ORIGINS.append(
         FRONTEND_URL.rstrip("/")
     )
@@ -307,31 +329,27 @@ if FRONTEND_URL:
 # ============================================================
 # COOKIES
 # ============================================================
-#
-# En desarrollo permitimos cookies cross-site para que:
-#
-# frontend localhost:5173
-#          ↓
-# backend localhost:8000
-#
-# pueda trabajar correctamente.
-#
 
 if DEBUG:
 
+    # Desarrollo local
     SESSION_COOKIE_SAMESITE = "None"
+
     SESSION_COOKIE_SECURE = False
 
     CSRF_COOKIE_SAMESITE = "None"
+
     CSRF_COOKIE_SECURE = False
 
 else:
 
     # Producción HTTPS
     SESSION_COOKIE_SAMESITE = "None"
+
     SESSION_COOKIE_SECURE = True
 
     CSRF_COOKIE_SAMESITE = "None"
+
     CSRF_COOKIE_SECURE = True
 
 
@@ -340,7 +358,6 @@ else:
 # ============================================================
 
 REST_FRAMEWORK = {
-
     "DEFAULT_AUTHENTICATION_CLASSES": [
         "rest_framework.authentication.SessionAuthentication",
     ],
