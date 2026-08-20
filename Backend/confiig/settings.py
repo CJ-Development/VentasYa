@@ -195,31 +195,76 @@ TEMPLATES = [
 # ============================================================
 # DATABASE
 # ============================================================
+#
+# Supabase ofrece dos endpoints por proyecto:
+#   - POSTGRES_URL                → pooler transaction-mode (puerto 6543)
+#   - POSTGRES_URL_NON_POOLING    → conexión directa (puerto 5432)
+# En Vercel (serverless) hay que usar el pooler: la conexión
+# directa está limitada a ~15 conexiones simultáneas en plan free
+# y se cae con EMAXCONNSESSION bajo carga.
+#
+# Estrategia:
+#   1. Si POSTGRES_URL existe (Supabase la inyecta), parseamos su
+#      URL y la usamos como host/user/pass/db/port. Esto funciona
+#      tanto con el pooler transaction-mode como con session-mode.
+#   2. Si solo vienen las variables sueltas (POSTGRES_HOST/PORT/…)
+#      las respetamos como fallback.
+#   3. CONN_MAX_AGE=0 + CONN_HEALTH_CHECKS=True cierra cada
+#      conexión al terminar el request y descarta conexiones
+#      caídas. Reduce la presión sobre el pool de Supabase.
+#
 
-POSTGRES_HOST = os.environ.get("POSTGRES_HOST")
-POSTGRES_DATABASE = os.environ.get("POSTGRES_DATABASE")
-POSTGRES_USER = os.environ.get("POSTGRES_USER")
-POSTGRES_PASSWORD = os.environ.get("POSTGRES_PASSWORD")
+def _parse_pg_url(url):
+    """Devuelve (host, port, user, password, dbname) o None."""
+    if not url:
+        return None
+    try:
+        from urllib.parse import urlparse
+        parsed = urlparse(url)
+        if parsed.scheme not in ("postgres", "postgresql"):
+            return None
+        return (
+            parsed.hostname,
+            parsed.port or 5432,
+            parsed.username,
+            parsed.password,
+            (parsed.path or "/").lstrip("/"),
+        )
+    except Exception:
+        return None
 
-if all([
-    POSTGRES_HOST,
-    POSTGRES_DATABASE,
-    POSTGRES_USER,
-    POSTGRES_PASSWORD,
-]):
+
+# Prioridad 1: POSTGRES_URL (pooler recomendado por Supabase para serverless)
+_parsed = _parse_pg_url(os.environ.get("POSTGRES_URL"))
+
+if _parsed:
+    _host, _port, _user, _password, _dbname = _parsed
+else:
+    # Prioridad 2: variables sueltas que ya usaba el proyecto
+    _host = os.environ.get("POSTGRES_HOST")
+    _port = int(os.environ.get("POSTGRES_PORT", "5432"))
+    _user = os.environ.get("POSTGRES_USER")
+    _password = os.environ.get("POSTGRES_PASSWORD")
+    _dbname = os.environ.get("POSTGRES_DATABASE")
+
+if all([_host, _user, _password, _dbname]):
     DATABASES = {
         "default": {
             "ENGINE": "django.db.backends.postgresql",
-            "NAME": POSTGRES_DATABASE,
-            "USER": POSTGRES_USER,
-            "PASSWORD": POSTGRES_PASSWORD,
-            "HOST": POSTGRES_HOST,
-            "PORT": os.environ.get("POSTGRES_PORT", "5432"),
+            "NAME": _dbname,
+            "USER": _user,
+            "PASSWORD": _password,
+            "HOST": _host,
+            "PORT": _port,
             "OPTIONS": {
                 "sslmode": "require",
                 "connect_timeout": 10,
             },
-            "CONN_MAX_AGE": 60,
+            # Cierra la conexión al terminar cada request y descarta
+            # las conexiones caídas antes de reusarlas. Crítico en
+            # serverless para no agotar el pool de Supabase.
+            "CONN_MAX_AGE": 0,
+            "CONN_HEALTH_CHECKS": True,
         }
     }
 else:
