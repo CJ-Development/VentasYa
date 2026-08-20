@@ -409,3 +409,12 @@ class DireccionDetalleView(APIView):
         return Response(
             status=status.HTTP_204_NO_CONTENT
         )
+
+    from django.http import JsonResponse
+from django.views.decorators.csrf import ensure_csrf_cookie
+
+
+@method_decorator(ensure_csrf_cookie, name="dispatch")
+class CsrfView(APIView):
+    def get(self, request):
+        return Response({"ok": True})

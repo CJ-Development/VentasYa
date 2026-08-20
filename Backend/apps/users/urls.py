@@ -23,6 +23,7 @@ urlpatterns = [
 
     path("direcciones/", DireccionView.as_view(), name="user-direcciones"),
     path("direcciones/<int:id>/", DireccionDetalleView.as_view(), name="user-direccion-detalle"),
+    
 ]
 
 app_name = "users"

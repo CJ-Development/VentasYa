@@ -54,27 +54,61 @@ export const createTalla = (data) => api.post("/products/tallas/", data);
 export const updateTalla = (id, data) => api.put(`/products/tallas/${id}/`, data);
 export const deleteTalla = (id) => api.delete(`/products/tallas/${id}/`);
 
-/* ===========================
-   CATEGORIAS
-=========================== */
-export const getCategories = (params = {}) =>
-    api.get("/categories/", { params });
+/* =====================================================
+   CATEGORÍAS
+===================================================== */
 
-export const getCategory = (id) => api.get(`/categories/${id}/`);
-export const createCategory = (data) => api.post("/categories/", data);
-export const updateCategory = (id, data) => api.put(`/categories/${id}/`, data);
+export const getCategories = (params = {}) => {
+    return api.get(
+        "/categories/",
+        {
+            params
+        }
+    );
+};
 
-/**
- * Archiva una categoría.
- * Si `cascade=true`, también archiva los productos vinculados a esta
- * categoría y a todas sus descendientes.
- */
-export const deleteCategory = (id, { cascade = false } = {}) =>
-    api.delete(`/categories/${id}/${cascade ? "?cascade=true" : ""}`);
+export const getCategory = (id) => {
+    return api.get(
+        `/categories/${id}/`
+    );
+};
 
-export const reactivateCategory = (id) =>
-    api.post(`/categories/${id}/reactivar/`);
+export const createCategory = (data) => {
+    return api.post(
+        "/categories/",
+        data
+    );
+};
 
+export const updateCategory = (id, data) => {
+    return api.put(
+        `/categories/${id}/`,
+        data
+    );
+};
+
+export const deleteCategory = (
+    id,
+    { cascade = false } = {}
+) => {
+
+    const params = cascade
+        ? { cascade: true }
+        : {};
+
+    return api.delete(
+        `/categories/${id}/`,
+        {
+            params
+        }
+    );
+};
+
+export const reactivateCategory = (id) => {
+    return api.post(
+        `/categories/${id}/reactivar/`
+    );
+};
 /* ===========================
    OFERTAS
 =========================== */
