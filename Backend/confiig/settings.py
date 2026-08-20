@@ -1,42 +1,87 @@
-
 import os
 from pathlib import Path
 
-# Carga variables del .env si existe (sin dependencia extra):
-# SECRET_KEY, DEBUG, DB_*, ALLOWED_HOSTS, etc.
-try:
-    from dotenv import load_dotenv  # type: ignore
-    load_dotenv(BASE_DIR if False else None)
-except Exception:
-    pass
+# ============================================================
+# BASE
+# ============================================================
 
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+
+# ============================================================
+# CARGA MANUAL DEL .env
+# ============================================================
+#
+# En local:
+#   Backend/.env
+#
+# En Vercel:
+#   Las variables se configuran desde Environment Variables.
+#
+
 _env_path = BASE_DIR / ".env"
+
 if _env_path.exists():
     for _line in _env_path.read_text(encoding="utf-8").splitlines():
         _line = _line.strip()
-        if not _line or _line.startswith("#") or "=" not in _line:
-            continue
-        _k, _v = _line.split("=", 1)
-        os.environ.setdefault(_k.strip(), _v.strip())
 
-SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-!a=s)h#mkm=+4cax!4euw3kx_p8_e9_#ni^y45g*v9zo_ho8@!')
-DEBUG = os.environ.get('DEBUG', 'True').lower() in ('1', 'true', 'yes')
-# Aceptamos tanto "localhost" como "127.0.0.1" para que el frontend Vite
-# pueda hablar con Django sin que el middleware rechace el Host.
+        if (
+            not _line
+            or _line.startswith("#")
+            or "=" not in _line
+        ):
+            continue
+
+        _key, _value = _line.split("=", 1)
+
+        os.environ.setdefault(
+            _key.strip(),
+            _value.strip()
+        )
+
+
+# ============================================================
+# SEGURIDAD
+# ============================================================
+
+SECRET_KEY = os.environ.get(
+    "SECRET_KEY",
+    "django-insecure-development-key-change-me"
+)
+
+DEBUG = os.environ.get(
+    "DEBUG",
+    "True"
+).lower() in ("1", "true", "yes")
+
+
+# ============================================================
+# HOSTS
+# ============================================================
+
 ALLOWED_HOSTS = [
-    "ventasya-backend.vercel.app",
-    ".vercel.app",
     "localhost",
     "127.0.0.1",
+    "ventasya-backend.vercel.app",
+    ".vercel.app",
 ]
+
+
+# ============================================================
+# APLICACIONES
+# ============================================================
+
 INSTALLED_APPS = [
-    'django.contrib.auth',
-    'django.contrib.contenttypes',
-    'django.contrib.sessions',
-    'django.contrib.messages',
-    'django.contrib.staticfiles',
+    "django.contrib.auth",
+    "django.contrib.contenttypes",
+    "django.contrib.sessions",
+    "django.contrib.messages",
+    "django.contrib.staticfiles",
+
     "rest_framework",
+    "corsheaders",
+
+    # Aplicaciones VentasYa
     "apps.users",
     "apps.categories",
     "apps.products",
@@ -47,107 +92,291 @@ INSTALLED_APPS = [
     "apps.favorites",
     "apps.notifications",
     "apps.reviews",
-    "corsheaders",
 ]
+
+
+# ============================================================
+# MIDDLEWARE
+# ============================================================
 
 MIDDLEWARE = [
     "corsheaders.middleware.CorsMiddleware",
-    'django.middleware.security.SecurityMiddleware',
-    'django.contrib.sessions.middleware.SessionMiddleware',
-    'django.middleware.common.CommonMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
-    'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'django.contrib.messages.middleware.MessageMiddleware',
-    'django.middleware.clickjacking.XFrameOptionsMiddleware',
+
+    "django.middleware.security.SecurityMiddleware",
+
+    "django.contrib.sessions.middleware.SessionMiddleware",
+
+    "django.middleware.common.CommonMiddleware",
+
+    "django.middleware.csrf.CsrfViewMiddleware",
+
+    "django.contrib.auth.middleware.AuthenticationMiddleware",
+
+    "django.contrib.messages.middleware.MessageMiddleware",
+
+    "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
 
-ROOT_URLCONF = 'confiig.urls'
 
-TEMPLATES = [{
-    'BACKEND': 'django.template.backends.django.DjangoTemplates',
-    'DIRS': [],
-    'APP_DIRS': True,
-    'OPTIONS': {'context_processors': [
-        'django.template.context_processors.request',
-        'django.contrib.auth.context_processors.auth',
-        'django.contrib.messages.context_processors.messages',
-    ]},
-}]
+# ============================================================
+# URLS / WSGI
+# ============================================================
 
-WSGI_APPLICATION = 'confiig.wsgi.application'
+ROOT_URLCONF = "confiig.urls"
 
-DATABASES = {
-    "default": {
-        "ENGINE": os.environ.get(
-            "DB_ENGINE", "django.db.backends.sqlite3"
-        ),
-        "NAME": os.environ.get("DB_NAME", "db.sqlite3"),
-        "USER": os.environ.get("DB_USER", ""),
-        "PASSWORD": os.environ.get("DB_PASSWORD", ""),
-        "HOST": os.environ.get("DB_HOST", ""),
-        "PORT": os.environ.get("DB_PORT", ""),
+WSGI_APPLICATION = "confiig.wsgi.application"
+
+
+# ============================================================
+# TEMPLATES
+# ============================================================
+
+TEMPLATES = [
+    {
+        "BACKEND": "django.template.backends.django.DjangoTemplates",
+
+        "DIRS": [],
+
+        "APP_DIRS": True,
+
+        "OPTIONS": {
+            "context_processors": [
+                "django.template.context_processors.request",
+                "django.contrib.auth.context_processors.auth",
+                "django.contrib.messages.context_processors.messages",
+            ],
+        },
+    },
+]
+
+
+# ============================================================
+# BASE DE DATOS
+# ============================================================
+#
+# LOCAL
+# -----
+# Si no existe DATABASE_URL, usamos SQLite.
+#
+# VERCEL
+# ------
+# Si existe DATABASE_URL, usamos PostgreSQL.
+#
+# Esto permite que el mismo proyecto funcione en ambos lugares.
+#
+
+DATABASE_URL = os.environ.get("DATABASE_URL")
+
+
+if DATABASE_URL:
+
+    # PostgreSQL para producción
+    import dj_database_url
+
+    DATABASES = {
+        "default": dj_database_url.parse(
+            DATABASE_URL,
+            conn_max_age=600,
+            conn_health_checks=True,
+        )
     }
-}
+
+else:
+
+    # SQLite para desarrollo local
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.sqlite3",
+            "NAME": BASE_DIR / "db.sqlite3",
+        }
+    }
+
+
+# ============================================================
+# USUARIO PERSONALIZADO
+# ============================================================
+
 AUTH_USER_MODEL = "users.Usuario"
+
+
+# ============================================================
+# VALIDADORES DE CONTRASEÑA
+# ============================================================
+
 AUTH_PASSWORD_VALIDATORS = [
-    {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
-    {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator'},
-    {'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator'},
-    {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator'},
+    {
+        "NAME": (
+            "django.contrib.auth.password_validation."
+            "UserAttributeSimilarityValidator"
+        ),
+    },
+    {
+        "NAME": (
+            "django.contrib.auth.password_validation."
+            "MinimumLengthValidator"
+        ),
+    },
+    {
+        "NAME": (
+            "django.contrib.auth.password_validation."
+            "CommonPasswordValidator"
+        ),
+    },
+    {
+        "NAME": (
+            "django.contrib.auth.password_validation."
+            "NumericPasswordValidator"
+        ),
+    },
 ]
 
-LANGUAGE_CODE = 'en-us'
-TIME_ZONE = 'UTC'
+
+# ============================================================
+# IDIOMA / ZONA HORARIA
+# ============================================================
+
+LANGUAGE_CODE = "es-co"
+
+TIME_ZONE = "America/Bogota"
+
 USE_I18N = True
+
 USE_TZ = True
 
-STATIC_URL = 'static/'
-MEDIA_URL = '/media/'
-MEDIA_ROOT = BASE_DIR / 'media'
+
+# ============================================================
+# ARCHIVOS ESTÁTICOS
+# ============================================================
+
+STATIC_URL = "/static/"
+
+
+# ============================================================
+# MEDIA
+# ============================================================
+
+MEDIA_URL = "/media/"
+
+MEDIA_ROOT = BASE_DIR / "media"
+
+
+# ============================================================
+# CORS
+# ============================================================
+#
+# Local:
+#   Vite normalmente usa localhost:5173
+#
+# Producción:
+#   Vercel nos permitirá definir FRONTEND_URL
+#
 
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173",
     "http://127.0.0.1:5173",
 ]
 
+
+FRONTEND_URL = os.environ.get("FRONTEND_URL")
+
+if FRONTEND_URL:
+    CORS_ALLOWED_ORIGINS.append(
+        FRONTEND_URL.rstrip("/")
+    )
+
+
 CORS_ALLOW_CREDENTIALS = True
 
-# CSRF_TRUSTED_ORIGINS: en Django 4+ los origins que reciben POST/PUT/DELETE
-# con sesión tienen que estar acá, además de CORS_ALLOWED_ORIGINS. Sin esto
-# DRF rechaza la request con 403 incluso si la cookie viaja.
+
+# ============================================================
+# CSRF
+# ============================================================
+
 CSRF_TRUSTED_ORIGINS = [
     "http://localhost:5173",
     "http://127.0.0.1:5173",
 ]
 
-# En desarrollo el frontend (5173) y el backend (8000) suelen correr
-# en hosts distintos (localhost vs 127.0.0.1), lo que el navegador
-# considera "cross-site". Con SameSite=Lax, el navegador BLOQUEA la
-# cookie `sessionid` en requests POST cross-site, y por eso DRF ve
-# request.user como AnonymousUser y devuelve 403 "Authentication
-# credentials were not provided". Forzamos SameSite=None (con Secure
-# desactivado para que funcione en http://localhost) SOLO en DEBUG.
+
+if FRONTEND_URL:
+    CSRF_TRUSTED_ORIGINS.append(
+        FRONTEND_URL.rstrip("/")
+    )
+
+
+# ============================================================
+# COOKIES
+# ============================================================
+#
+# En desarrollo permitimos cookies cross-site para que:
+#
+# frontend localhost:5173
+#          ↓
+# backend localhost:8000
+#
+# pueda trabajar correctamente.
+#
+
 if DEBUG:
+
     SESSION_COOKIE_SAMESITE = "None"
     SESSION_COOKIE_SECURE = False
+
     CSRF_COOKIE_SAMESITE = "None"
     CSRF_COOKIE_SECURE = False
 
-# DRF: usamos autenticación por sesión para que el admin pueda
-# crear/editar ofertas con CSRF. El frontend envía withCredentials
-# y la cookie csrftoken vía X-CSRFToken (ver frontend/src/services/api.js).
+else:
+
+    # Producción HTTPS
+    SESSION_COOKIE_SAMESITE = "None"
+    SESSION_COOKIE_SECURE = True
+
+    CSRF_COOKIE_SAMESITE = "None"
+    CSRF_COOKIE_SECURE = True
+
+
+# ============================================================
+# DJANGO REST FRAMEWORK
+# ============================================================
+
 REST_FRAMEWORK = {
+
     "DEFAULT_AUTHENTICATION_CLASSES": [
         "rest_framework.authentication.SessionAuthentication",
     ],
+
     "DEFAULT_PERMISSION_CLASSES": [
-        # Default abierto: el sitio público (home, catálogo, ofertas,
-        # categorías, productos, favoritos, reviews) usa GET sin login.
-        # Los endpoints admin (POST/PUT/DELETE) restringen por vista
-        # vía get_permissions() usando IsAdminUser (staff).
         "rest_framework.permissions.AllowAny",
     ],
+
     "DEFAULT_RENDERER_CLASSES": [
         "rest_framework.renderers.JSONRenderer",
     ],
 }
+
+
+# ============================================================
+# SEGURIDAD PARA PRODUCCIÓN
+# ============================================================
+
+if not DEBUG:
+
+    SECURE_PROXY_SSL_HEADER = (
+        "HTTP_X_FORWARDED_PROTO",
+        "https",
+    )
+
+    SECURE_SSL_REDIRECT = False
+
+    SESSION_COOKIE_HTTPONLY = True
+
+    CSRF_COOKIE_HTTPONLY = False
+
+    X_FRAME_OPTIONS = "DENY"
+
+
+# ============================================================
+# DEFAULT PRIMARY KEY
+# ============================================================
+
+DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
