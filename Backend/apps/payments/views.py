@@ -165,6 +165,22 @@ class WompiCrearView(APIView):
             settings.WOMPI_PRIVATE_KEY or ""
         ).strip()
 
+        # Detectar ambiente según el prefijo de la clave:
+        #   pub_test_ / prv_test_  -> sandbox
+        #   pub_prod_ / prv_prod_ -> producción
+        #   cualquier otro         -> producción por defecto
+        if (
+            public_key.startswith("pub_test_")
+            or private_key.startswith("prv_test_")
+        ):
+            wompi_base = (
+                "https://sandbox.wompi.co/v1"
+            )
+        else:
+            wompi_base = (
+                "https://production.wompi.co/v1"
+            )
+
         if not public_key or not private_key:
 
             simulated_tx = (
@@ -234,7 +250,7 @@ class WompiCrearView(APIView):
         }
 
         url = (
-            "https://production.wompi.co/v1/transactions"
+            f"{wompi_base}/transactions"
         )
 
         headers = {
@@ -463,8 +479,16 @@ class WompiStatusView(APIView):
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
+        # Detectar ambiente según el prefijo de la clave
+        # privada. Si empieza con prv_test_ -> sandbox, en
+        # otro caso -> producción.
+        if private_key.startswith("prv_test_"):
+            wompi_base = "https://sandbox.wompi.co/v1"
+        else:
+            wompi_base = "https://production.wompi.co/v1"
+
         url = (
-            "https://production.wompi.co/v1/transactions/"
+            f"{wompi_base}/transactions/"
             f"{pago.wompi_transaction_id}"
         )
 
