@@ -193,6 +193,7 @@ function Checkout() {
         } catch (err) {
             console.error("Checkout error:", err);
             const msg =
+                err?.response?.data?.wompi_response ||
                 err?.response?.data?.detail ||
                 err?.response?.data?.error ||
                 err?.message ||
