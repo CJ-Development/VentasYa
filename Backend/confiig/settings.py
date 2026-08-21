@@ -474,4 +474,5 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 # ============================================================
 # Token para autenticación con Vercel Blob Storage
 # Necesario para subir archivos de productos
+# Configurado en variables de entorno de Vercel
 BLOB_READ_WRITE_TOKEN = os.environ.get("BLOB_READ_WRITE_TOKEN")
