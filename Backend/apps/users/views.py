@@ -419,12 +419,13 @@ class DireccionDetalleView(APIView):
 
 
 @method_decorator(ensure_csrf_cookie, name="dispatch")
-class CsrfView(APIView):
+class CsrfTokenView(APIView):
 
     def get(self, request):
+        from django.middleware.csrf import get_token
+
         token = get_token(request)
 
         return Response({
-            "ok": True,
-            "csrfToken": token,
+            "csrfToken": token
         })

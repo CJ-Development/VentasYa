@@ -72,26 +72,22 @@ api.interceptors.request.use(
         ---------------------------------------------
         */
 
-        if (
-            ["post", "put", "patch", "delete"].includes(method)
-        ) {
+    if (
+        ["post", "put", "patch", "delete"].includes(method)
+    ) {
+        const csrfToken =
+            api.defaults.headers.common["X-CSRFToken"];
 
-            const csrfToken = readCookie("csrftoken");
+        if (csrfToken) {
+            config.headers =
+                config.headers || {};
 
-            if (csrfToken) {
-
-                config.headers =
-                    config.headers || {};
-
-                if (
-                    !config.headers["X-CSRFToken"]
-                ) {
-                    config.headers["X-CSRFToken"] =
-                        csrfToken;
-                }
+            if (!config.headers["X-CSRFToken"]) {
+                config.headers["X-CSRFToken"] =
+                    csrfToken;
             }
         }
-
+    }
         /*
         ---------------------------------------------
         USUARIO_ID: eliminado.
@@ -244,8 +240,16 @@ asegurarse de tener el token válido.
 =====================================================
 */
 
-export const getCsrfToken = () => {
-    return api.get("users/csrf/");
-};
+export const getCsrfToken = async () => {
+    const response = await api.get("users/csrf/");
 
-export default api;
+    const token = response.data?.csrfToken;
+
+    if (!token) {
+        throw new Error("El backend no devolvió el token CSRF");
+    }
+
+    api.defaults.headers.common["X-CSRFToken"] = token;
+
+    return response;
+};
