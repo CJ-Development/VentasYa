@@ -7,6 +7,7 @@ from django.contrib.auth import login as django_login, logout as django_logout
 from django.shortcuts import get_object_or_404
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt, ensure_csrf_cookie
+from django.middleware.csrf import get_token
 
 from .serializers import (
     UsuarioSerializer,
@@ -44,6 +45,7 @@ class RegisterView(APIView):
     checkout…) fallan con 403 "CSRF Failed" porque DRF exige el
     token en cualquier método no-GET.
     """
+
     authentication_classes = [CsrfExemptSessionAuthentication]
 
     def post(self, request):
@@ -81,6 +83,7 @@ class LoginView(APIView):
       `csrftoken` para que el frontend pueda usarla en los
       siguientes POST/PUT/DELETE.
     """
+
     authentication_classes = [CsrfExemptSessionAuthentication]
 
     def post(self, request):
@@ -121,11 +124,15 @@ class LoginView(APIView):
 @method_decorator(csrf_exempt, name="dispatch")
 class LogoutView(APIView):
     """Cierra la sesión Django (borra sessionid)."""
+
     authentication_classes = [CsrfExemptSessionAuthentication]
 
     def post(self, request):
         django_logout(request)
-        return Response({"ok": True}, status=status.HTTP_200_OK)
+        return Response(
+            {"ok": True},
+            status=status.HTTP_200_OK
+        )
 
 
 @method_decorator(ensure_csrf_cookie, name="dispatch")
@@ -410,11 +417,14 @@ class DireccionDetalleView(APIView):
             status=status.HTTP_204_NO_CONTENT
         )
 
-    from django.http import JsonResponse
-from django.views.decorators.csrf import ensure_csrf_cookie
-
 
 @method_decorator(ensure_csrf_cookie, name="dispatch")
 class CsrfView(APIView):
+
     def get(self, request):
-        return Response({"ok": True})
+        token = get_token(request)
+
+        return Response({
+            "ok": True,
+            "csrfToken": token,
+        })
