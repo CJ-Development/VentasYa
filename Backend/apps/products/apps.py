@@ -7,3 +7,6 @@ class ProductsConfig(AppConfig):
     label = "products"
     verbose_name = "products"
 
+    def ready(self):
+        pass
+
