@@ -66,67 +66,68 @@ class ProductoService:
 
     @staticmethod
     def _save_uploaded_file(uploaded_file):
+        # Intentar usar Vercel Blob Storage si el token está configurado
         token = os.environ.get("BLOB_READ_WRITE_TOKEN")
 
-        if not token:
-            raise RuntimeError(
-                "BLOB_READ_WRITE_TOKEN no está configurado en el entorno."
-            )
+        if token:
+            try:
+                ext = os.path.splitext(uploaded_file.name)[1].lower() or ".jpg"
+                filename = f"productos/{uuid.uuid4().hex}{ext}"
 
+                content_type = (
+                    getattr(uploaded_file, "content_type", None)
+                    or mimetypes.guess_type(uploaded_file.name)[0]
+                    or "application/octet-stream"
+                )
+
+                url = f"https://blob.vercel-storage.com/{filename}"
+
+                headers = {
+                    "Authorization": f"Bearer {token}",
+                    "x-api-version": "7",
+                    "x-content-type": content_type,
+                    "x-cache-control-max-age": "31536000",
+                    "x-add-random-suffix": "0",
+                    "access": "public",
+                }
+
+                # Leer el contenido del archivo
+                file_content = uploaded_file.read()
+
+                # Crear la solicitud con urllib
+                req = urllib.request.Request(
+                    url,
+                    data=file_content,
+                    headers=headers,
+                    method='PUT'
+                )
+
+                with urllib.request.urlopen(req, timeout=60) as response:
+                    response_data = response.read()
+                    data = json.loads(response_data.decode('utf-8'))
+                    
+                    blob_url = data.get("url")
+
+                    if not blob_url:
+                        raise RuntimeError(
+                            f"Vercel Blob no devolvió una URL válida: {data}"
+                        )
+
+                    return blob_url
+            except Exception as e:
+                print(f"Error usando Vercel Blob Storage, fallback a local: {str(e)}")
+                # Fallback a almacenamiento local si falla
+
+        # Fallback a almacenamiento local
+        folder = os.path.join(settings.MEDIA_ROOT, "productos")
+        os.makedirs(folder, exist_ok=True)
         ext = os.path.splitext(uploaded_file.name)[1].lower() or ".jpg"
-
-        filename = f"productos/{uuid.uuid4().hex}{ext}"
-
-        content_type = (
-            getattr(uploaded_file, "content_type", None)
-            or mimetypes.guess_type(uploaded_file.name)[0]
-            or "application/octet-stream"
-        )
-
-        url = f"https://blob.vercel-storage.com/{filename}"
-
-        headers = {
-            "Authorization": f"Bearer {token}",
-            "x-api-version": "7",
-            "x-content-type": content_type,
-            "x-cache-control-max-age": "31536000",
-            "x-add-random-suffix": "0",
-            "access": "public",
-        }
-
-        # Leer el contenido del archivo
-        file_content = uploaded_file.read()
-
-        # Crear la solicitud con urllib
-        req = urllib.request.Request(
-            url,
-            data=file_content,
-            headers=headers,
-            method='PUT'
-        )
-
-        try:
-            with urllib.request.urlopen(req, timeout=60) as response:
-                response_data = response.read()
-                data = json.loads(response_data.decode('utf-8'))
-                
-                blob_url = data.get("url")
-
-                if not blob_url:
-                    raise RuntimeError(
-                        f"Vercel Blob no devolvió una URL válida: {data}"
-                    )
-
-                return blob_url
-        except urllib.error.HTTPError as e:
-            raise RuntimeError(
-                f"Error subiendo imagen a Vercel Blob: "
-                f"{e.code} - {e.read().decode('utf-8')}"
-            )
-        except urllib.error.URLError as e:
-            raise RuntimeError(
-                f"Error de conexión con Vercel Blob: {str(e)}"
-            )
+        filename = f"{uuid.uuid4().hex}{ext}"
+        path = os.path.join(folder, filename)
+        with open(path, "wb") as destination:
+            for chunk in uploaded_file.chunks():
+                destination.write(chunk)
+        return f"{settings.MEDIA_URL.rstrip('/')}/productos/{filename}"
 
     @staticmethod
     def _resolve_local_path_from_url(value):
