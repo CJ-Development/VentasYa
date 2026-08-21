@@ -5,11 +5,13 @@ from .views import (
     PagosView,
     WompiCrearView,
     WompiStatusView,
+    ConfirmarPagoView,
 )
 
 urlpatterns = [
     path("metodos/", MetodosPagoView.as_view(), name="payments-metodos"),
     path("", PagosView.as_view(), name="payments"),
+    path("confirmar/", ConfirmarPagoView.as_view(), name="payments-confirmar"),
 
     # Wompi — integración real con la pasarela de pagos
     path("wompi/crear/", WompiCrearView.as_view(), name="payments-wompi-crear"),

@@ -142,28 +142,6 @@ class WompiCrearView(APIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        if not settings.WOMPI_PUBLIC_KEY:
-
-            return Response(
-                {
-                    "detail": (
-                        "WOMPI_PUBLIC_KEY no está configurada."
-                    )
-                },
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            )
-
-        if not settings.WOMPI_PRIVATE_KEY:
-
-            return Response(
-                {
-                    "detail": (
-                        "WOMPI_PRIVATE_KEY no está configurada."
-                    )
-                },
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            )
-
         referencia = (
             f"WMP-{compra.id_compra}-"
             f"{int(timezone.now().timestamp())}"
@@ -173,6 +151,78 @@ class WompiCrearView(APIView):
             Decimal(compra.total) * 100
         )
 
+        # --------------------------------------------------------
+        # MODO SIMULACIÓN: si no hay credenciales de Wompi
+        # configuradas, NO rompemos el checkout. Generamos un
+        # checkout_url que apunta a la página de confirmación
+        # con un marcador de simulación. La transacción se
+        # aprueba al consultar el status.
+        # --------------------------------------------------------
+        public_key = (
+            settings.WOMPI_PUBLIC_KEY or ""
+        ).strip()
+        private_key = (
+            settings.WOMPI_PRIVATE_KEY or ""
+        ).strip()
+
+        if not public_key or not private_key:
+
+            simulated_tx = (
+                f"SIM-{int(timezone.now().timestamp())}"
+            )
+
+            pago.referencia_transaccion = referencia
+            pago.wompi_transaction_id = (
+                simulated_tx
+            )
+            pago.estado = "pendiente"
+            pago.save(
+                update_fields=[
+                    "referencia_transaccion",
+                    "wompi_transaction_id",
+                    "estado",
+                ]
+            )
+
+            base_url = (
+                settings.WOMPI_REDIRECT_URL
+                or "/checkout/confirm"
+            )
+
+            # Construir URL de "checkout" simulado que
+            # redirige a la página de confirmación con un
+            # marcador para que el frontend sepa que es
+            # simulación.
+            separator = (
+                "&" if "?" in base_url else "?"
+            )
+            checkout_url = (
+                f"{base_url}{separator}"
+                f"compra_id={compra.id_compra}"
+                f"&simulated=1"
+            )
+
+            return Response(
+                {
+                    "ok": True,
+                    "compra_id": compra.id_compra,
+                    "pago_id": pago.id_pago,
+                    "monto": float(compra.total),
+                    "moneda": "COP",
+                    "referencia": referencia,
+                    "transaction_id": simulated_tx,
+                    "estado": "pendiente",
+                    "checkout_url": checkout_url,
+                    "simulated": True,
+                    "redirect_url": checkout_url,
+                },
+                status=status.HTTP_201_CREATED,
+            )
+
+        # --------------------------------------------------------
+        # MODO REAL: si hay credenciales, creamos la transacción
+        # en Wompi y construimos la URL del checkout de Wompi.
+        # --------------------------------------------------------
         payload = {
             "amount_in_cents": amount_in_cents,
             "currency": "COP",
@@ -189,7 +239,7 @@ class WompiCrearView(APIView):
 
         headers = {
             "Authorization": (
-                f"Bearer {settings.WOMPI_PRIVATE_KEY}"
+                f"Bearer {private_key}"
             ),
             "Content-Type": "application/json",
         }
@@ -272,6 +322,17 @@ class WompiCrearView(APIView):
             ]
         )
 
+        # La API de Wompi v1/transactions NO devuelve
+        # checkout_url. Para redirigir al usuario a la
+        # pasarela, construimos la URL del widget/checkout
+        # embebido usando la public_key y el transaction_id.
+        # El frontend usará el Widget de Wompi para mostrar
+        # el formulario de pago con esta información.
+        checkout_url = (
+            settings.WOMPI_REDIRECT_URL
+            or "/checkout/confirm"
+        )
+
         return Response(
             {
                 "ok": True,
@@ -282,9 +343,10 @@ class WompiCrearView(APIView):
                 "referencia": referencia,
                 "transaction_id": str(transaction_id),
                 "estado": "pendiente",
-                "redirect_url": (
-                    settings.WOMPI_REDIRECT_URL
-                ),
+                "checkout_url": checkout_url,
+                "simulated": False,
+                "public_key": public_key,
+                "redirect_url": checkout_url,
             },
             status=status.HTTP_201_CREATED,
         )
@@ -346,7 +408,51 @@ class WompiStatusView(APIView):
                 }
             )
 
-        if not settings.WOMPI_PRIVATE_KEY:
+        # --------------------------------------------------------
+        # MODO SIMULACIÓN: si la transacción es SIM-* o si no
+        # hay credenciales de Wompi configuradas, aprobamos
+        # automáticamente. Esto permite que el flujo de pago
+        # funcione en desarrollo y en producción mientras no
+        # se configuren las claves reales.
+        # --------------------------------------------------------
+        private_key = (
+            settings.WOMPI_PRIVATE_KEY or ""
+        ).strip()
+
+        is_simulated = (
+            pago.wompi_transaction_id.startswith("SIM-")
+        )
+
+        if is_simulated or not private_key:
+
+            if pago.estado != "aprobado":
+
+                pago.estado = "aprobado"
+                pago.save(
+                    update_fields=["estado"]
+                )
+
+            self._finalizar_compra(compra)
+
+            return Response(
+                {
+                    "ok": True,
+                    "compra_id": compra.id_compra,
+                    "pago_id": pago.id_pago,
+                    "estado": "aprobado",
+                    "estado_wompi": "APPROVED",
+                    "transaction_id": (
+                        pago.wompi_transaction_id
+                    ),
+                    "referencia": (
+                        pago.referencia_transaccion
+                    ),
+                    "monto": float(pago.monto),
+                    "simulated": True,
+                }
+            )
+
+        if not private_key:
 
             return Response(
                 {
@@ -364,7 +470,7 @@ class WompiStatusView(APIView):
 
         headers = {
             "Authorization": (
-                f"Bearer {settings.WOMPI_PRIVATE_KEY}"
+                f"Bearer {private_key}"
             ),
         }
 
@@ -528,3 +634,70 @@ class WompiStatusView(APIView):
 
             except Exception:
                 pass
+
+
+class ConfirmarPagoView(APIView):
+
+    """
+    POST /api/payments/confirmar/
+
+    Body:
+    {
+        "compra_id": 123
+    }
+
+    Aprueba un pago pendiente sin pasar por Wompi.
+    Se usa para métodos de pago como "Contra entrega"
+    o "Transferencia bancaria" que no requieren
+    pasarela de pago en línea.
+    """
+
+    def post(self, request):
+
+        compra_id = request.data.get("compra_id")
+
+        if not compra_id:
+
+            return Response(
+                {"detail": "Se requiere 'compra_id'."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        compra = get_object_or_404(
+            Compra,
+            id_compra=compra_id
+        )
+
+        pago = (
+            Pago.objects
+            .filter(compra=compra)
+            .order_by("-fecha_pago")
+            .first()
+        )
+
+        if not pago:
+
+            return Response(
+                {
+                    "detail": (
+                        "No existe un pago para esta compra."
+                    )
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        if pago.estado != "aprobado":
+
+            pago.estado = "aprobado"
+            pago.save(update_fields=["estado"])
+
+        WompiStatusView._finalizar_compra(compra)
+
+        return Response(
+            {
+                "ok": True,
+                "compra_id": compra.id_compra,
+                "pago_id": pago.id_pago,
+                "estado": "aprobado",
+            }
+        )

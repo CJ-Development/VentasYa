@@ -24,7 +24,7 @@ import {
     getMisDirecciones,
     crearDireccion,
 } from "../../services/addressService";
-import { getMetodosPago, checkout, crearTransaccionWompi } from "../../services/paymentService";
+import { getMetodosPago, checkout, crearTransaccionWompi, confirmarPago } from "../../services/paymentService";
 
 import NoImage from "../../assets/images/no-image.png";
 import { mediaUrl } from "../../utils/mediaUrl";
@@ -172,23 +172,53 @@ function Checkout() {
                 compraData?.id ??
                 compraData?.compra?.id_compra ??
                 compraData?.compra?.id;
-            
+
             if (!compraId) {
                 throw new Error("No se pudo crear la compra");
+            }
+
+            // Detectar método seleccionado. Si NO es Wompi
+            // (es Contra entrega o Transferencia), aprobamos
+            // la compra directamente sin pasar por la pasarela.
+            const metodoSeleccionado = metodos.find(
+                (m) => m.id === metodoPagoId
+            );
+            const esWompi =
+                metodoSeleccionado?.tipo?.toLowerCase() ===
+                "wompi";
+
+            if (!esWompi) {
+                // Para métodos distintos a Wompi (contra
+                // entrega, transferencia), aprobamos la
+                // compra directamente en el backend.
+                await confirmarPago(compraId);
+                await clear();
+                navigate(
+                    `/checkout/confirm?compra_id=${compraId}&simulated=1`,
+                    { replace: true }
+                );
+                return;
             }
 
             // Crear transacción de Wompi
             const { data: wompiData } = await crearTransaccionWompi(compraId);
 
-            if (!wompiData?.checkout_url) {
-                throw new Error("No se pudo generar la URL de pago de Wompi");
+            const checkoutUrl =
+                wompiData?.checkout_url ||
+                wompiData?.redirect_url;
+
+            if (!checkoutUrl) {
+                throw new Error(
+                    "No se pudo generar la URL de pago de Wompi"
+                );
             }
 
             // Vaciar carrito local
             await clear();
 
-            // Redirigir al checkout de Wompi
-            window.location.href = wompiData.checkout_url;
+            // Redirigir al checkout de Wompi (o a la URL
+            // simulada que devuelve el backend).
+            window.location.href = checkoutUrl;
 
         } catch (err) {
             console.error("Checkout error:", err);

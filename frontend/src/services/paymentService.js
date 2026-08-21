@@ -26,3 +26,12 @@ export const crearTransaccionWompi = (compraId) =>
 
 export const consultarEstadoPago = (compraId) =>
     api.get(`/payments/wompi/status/`, { params: { compra_id: compraId } });
+
+/* ===========================
+   CONFIRMAR PAGO
+   (para métodos distintos a Wompi: contra entrega,
+   transferencia bancaria, o modo simulación)
+=========================== */
+
+export const confirmarPago = (compraId) =>
+    api.post(`/payments/confirmar/`, { compra_id: compraId });

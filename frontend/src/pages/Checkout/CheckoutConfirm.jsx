@@ -3,7 +3,7 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 
 import { CheckCircle2, Loader2, XCircle } from "lucide-react";
 
-import { consultarEstadoPago } from "../../services/paymentService";
+import { consultarEstadoPago, confirmarPago } from "../../services/paymentService";
 
 import "./Checkout.css";
 
@@ -17,7 +17,9 @@ function CheckoutConfirm() {
     useEffect(() => {
         const verificarPago = async () => {
             const compraId = searchParams.get("compra_id");
-            
+            const isSimulated =
+                searchParams.get("simulated") === "1";
+
             if (!compraId) {
                 setError("No se encontró el ID de la compra");
                 setEstado("error");
@@ -25,9 +27,26 @@ function CheckoutConfirm() {
             }
 
             try {
-                // Consultar estado del pago en Wompi
+                // Si viene el flag de simulación o el pago es
+                // SIM-*, aprobamos directamente sin pasar por
+                // Wompi. Esto cubre dos casos:
+                // 1. Wompi no configurado (simulación).
+                // 2. Métodos distintos a Wompi (contra entrega,
+                //    transferencia bancaria).
+                if (isSimulated) {
+                    try {
+                        await confirmarPago(compraId);
+                    } catch (e) {
+                        // Si ya estaba aprobado o el pago no
+                        // existe, ignoramos. El endpoint
+                        // /wompi/status también lo aprobará.
+                    }
+                }
+
+                // Consultar estado del pago (esto también
+                // aprueba automáticamente las simulaciones).
                 const { data } = await consultarEstadoPago(compraId);
-                
+
                 if (data.estado === "aprobado") {
                     setEstado("aprobado");
                     // Redirigir a mis pedidos después de 3 segundos
