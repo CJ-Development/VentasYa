@@ -9,6 +9,7 @@ import os
 import uuid
 
 from django.conf import settings
+from .blob_storage import BlobStorageService
 
 
 class ColorSerializer(serializers.ModelSerializer):
@@ -40,21 +41,8 @@ class ImagenSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
     def _guardar_archivo(self, archivo):
-        folder = os.path.join(
-            settings.MEDIA_ROOT,
-            "productos",
-        )
-        os.makedirs(folder, exist_ok=True)
-
-        ext = os.path.splitext(archivo.name)[1].lower() or ".jpg"
-        nombre = f"{uuid.uuid4().hex}{ext}"
-        ruta = os.path.join(folder, nombre)
-
-        with open(ruta, "wb") as destino:
-            for chunk in archivo.chunks():
-                destino.write(chunk)
-
-        return f"{settings.MEDIA_URL}productos/{nombre}"
+        """Sube el archivo a Vercel Blob Storage"""
+        return BlobStorageService.upload_file(archivo, folder="productos")
 
     def create(self, validated_data):
         archivo = validated_data.pop("archivo", None)
@@ -130,6 +118,16 @@ class ProductoSerializer(serializers.ModelSerializer):
         read_only=True,
         source="variante_set"
     )
+
+    def to_internal_value(self, data):
+        # Manejar el caso donde descripcion viene como array
+        if 'descripcion' in data and isinstance(data['descripcion'], list):
+            data = data.copy()
+            if len(data['descripcion']) > 0:
+                data['descripcion'] = str(data['descripcion'][0])
+            else:
+                data['descripcion'] = ''
+        return super().to_internal_value(data)
 
     class Meta:
 

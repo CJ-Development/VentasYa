@@ -7,6 +7,7 @@ from django.db.models import Prefetch
 
 from .models import Producto, Variante, ImagenProducto
 from .serializers import VarianteSerializer
+from .blob_storage import BlobStorageService
 
 
 class ProductoService:
@@ -62,19 +63,16 @@ class ProductoService:
 
     @staticmethod
     def _save_uploaded_file(uploaded_file):
-        folder = os.path.join(settings.MEDIA_ROOT, "productos")
-        os.makedirs(folder, exist_ok=True)
-        ext = os.path.splitext(uploaded_file.name)[1].lower() or ".jpg"
-        filename = f"{uuid.uuid4().hex}{ext}"
-        path = os.path.join(folder, filename)
-        with open(path, "wb") as destination:
-            for chunk in uploaded_file.chunks():
-                destination.write(chunk)
-        return f"{settings.MEDIA_URL.rstrip('/')}/productos/{filename}"
+        """Sube el archivo a Vercel Blob Storage"""
+        return BlobStorageService.upload_file(uploaded_file, folder="productos")
 
     @staticmethod
     def _resolve_local_path_from_url(value):
+        """Si es una URL local, resuelve la ruta del archivo. Si es de Blob Storage, retorna None"""
         if not value:
+            return None
+        # Si es URL de Vercel Blob Storage, no necesitamos resolver ruta local
+        if BlobStorageService.is_blob_url(value):
             return None
         prefix = settings.MEDIA_URL.rstrip("/") + "/"
         if not value.startswith(prefix):
@@ -84,6 +82,13 @@ class ProductoService:
 
     @staticmethod
     def _delete_file_if_local(imagen):
+        """Elimina archivos locales o de Blob Storage"""
+        # Si es URL de Vercel Blob Storage, usar servicio de blob
+        if BlobStorageService.is_blob_url(imagen.imagen):
+            BlobStorageService.delete_file(imagen.imagen)
+            return
+            
+        # Si es archivo local, eliminar del disco
         path = ProductoService._resolve_local_path_from_url(imagen.imagen)
         if not path:
             return
@@ -95,6 +100,16 @@ class ProductoService:
 
     @staticmethod
     def _delete_file_by_url(value):
+        """Elimina archivos por URL (tanto locales como de Blob Storage)"""
+        if not value:
+            return
+            
+        # Si es URL de Vercel Blob Storage, usar servicio de blob
+        if BlobStorageService.is_blob_url(value):
+            BlobStorageService.delete_file(value)
+            return
+            
+        # Si es archivo local, eliminar del disco
         path = ProductoService._resolve_local_path_from_url(value)
         if not path:
             return
