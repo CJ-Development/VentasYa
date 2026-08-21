@@ -123,6 +123,7 @@ class MisPedidosView(APIView):
         return Response(CompraSerializer(pedidos, many=True).data)
 
 
+@method_decorator(ensure_csrf_cookie, name="dispatch")
 class CheckoutView(APIView):
     """
     POST /api/orders/checkout/
