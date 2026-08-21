@@ -66,68 +66,65 @@ class ProductoService:
 
     @staticmethod
     def _save_uploaded_file(uploaded_file):
-        # Intentar usar Vercel Blob Storage si el token está configurado
+        # En producción (Vercel), solo usar Vercel Blob Storage
+        # El sistema de archivos es read-only en serverless
         token = os.environ.get("BLOB_READ_WRITE_TOKEN")
 
-        if token:
-            try:
-                ext = os.path.splitext(uploaded_file.name)[1].lower() or ".jpg"
-                filename = f"productos/{uuid.uuid4().hex}{ext}"
+        if not token:
+            raise ValueError(
+                "BLOB_READ_WRITE_TOKEN no está configurado. "
+                "En Vercel serverless es obligatorio para subir archivos."
+            )
 
-                content_type = (
-                    getattr(uploaded_file, "content_type", None)
-                    or mimetypes.guess_type(uploaded_file.name)[0]
-                    or "application/octet-stream"
-                )
+        try:
+            ext = os.path.splitext(uploaded_file.name)[1].lower() or ".jpg"
+            filename = f"productos/{uuid.uuid4().hex}{ext}"
 
-                url = f"https://blob.vercel-storage.com/{filename}"
+            content_type = (
+                getattr(uploaded_file, "content_type", None)
+                or mimetypes.guess_type(uploaded_file.name)[0]
+                or "application/octet-stream"
+            )
 
-                headers = {
-                    "Authorization": f"Bearer {token}",
-                    "x-api-version": "7",
-                    "x-content-type": content_type,
-                    "x-cache-control-max-age": "31536000",
-                    "x-add-random-suffix": "0",
-                    "access": "public",
-                }
+            url = f"https://blob.vercel-storage.com/{filename}"
 
-                # Leer el contenido del archivo
-                file_content = uploaded_file.read()
+            headers = {
+                "Authorization": f"Bearer {token}",
+                "x-api-version": "7",
+                "x-content-type": content_type,
+                "x-cache-control-max-age": "31536000",
+                "x-add-random-suffix": "0",
+                "access": "public",
+            }
 
-                # Crear la solicitud con urllib
-                req = urllib.request.Request(
-                    url,
-                    data=file_content,
-                    headers=headers,
-                    method='PUT'
-                )
+            # Leer el contenido del archivo
+            file_content = uploaded_file.read()
 
-                with urllib.request.urlopen(req, timeout=60) as response:
-                    response_data = response.read()
-                    data = json.loads(response_data.decode('utf-8'))
-                    
-                    blob_url = data.get("url")
+            # Crear la solicitud con urllib
+            req = urllib.request.Request(
+                url,
+                data=file_content,
+                headers=headers,
+                method='PUT'
+            )
 
-                    if not blob_url:
-                        raise RuntimeError(
-                            f"Vercel Blob no devolvió una URL válida: {data}"
-                        )
+            with urllib.request.urlopen(req, timeout=60) as response:
+                response_data = response.read()
+                data = json.loads(response_data.decode('utf-8'))
+                
+                blob_url = data.get("url")
 
-                    return blob_url
-            except Exception as e:
-                print(f"Error usando Vercel Blob Storage, fallback a local: {str(e)}")
-                # Fallback a almacenamiento local si falla
+                if not blob_url:
+                    raise RuntimeError(
+                        f"Vercel Blob no devolvió una URL válida: {data}"
+                    )
 
-        # Fallback a almacenamiento local
-        folder = os.path.join(settings.MEDIA_ROOT, "productos")
-        os.makedirs(folder, exist_ok=True)
-        ext = os.path.splitext(uploaded_file.name)[1].lower() or ".jpg"
-        filename = f"{uuid.uuid4().hex}{ext}"
-        path = os.path.join(folder, filename)
-        with open(path, "wb") as destination:
-            for chunk in uploaded_file.chunks():
-                destination.write(chunk)
-        return f"{settings.MEDIA_URL.rstrip('/')}/productos/{filename}"
+                return blob_url
+        except Exception as e:
+            raise RuntimeError(
+                f"Error subiendo archivo a Vercel Blob Storage: {str(e)}. "
+                "Verifica que BLOB_READ_WRITE_TOKEN sea válido."
+            )
 
     @staticmethod
     def _resolve_local_path_from_url(value):
