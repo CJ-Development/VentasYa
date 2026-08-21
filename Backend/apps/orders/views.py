@@ -144,118 +144,125 @@ class CheckoutView(APIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        usuario = get_object_or_404(
-            Usuario,
-            id_usuario=usuario_id
-        )
-
-        direccion = get_object_or_404(
-            Direccion,
-            id_direccion=direccion_id,
-            usuario=usuario
-        )
-
-        metodo_pago = get_object_or_404(
-            MetodoPago,
-            id_metodo_pago=metodo_pago_id
-        )
-
         try:
-            carrito = Carrito.objects.get(usuario=usuario)
-        except Carrito.DoesNotExist:
-            return Response(
-                {"detail": "Tu carrito está vacío."},
-                status=status.HTTP_400_BAD_REQUEST,
+            usuario = get_object_or_404(
+                Usuario,
+                id_usuario=usuario_id
             )
 
-        items = list(
-            carrito.items
-            .select_related("variante__producto")
-            .all()
-        )
-
-        if not items:
-            return Response(
-                {"detail": "Tu carrito está vacío."},
-                status=status.HTTP_400_BAD_REQUEST,
+            direccion = get_object_or_404(
+                Direccion,
+                id_direccion=direccion_id,
+                usuario=usuario
             )
 
-        # Validar stock
-        for it in items:
+            metodo_pago = get_object_or_404(
+                MetodoPago,
+                id_metodo_pago=metodo_pago_id
+            )
 
-            if it.cantidad > it.variante.stock:
-
+            try:
+                carrito = Carrito.objects.get(usuario=usuario)
+            except Carrito.DoesNotExist:
                 return Response(
-                    {
-                        "detail": (
-                            f"Stock insuficiente para "
-                            f"{it.variante.producto.nombre}. "
-                            f"Disponible: {it.variante.stock}, "
-                            f"solicitado: {it.cantidad}."
-                        )
-                    },
+                    {"detail": "Tu carrito está vacío."},
                     status=status.HTTP_400_BAD_REQUEST,
                 )
 
-        with transaction.atomic():
-
-            total = sum(
-                (
-                    it.variante.producto.precio * it.cantidad
-                    for it in items
-                ),
-                start=0,
+            items = list(
+                carrito.items
+                .select_related("variante__producto")
+                .all()
             )
 
-            # IMPORTANTE:
-            # La compra todavía NO está pagada.
-            compra = Compra.objects.create(
-                usuario=usuario,
-                direccion=direccion,
-                metodo_pago=metodo_pago,
-                total=total,
-                estado_compra="pendiente",
-                telefono_contacto=(
-                    telefono_contacto or usuario.telefono
-                ),
-            )
+            if not items:
+                return Response(
+                    {"detail": "Tu carrito está vacío."},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
 
+            # Validar stock
             for it in items:
 
-                DetalleCompra.objects.create(
-                    compra=compra,
-                    variante=it.variante,
-                    cantidad=it.cantidad,
-                    precio_unitario=(
-                        it.variante.producto.precio
+                if it.cantidad > it.variante.stock:
+
+                    return Response(
+                        {
+                            "detail": (
+                                f"Stock insuficiente para "
+                                f"{it.variante.producto.nombre}. "
+                                f"Disponible: {it.variante.stock}, "
+                                f"solicitado: {it.cantidad}."
+                            )
+                        },
+                        status=status.HTTP_400_BAD_REQUEST,
+                    )
+
+            with transaction.atomic():
+
+                total = sum(
+                    (
+                        it.variante.producto.precio * it.cantidad
+                        for it in items
                     ),
-                    subtotal=(
-                        it.variante.producto.precio
-                        * it.cantidad
+                    start=0,
+                )
+
+                # IMPORTANTE:
+                # La compra todavía NO está pagada.
+                compra = Compra.objects.create(
+                    usuario=usuario,
+                    direccion=direccion,
+                    metodo_pago=metodo_pago,
+                    total=total,
+                    estado_compra="pendiente",
+                    telefono_contacto=(
+                        telefono_contacto or usuario.telefono
                     ),
                 )
 
-            # Crear pago pendiente
-            pago = Pago.objects.create(
-                compra=compra,
-                metodo_pago=metodo_pago,
-                monto=total,
-                estado="pendiente",
+                for it in items:
+
+                    DetalleCompra.objects.create(
+                        compra=compra,
+                        variante=it.variante,
+                        cantidad=it.cantidad,
+                        precio_unitario=(
+                            it.variante.producto.precio
+                        ),
+                        subtotal=(
+                            it.variante.producto.precio
+                            * it.cantidad
+                        ),
+                    )
+
+                # Crear pago pendiente
+                pago = Pago.objects.create(
+                    compra=compra,
+                    metodo_pago=metodo_pago,
+                    monto=total,
+                    estado="pendiente",
+                )
+
+            return Response(
+                {
+                    "ok": True,
+                    "compra_id": compra.id_compra,
+                    "pago_id": pago.id_pago,
+                    "estado": "pendiente",
+                    "total": float(total),
+                    "metodo_pago": {
+                        "id": metodo_pago.id_metodo_pago,
+                        "tipo": metodo_pago.tipo,
+                        "detalle": metodo_pago.detalle or "",
+                    },
+                    "compra": CompraSerializer(compra).data,
+                },
+                status=status.HTTP_201_CREATED,
             )
 
-        return Response(
-            {
-                "ok": True,
-                "compra_id": compra.id_compra,
-                "pago_id": pago.id_pago,
-                "estado": "pendiente",
-                "total": float(total),
-                "metodo_pago": {
-                    "id": metodo_pago.id_metodo_pago,
-                    "tipo": metodo_pago.tipo,
-                    "detalle": metodo_pago.detalle or "",
-                },
-                "compra": CompraSerializer(compra).data,
-            },
-            status=status.HTTP_201_CREATED,
-        )
+        except Exception as e:
+            return Response(
+                {"detail": f"Error en checkout: {str(e)}"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
