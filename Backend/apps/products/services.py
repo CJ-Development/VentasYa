@@ -128,10 +128,23 @@ class ProductoService:
             received_variant_ids = set()
 
             for variant_data in variantes_data:
+
                 variant_id = variant_data.pop("id_variante", None)
+
                 image_data = variant_data.pop("imagenes", []) or []
-                if not variant_data.get("color") or not variant_data.get("talla"):
-                    raise ValueError("Cada variante necesita color y talla.")
+
+                # Validar relaciones obligatorias
+                if variant_data.get("color") is None:
+                    raise ValueError(
+                        "Cada variante necesita un color válido. "
+                        "El frontend debe enviar color_id."
+                    )
+
+                if variant_data.get("talla") is None:
+                    raise ValueError(
+                        "Cada variante necesita una talla válida. "
+                        "El frontend debe enviar talla_id."
+                    )
 
                 existing_variant = (
                     existing_variants.get(int(variant_id))
@@ -143,7 +156,9 @@ class ProductoService:
                     not existing_variant
                     or existing_variant.producto_id != producto.id_producto
                 ):
-                    raise ValueError("Una de las variantes no pertenece al producto.")
+                    raise ValueError(
+                        "Una de las variantes no pertenece al producto."
+                    )
 
                 variant_serializer = VarianteSerializer(
                     existing_variant,
@@ -151,10 +166,13 @@ class ProductoService:
                         **variant_data,
                         "producto_id": producto.id_producto,
                     },
-                    partial=True,
+                    partial=existing_variant is not None,
                 )
+
                 variant_serializer.is_valid(raise_exception=True)
+
                 clean_variant = variant_serializer.validated_data
+
                 clean_variant.pop("producto", None)
 
                 if existing_variant:

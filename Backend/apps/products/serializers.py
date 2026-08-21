@@ -89,16 +89,16 @@ class VarianteSerializer(serializers.ModelSerializer):
         queryset=Color.objects.all(),
         source="color",
         write_only=True,
-        required=False,
-        allow_null=True
+        required=True,
+        allow_null=False
     )
 
     talla_id = serializers.PrimaryKeyRelatedField(
         queryset=Talla.objects.all(),
         source="talla",
         write_only=True,
-        required=False,
-        allow_null=True
+        required=True,
+        allow_null=False
     )
 
     class Meta:
