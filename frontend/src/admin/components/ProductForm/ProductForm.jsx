@@ -1025,117 +1025,100 @@ function ProductForm({
 
     };
 
+/* =========================================================
+   VALIDAR
+   ========================================================= */
+const validate = () => {
+    const next = {};
 
-    /* =====================================================
-       VALIDAR
-       ===================================================== */
+    console.log("========== VALIDANDO PRODUCTO ==========");
+    console.log("VARIANTES ACTUALES:", variantes);
+    console.log(
+        "VARIANTES SIN COLOR:",
+        variantes.filter((variant) => !variant.color)
+    );
 
-    const validate = () => {
+    if (!datos.nombre.trim()) {
+        next.nombre = "El nombre es obligatorio.";
+    }
 
-        const next = {};
+    if (!datos.categoria_id) {
+        next.categoria_id = "Selecciona una categoría.";
+    }
 
-        if (!datos.nombre.trim()) {
-            next.nombre =
-                "El nombre es obligatorio.";
+    if (
+        datos.precio === "" ||
+        Number(datos.precio) <= 0
+    ) {
+        next.precio = "Ingresa un precio mayor a 0.";
+    }
+
+    if (!variantes.length) {
+        next.variantes = "Agrega al menos una talla.";
+    }
+
+    const skus = new Set();
+
+    variantes.forEach((variant) => {
+
+        console.log("VALIDANDO VARIANTE:", {
+            clientId: variant.clientId,
+            color: variant.color,
+            talla: variant.talla,
+            sku: variant.sku,
+            stock: variant.stock
+        });
+
+        if (!variant.color) {
+            next.color =
+                "Selecciona el color de la prenda.";
         }
 
-        if (!datos.categoria_id) {
-            next.categoria_id =
-                "Selecciona una categoría.";
+        if (!variant.talla) {
+            next[
+                `variant-${variant.clientId}-talla`
+            ] = "Selecciona una talla.";
+        }
+
+        if (!variant.sku.trim()) {
+            next[
+                `variant-${variant.clientId}-sku`
+            ] = "El SKU es obligatorio.";
+
+        } else if (
+            isAutoSku(variant.sku) &&
+            variant.color &&
+            variant.talla
+        ) {
+            skus.add(variant.sku.trim());
+
+        } else if (
+            skus.has(variant.sku.trim())
+        ) {
+            next[
+                `variant-${variant.clientId}-sku`
+            ] = "SKU repetido.";
+
+        } else {
+            skus.add(variant.sku.trim());
         }
 
         if (
-            datos.precio === "" ||
-            Number(datos.precio) <= 0
+            variant.stock === "" ||
+            Number(variant.stock) < 0
         ) {
-            next.precio =
-                "Ingresa un precio mayor a 0.";
+            next[
+                `variant-${variant.clientId}-stock`
+            ] = "Stock inválido.";
         }
+    });
 
-        if (!variantes.length) {
+    console.log("ERRORES DE VALIDACIÓN:", next);
 
-            next.variantes =
-                "Agrega al menos una talla.";
+    setErrors(next);
 
-        }
-
-        const skus = new Set();
-
-        variantes.forEach((variant) => {
-
-            if (!variant.color) {
-                next.color =
-                    "Selecciona el color de la prenda.";
-            }
-
-            if (!variant.talla) {
-                next[
-                    `variant-${variant.clientId}-talla`
-                ] =
-                    "Selecciona una talla.";
-            }
-
-            if (!variant.sku.trim()) {
-
-                next[
-                    `variant-${variant.clientId}-sku`
-                ] =
-                    "El SKU es obligatorio.";
-
-            } else if (
-                isAutoSku(variant.sku) &&
-                variant.color &&
-                variant.talla
-            ) {
-
-                /*
-                 * SKU autogenerado y todavía con color/talla:
-                 * el sistema lo regenerará antes de enviar.
-                 * Permitimos pasar la validación.
-                 */
-                skus.add(
-                    variant.sku.trim()
-                );
-
-            } else if (
-                skus.has(
-                    variant.sku.trim()
-                )
-            ) {
-
-                next[
-                    `variant-${variant.clientId}-sku`
-                ] =
-                    "SKU repetido.";
-
-            } else {
-
-                skus.add(
-                    variant.sku.trim()
-                );
-
-            }
-
-            if (
-                variant.stock === "" ||
-                Number(variant.stock) < 0
-            ) {
-
-                next[
-                    `variant-${variant.clientId}-stock`
-                ] =
-                    "Stock inválido.";
-
-            }
-
-        });
-
-        setErrors(next);
-
-        return Object.keys(next).length === 0;
-
-    };
-
+    return Object.keys(next).length === 0;
+};
 
     /* =====================================================
        FORM DATA
