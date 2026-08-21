@@ -33,6 +33,36 @@ class MetodosPagoView(APIView):
             .order_by("tipo")
         )
 
+        # Si no hay métodos de pago, crear los por defecto
+        if not metodos.exists():
+            metodos_default = [
+                {
+                    "tipo": "Wompi",
+                    "detalle": "Pasarela de pagos segura con tarjetas de crédito/débito"
+                },
+                {
+                    "tipo": "Contra entrega",
+                    "detalle": "Pagar al recibir el pedido en efectivo"
+                },
+                {
+                    "tipo": "Transferencia bancaria",
+                    "detalle": "Transferencia directa a cuenta bancaria"
+                }
+            ]
+
+            for metodo_data in metodos_default:
+                MetodoPago.objects.get_or_create(
+                    tipo=metodo_data["tipo"],
+                    defaults={"detalle": metodo_data["detalle"]}
+                )
+
+            # Recargar después de crear
+            metodos = (
+                MetodoPago.objects
+                .all()
+                .order_by("tipo")
+            )
+
         data = [
             MetodoPagoCatalogoSerializer.from_model(m)
             for m in metodos
