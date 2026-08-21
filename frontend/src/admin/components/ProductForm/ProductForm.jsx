@@ -1028,98 +1028,79 @@ function ProductForm({
 /* =========================================================
    VALIDAR
    ========================================================= */
-const validate = () => {
-    const next = {};
+    const validate = () => {
+        const next = {};
 
-    console.log("========== VALIDANDO PRODUCTO ==========");
-    console.log("VARIANTES ACTUALES:", variantes);
-    console.log(
-        "VARIANTES SIN COLOR:",
-        variantes.filter((variant) => !variant.color)
-    );
-
-    if (!datos.nombre.trim()) {
-        next.nombre = "El nombre es obligatorio.";
-    }
-
-    if (!datos.categoria_id) {
-        next.categoria_id = "Selecciona una categoría.";
-    }
-
-    if (
-        datos.precio === "" ||
-        Number(datos.precio) <= 0
-    ) {
-        next.precio = "Ingresa un precio mayor a 0.";
-    }
-
-    if (!variantes.length) {
-        next.variantes = "Agrega al menos una talla.";
-    }
-
-    const skus = new Set();
-
-    variantes.forEach((variant) => {
-
-        console.log("VALIDANDO VARIANTE:", {
-            clientId: variant.clientId,
-            color: variant.color,
-            talla: variant.talla,
-            sku: variant.sku,
-            stock: variant.stock
-        });
-
-        if (!variant.color) {
-            next.color =
-                "Selecciona el color de la prenda.";
+        if (!datos.nombre.trim()) {
+            next.nombre = "El nombre es obligatorio.";
         }
 
-        if (!variant.talla) {
-            next[
-                `variant-${variant.clientId}-talla`
-            ] = "Selecciona una talla.";
-        }
-
-        if (!variant.sku.trim()) {
-            next[
-                `variant-${variant.clientId}-sku`
-            ] = "El SKU es obligatorio.";
-
-        } else if (
-            isAutoSku(variant.sku) &&
-            variant.color &&
-            variant.talla
-        ) {
-            skus.add(variant.sku.trim());
-
-        } else if (
-            skus.has(variant.sku.trim())
-        ) {
-            next[
-                `variant-${variant.clientId}-sku`
-            ] = "SKU repetido.";
-
-        } else {
-            skus.add(variant.sku.trim());
+        if (!datos.categoria_id) {
+            next.categoria_id = "Selecciona una categoría.";
         }
 
         if (
-            variant.stock === "" ||
-            Number(variant.stock) < 0
+            datos.precio === "" ||
+            Number(datos.precio) <= 0
         ) {
-            next[
-                `variant-${variant.clientId}-stock`
-            ] = "Stock inválido.";
+            next.precio = "Ingresa un precio mayor a 0.";
         }
-    });
 
-    console.log("ERRORES DE VALIDACIÓN:", next);
+        if (!variantes.length) {
+            next.variantes = "Agrega al menos una talla.";
+        }
 
-    setErrors(next);
+        const skus = new Set();
 
-    return Object.keys(next).length === 0;
-};
+        variantes.forEach((variant) => {
+            if (!variant.color) {
+                next.color =
+                    "Selecciona el color de la prenda.";
+            }
 
+            if (!variant.talla) {
+                next[
+                    `variant-${variant.clientId}-talla`
+                ] = "Selecciona una talla.";
+            }
+
+            if (!variant.sku.trim()) {
+                next[
+                    `variant-${variant.clientId}-sku`
+                ] = "El SKU es obligatorio.";
+
+            } else if (
+                isAutoSku(variant.sku) &&
+                variant.color &&
+                variant.talla
+            ) {
+                skus.add(variant.sku.trim());
+
+            } else if (
+                skus.has(variant.sku.trim())
+            ) {
+                next[
+                    `variant-${variant.clientId}-sku`
+                ] = "SKU repetido.";
+
+            } else {
+                skus.add(variant.sku.trim());
+            }
+
+            if (
+                variant.stock === "" ||
+                Number(variant.stock) < 0
+            ) {
+                next[
+                    `variant-${variant.clientId}-stock`
+                ] = "Stock inválido.";
+            }
+        });
+
+        setErrors(next);
+
+        return Object.keys(next).length === 0;
+    };
     /* =====================================================
        FORM DATA
        ===================================================== */
