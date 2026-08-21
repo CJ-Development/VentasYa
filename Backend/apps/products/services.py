@@ -128,6 +128,10 @@ class ProductoService:
 
                 return blob_url
         except Exception as e:
+            import sys
+            print(f"DEBUG - Error Vercel Blob: {type(e).__name__}: {str(e)}", file=sys.stderr)
+            import traceback
+            print(f"DEBUG - Traceback: {traceback.format_exc()}", file=sys.stderr)
             raise RuntimeError(
                 f"Error subiendo archivo a Vercel Blob Storage: {str(e)}. "
                 "Verifica que BLOB_READ_WRITE_TOKEN sea válido."
