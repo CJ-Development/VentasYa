@@ -22,6 +22,7 @@ import Profile from "../pages/Profile/Profile";
 import Favorites from "../pages/Favorites/Favorites";
 import Settings from "../pages/Settings/Settings";
 import Checkout from "../pages/Checkout/Checkout";
+import CheckoutConfirm from "../pages/Checkout/CheckoutConfirm";
 import Cart from "../pages/Cart/Cart";
 import ClientOrders from "../pages/Orders/Orders";
 
@@ -163,6 +164,11 @@ function AppRouter() {
                 <Route
                     path="/checkout"
                     element={<Checkout />}
+                />
+
+                <Route
+                    path="/checkout/confirm"
+                    element={<CheckoutConfirm />}
                 />
 
                 <Route

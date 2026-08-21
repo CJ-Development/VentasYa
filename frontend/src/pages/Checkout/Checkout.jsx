@@ -24,7 +24,7 @@ import {
     getMisDirecciones,
     crearDireccion,
 } from "../../services/addressService";
-import { getMetodosPago, checkout } from "../../services/paymentService";
+import { getMetodosPago, checkout, crearTransaccionWompi } from "../../services/paymentService";
 
 import NoImage from "../../assets/images/no-image.png";
 import { mediaUrl } from "../../utils/mediaUrl";
@@ -161,26 +161,39 @@ function Checkout() {
         setError(null);
 
         try {
-            const { data } = await checkout({
+            // Primero crear la compra
+            const { data: compraData } = await checkout({
                 usuario_id: usuario.id_usuario,
                 direccion_id: direccionId,
                 metodo_pago_id: metodoPagoId,
                 telefono_contacto: telefono || usuario.telefono,
             });
 
+            const compraId = compraData?.id_compra;
+            
+            if (!compraId) {
+                throw new Error("No se pudo crear la compra");
+            }
+
+            // Crear transacción de Wompi
+            const { data: wompiData } = await crearTransaccionWompi(compraId);
+
+            if (!wompiData?.checkout_url) {
+                throw new Error("No se pudo generar la URL de pago de Wompi");
+            }
+
             // Vaciar carrito local
             await clear();
 
-            // Redirigir a Mis pedidos
-            navigate(`/orders`, {
-                replace: true,
-                state: { pedidoId: data?.id_compra },
-            });
+            // Redirigir al checkout de Wompi
+            window.location.href = wompiData.checkout_url;
+
         } catch (err) {
             console.error("Checkout error:", err);
             const msg =
                 err?.response?.data?.detail ||
                 err?.response?.data?.error ||
+                err?.message ||
                 "No fue posible procesar el pago. Intenta de nuevo.";
             setError(msg);
         } finally {
