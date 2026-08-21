@@ -467,3 +467,11 @@ if not DEBUG:
 # ============================================================
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+
+# ============================================================
+# VERCEL BLOB STORAGE
+# ============================================================
+# Token para autenticación con Vercel Blob Storage
+# Necesario para subir archivos de productos
+BLOB_READ_WRITE_TOKEN = os.environ.get("BLOB_READ_WRITE_TOKEN")
