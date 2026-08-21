@@ -75,16 +75,15 @@ api.interceptors.request.use(
     if (
         ["post", "put", "patch", "delete"].includes(method)
     ) {
-        const csrfToken =
-            api.defaults.headers.common["X-CSRFToken"];
+        // Leer el token CSRF directamente de la cookie
+        const csrfToken = readCookie("csrftoken");
 
         if (csrfToken) {
             config.headers =
                 config.headers || {};
 
             if (!config.headers["X-CSRFToken"]) {
-                config.headers["X-CSRFToken"] =
-                    csrfToken;
+                config.headers["X-CSRFToken"] = csrfToken;
             }
         }
     }
