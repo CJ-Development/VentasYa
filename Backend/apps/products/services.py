@@ -1,5 +1,7 @@
 import os
 import uuid
+import mimetypes
+import requests
 
 from django.conf import settings
 from django.db import transaction
@@ -62,19 +64,64 @@ class ProductoService:
 
     @staticmethod
     def _save_uploaded_file(uploaded_file):
-        folder = os.path.join(settings.MEDIA_ROOT, "productos")
-        os.makedirs(folder, exist_ok=True)
+        token = os.environ.get("BLOB_READ_WRITE_TOKEN")
+
+        if not token:
+            raise RuntimeError(
+                "BLOB_READ_WRITE_TOKEN no está configurado en el entorno."
+            )
+
         ext = os.path.splitext(uploaded_file.name)[1].lower() or ".jpg"
-        filename = f"{uuid.uuid4().hex}{ext}"
-        path = os.path.join(folder, filename)
-        with open(path, "wb") as destination:
-            for chunk in uploaded_file.chunks():
-                destination.write(chunk)
-        return f"{settings.MEDIA_URL.rstrip('/')}/productos/{filename}"
+
+        filename = f"productos/{uuid.uuid4().hex}{ext}"
+
+        content_type = (
+            getattr(uploaded_file, "content_type", None)
+            or mimetypes.guess_type(uploaded_file.name)[0]
+            or "application/octet-stream"
+        )
+
+        url = f"https://blob.vercel-storage.com/{filename}"
+
+        headers = {
+            "Authorization": f"Bearer {token}",
+            "x-api-version": "7",
+            "x-content-type": content_type,
+            "x-cache-control-max-age": "31536000",
+            "x-add-random-suffix": "0",
+            "access": "public",
+        }
+
+        response = requests.put(
+            url,
+            headers=headers,
+            data=uploaded_file.file,
+            timeout=60,
+        )
+
+        if not response.ok:
+            raise RuntimeError(
+                "Error subiendo imagen a Vercel Blob: "
+                f"{response.status_code} - {response.text}"
+            )
+
+        data = response.json()
+
+        blob_url = data.get("url")
+
+        if not blob_url:
+            raise RuntimeError(
+                f"Vercel Blob no devolvió una URL válida: {data}"
+            )
+
+        return blob_url
 
     @staticmethod
     def _resolve_local_path_from_url(value):
         if not value:
+            return None
+        # Si es URL de Vercel Blob Storage, no necesitamos resolver ruta local
+        if "blob.vercel-storage.com" in value:
             return None
         prefix = settings.MEDIA_URL.rstrip("/") + "/"
         if not value.startswith(prefix):
@@ -84,6 +131,32 @@ class ProductoService:
 
     @staticmethod
     def _delete_file_if_local(imagen):
+        # Si es URL de Vercel Blob Storage, eliminar de Blob Storage
+        if "blob.vercel-storage.com" in imagen.imagen:
+            try:
+                token = os.environ.get("BLOB_READ_WRITE_TOKEN")
+                if not token:
+                    return
+
+                # Extraer el path de la URL
+                url_parts = imagen.imagen.split("blob.vercel-storage.com/")
+                if len(url_parts) > 1:
+                    blob_path = url_parts[1]
+                    url = f"https://blob.vercel-storage.com/{blob_path}"
+                    
+                    headers = {
+                        "Authorization": f"Bearer {token}",
+                        "x-api-version": "7",
+                    }
+                    
+                    response = requests.delete(url, headers=headers, timeout=30)
+                    if not response.ok:
+                        print(f"Error eliminando archivo de Blob Storage: {response.status_code}")
+            except Exception as e:
+                print(f"Error eliminando archivo de Blob Storage: {str(e)}")
+            return
+            
+        # Si es archivo local, eliminar del disco
         path = ProductoService._resolve_local_path_from_url(imagen.imagen)
         if not path:
             return
@@ -95,6 +168,32 @@ class ProductoService:
 
     @staticmethod
     def _delete_file_by_url(value):
+        # Si es URL de Vercel Blob Storage, eliminar de Blob Storage
+        if "blob.vercel-storage.com" in value:
+            try:
+                token = os.environ.get("BLOB_READ_WRITE_TOKEN")
+                if not token:
+                    return
+
+                # Extraer el path de la URL
+                url_parts = value.split("blob.vercel-storage.com/")
+                if len(url_parts) > 1:
+                    blob_path = url_parts[1]
+                    url = f"https://blob.vercel-storage.com/{blob_path}"
+                    
+                    headers = {
+                        "Authorization": f"Bearer {token}",
+                        "x-api-version": "7",
+                    }
+                    
+                    response = requests.delete(url, headers=headers, timeout=30)
+                    if not response.ok:
+                        print(f"Error eliminando archivo de Blob Storage: {response.status_code}")
+            except Exception as e:
+                print(f"Error eliminando archivo de Blob Storage: {str(e)}")
+            return
+            
+        # Si es archivo local, eliminar del disco
         path = ProductoService._resolve_local_path_from_url(value)
         if not path:
             return
