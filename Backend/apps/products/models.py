@@ -124,16 +124,20 @@ class Variante(models.Model):
         db_column="id_producto"
     )
 
-    color = models.CharField(
-        max_length=100,
-        blank=True,
-        default=""
+    color = models.ForeignKey(
+        Color,
+        on_delete=models.PROTECT,
+        db_column="id_color",
+        null=True,
+        blank=True
     )
 
-    talla = models.CharField(
-        max_length=50,
-        blank=True,
-        default=""
+    talla = models.ForeignKey(
+        Talla,
+        on_delete=models.PROTECT,
+        db_column="id_talla",
+        null=True,
+        blank=True
     )
 
     sku = models.CharField(
