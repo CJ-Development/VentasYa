@@ -124,7 +124,7 @@ function Checkout() {
         setError(null);
         try {
             const { data } = await crearDireccion({
-                usuario_id: usuario.id_usuario,
+                usuario: usuario.id_usuario,
                 ...nuevaDireccion,
             });
             const nuevas = [...direcciones, data];
