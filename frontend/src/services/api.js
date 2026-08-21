@@ -239,7 +239,6 @@ esto antes de hacer peticiones POST/PUT/DELETE para
 asegurarse de tener el token válido.
 =====================================================
 */
-
 export const getCsrfToken = async () => {
     const response = await api.get("users/csrf/");
 
@@ -253,3 +252,5 @@ export const getCsrfToken = async () => {
 
     return response;
 };
+
+export default api;
