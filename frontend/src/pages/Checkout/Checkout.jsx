@@ -54,7 +54,7 @@ function Checkout() {
     const [error, setError] = useState(null);
 
     const [direccionId, setDireccionId] = useState(null);
-    const [metodoPagoId, setMetodoPagoId] = useState(null);
+    const [metodoPagoId, setMetodoPagoId] = useState(1); // Wompi por defecto
     const [telefono, setTelefono] = useState("");
 
     const [mostrarFormDireccion, setMostrarFormDireccion] = useState(false);
@@ -150,10 +150,6 @@ function Checkout() {
     const handlePagar = async () => {
         if (!direccionId) {
             setError("Selecciona o crea una dirección de envío.");
-            return;
-        }
-        if (!metodoPagoId) {
-            setError("Selecciona un método de pago.");
             return;
         }
 
@@ -446,42 +442,18 @@ function Checkout() {
                             </div>
                         </section>
 
-                        {/* MÉTODO DE PAGO */}
+                        {/* MÉTODO DE PAGO - Wompi */}
                         <section className="checkout-card">
                             <h2>
                                 <CreditCard size={18} /> Método de pago
                             </h2>
-                            <p>Selecciona cómo quieres pagar.</p>
-
-                            {metodos.length === 0 ? (
-                                <div className="checkout-no-options">
-                                    No hay métodos de pago configurados. Contacta al administrador.
+                            <p>Pagarás de forma segura a través de Wompi.</p>
+                            <div className="checkout-option is-selected">
+                                <div className="checkout-option-main">
+                                    <strong>Wompi</strong>
+                                    <span>Pasarela de pagos segura</span>
                                 </div>
-                            ) : (
-                                <div className="checkout-options">
-                                    {metodos.map((m) => (
-                                        <label
-                                            key={m.id}
-                                            className={
-                                                "checkout-option"
-                                                + (metodoPagoId === m.id ? " is-selected" : "")
-                                            }
-                                        >
-                                            <input
-                                                type="radio"
-                                                name="metodo"
-                                                value={m.id}
-                                                checked={metodoPagoId === m.id}
-                                                onChange={() => setMetodoPagoId(m.id)}
-                                            />
-                                            <div className="checkout-option-main">
-                                                <strong>{m.tipo}</strong>
-                                                {m.detalle && <span>{m.detalle}</span>}
-                                            </div>
-                                        </label>
-                                    ))}
-                                </div>
-                            )}
+                            </div>
                         </section>
                     </div>
 
@@ -545,8 +517,7 @@ function Checkout() {
                             onClick={handlePagar}
                             disabled={
                                 procesando ||
-                                !direccionId ||
-                                !metodoPagoId
+                                !direccionId
                             }
                         >
                             {procesando ? (
