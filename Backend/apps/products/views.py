@@ -114,6 +114,8 @@ class ProductoCompletoView(APIView):
             return Response({"detail": "Producto no encontrado."}, status=404)
         except (ValueError, TypeError, json.JSONDecodeError) as exc:
             return Response({"detail": str(exc)}, status=400)
+        except Exception as exc:
+            return Response({"detail": f"Error interno: {str(exc)}"}, status=500)
 
 
 @method_decorator(ensure_csrf_cookie, name="dispatch")
