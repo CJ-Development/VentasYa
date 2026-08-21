@@ -165,7 +165,13 @@ function Checkout() {
                 telefono_contacto: telefono || usuario.telefono,
             });
 
-            const compraId = compraData?.id_compra;
+            console.log("RESPUESTA COMPLETA DEL CHECKOUT:", compraData);
+
+            const compraId =
+                compraData?.id_compra ??
+                compraData?.id ??
+                compraData?.compra?.id_compra ??
+                compraData?.compra?.id;
             
             if (!compraId) {
                 throw new Error("No se pudo crear la compra");
