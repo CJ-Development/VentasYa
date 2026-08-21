@@ -22,22 +22,17 @@ import { useCart } from "../../hooks/useCart";
 import { useNotification } from "../../components/Notifications/NotificationProvider";
 import { esAdmin } from "../../utils/esAdmin";
 
-
 function Login() {
-
     const navigate = useNavigate();
     const location = useLocation();
 
     const { login: loginContext } = useAuth();
-
     const { syncOnLogin } = useCart();
-
     const { success, error: showError } = useNotification();
 
-
-    /* =====================================================
-       ESTADOS
-    ===================================================== */
+    // =====================================================
+    // ESTADOS
+    // =====================================================
 
     const [formData, setFormData] = useState({
         email: "",
@@ -45,149 +40,126 @@ function Login() {
     });
 
     const [cargando, setCargando] = useState(false);
-
     const [mostrarPassword, setMostrarPassword] = useState(false);
-
     const [recordarme, setRecordarme] = useState(false);
 
-
-    /* =====================================================
-       CAMBIAR INPUT
-    ===================================================== */
+    // =====================================================
+    // CAMBIAR INPUT
+    // =====================================================
 
     const handleChange = (e) => {
-
         setFormData({
             ...formData,
             [e.target.name]: e.target.value,
         });
-
     };
 
-
-    /* =====================================================
-       INICIAR SESIÓN
-    ===================================================== */
+    // =====================================================
+    // INICIAR SESIÓN
+    // =====================================================
 
     const handleSubmit = async (e) => {
-
         e.preventDefault();
 
         try {
-
             setCargando(true);
 
-
-            /* =============================================
-               OBTENER TOKEN CSRF
-            ============================================= */
-
-            try {
-                await getCsrfToken();
-                console.log("Token CSRF obtenido exitosamente");
-            } catch (csrfError) {
-                console.error("Error obteniendo token CSRF:", csrfError);
-                // No fallamos el login si falla el CSRF, el interceptor lo manejará
-            }
-
-
-            /* =============================================
-               LOGIN
-            ============================================= */
+            // =================================================
+            // LOGIN
+            // =================================================
 
             const { data } = await login(formData);
 
-
             console.log("Respuesta login:", data);
 
+            // =================================================
+            // OBTENER TOKEN CSRF DESPUÉS DEL LOGIN
+            // =================================================
 
-            /* =============================================
-               USUARIO
+            try {
+                await getCsrfToken();
 
-               El backend actualmente devuelve directamente:
+                console.log(
+                    "Token CSRF obtenido exitosamente después del login"
+                );
+            } catch (csrfError) {
+                console.error(
+                    "Error obteniendo token CSRF:",
+                    csrfError
+                );
 
-               {
-                   id_usuario,
-                   nombres,
-                   ...
-                   is_superuser,
-                   is_staff,
-                   tipo_usuario
-               }
+                // No detenemos el login si falla la obtención
+                // del token. El error se manejará al realizar
+                // una operación protegida.
+            }
 
-               También dejamos compatibilidad con respuestas
-               que vengan dentro de "usuario".
-            ============================================= */
+            // =================================================
+            // USUARIO
+            //
+            // El backend actualmente devuelve directamente:
+            //
+            // {
+            //     id_usuario,
+            //     nombres,
+            //     ...
+            //     is_superuser,
+            //     is_staff,
+            //     tipo_usuario
+            // }
+            //
+            // También dejamos compatibilidad con respuestas
+            // que vengan dentro de "usuario".
+            // =================================================
 
             const usuarioData = data.usuario || data;
 
-
-            /* =============================================
-               GUARDAR SESIÓN
-            ============================================= */
+            // =================================================
+            // GUARDAR SESIÓN
+            // =================================================
 
             loginContext(usuarioData);
 
-
-            /* =============================================
-               SINCRONIZAR CARRITO
-            ============================================= */
+            // =================================================
+            // SINCRONIZAR CARRITO
+            // =================================================
 
             const usuarioId =
                 usuarioData?.id_usuario ||
                 usuarioData?.id;
 
-
             if (usuarioId) {
-
                 try {
-
                     await syncOnLogin(usuarioId);
-
                 } catch (syncErr) {
-
                     console.error(
                         "Error sincronizando carrito:",
                         syncErr
                     );
-
                 }
-
             }
 
-
-            /* =============================================
-               MENSAJE
-            ============================================= */
+            // =================================================
+            // MENSAJE
+            // =================================================
 
             success(
                 `¡Bienvenido de nuevo, ${usuarioData.nombres}!`
             );
 
-
-            /* =============================================
-               DETERMINAR SI ES ADMINISTRADOR
-            ============================================= */
+            // =================================================
+            // DETERMINAR SI ES ADMINISTRADOR
+            // =================================================
 
             const esAdministrador = esAdmin(usuarioData);
-
 
             console.log(
                 "Usuario administrador:",
                 esAdministrador
             );
 
-
-            /* =============================================
-               REDIRECCIÓN SOLICITADA
-               
-               Solo usamos "from" / "redirect" si existe
-               y el usuario NO está intentando entrar a
-               una zona administrativa.
-
-               Esto evita que un redirect viejo mande al
-               usuario a una ruta incorrecta.
-            ============================================= */
+            // =================================================
+            // REDIRECCIÓN SOLICITADA
+            // =================================================
 
             const params = new URLSearchParams(
                 location.search
@@ -197,56 +169,44 @@ function Login() {
                 params.get("from") ||
                 params.get("redirect");
 
-
-            /* =============================================
-               ADMIN
-            ============================================= */
+            // =================================================
+            // ADMIN
+            // =================================================
 
             if (esAdministrador) {
-
                 navigate("/admin", {
                     replace: true
                 });
 
                 return;
-
             }
 
-
-            /* =============================================
-               CLIENTE
-            ============================================= */
+            // =================================================
+            // CLIENTE
+            // =================================================
 
             if (destino) {
-
                 navigate(destino, {
                     replace: true
                 });
 
                 return;
-
             }
-
 
             navigate("/", {
                 replace: true
             });
 
-
         } catch (error) {
-
             console.error(
                 "Error iniciando sesión:",
                 error
             );
 
-
             const backendError =
                 error?.response?.data;
 
-
             if (backendError) {
-
                 const mensaje =
                     backendError.detail ||
                     backendError.error ||
@@ -254,33 +214,23 @@ function Login() {
                     "Correo o contraseña incorrectos.";
 
                 showError(mensaje);
-
             } else {
-
                 showError(
                     "No fue posible iniciar sesión. Verifica tus credenciales."
                 );
-
             }
 
         } finally {
-
             setCargando(false);
-
         }
-
     };
 
-
     return (
-
         <main className="login-page">
-
             <div className="login-card">
 
-
                 {/* =================================================
-                   PANEL IZQUIERDO
+                    PANEL IZQUIERDO
                 ================================================= */}
 
                 <section className="login-image">
@@ -290,38 +240,30 @@ function Login() {
                         alt="Moda VentasYa"
                     />
 
-
                     <div className="image-content">
-
 
                         <h2>
                             ¡Bienvenido{" "}
                             <span>de nuevo!</span>
                         </h2>
 
-
                         <p className="image-description">
                             Inicia sesión para continuar
                             comprando tus productos favoritos.
                         </p>
 
-
                         <div className="image-features">
-
 
                             {/* PRODUCTOS */}
 
                             <div className="feature">
 
                                 <div className="feature-icon">
-
                                     <ShoppingBag
                                         size={24}
                                         strokeWidth={2}
                                     />
-
                                 </div>
-
 
                                 <div className="feature-info">
 
@@ -337,7 +279,6 @@ function Login() {
 
                             </div>
 
-
                             {/* COMPRAS SEGURAS */}
 
                             <div className="feature">
@@ -350,7 +291,6 @@ function Login() {
                                     />
 
                                 </div>
-
 
                                 <div className="feature-info">
 
@@ -366,7 +306,6 @@ function Login() {
 
                             </div>
 
-
                             {/* ENVÍOS */}
 
                             <div className="feature">
@@ -379,7 +318,6 @@ function Login() {
                                     />
 
                                 </div>
-
 
                                 <div className="feature-info">
 
@@ -395,7 +333,6 @@ function Login() {
 
                             </div>
 
-
                             {/* OFERTAS */}
 
                             <div className="feature">
@@ -408,7 +345,6 @@ function Login() {
                                     />
 
                                 </div>
-
 
                                 <div className="feature-info">
 
@@ -424,23 +360,20 @@ function Login() {
 
                             </div>
 
-
                         </div>
 
                     </div>
 
                 </section>
 
-
                 {/* =================================================
-                   PANEL DERECHO
+                    PANEL DERECHO
                 ================================================= */}
 
                 <section className="login-form">
 
-
                     {/* =================================================
-                       ENCABEZADO
+                        ENCABEZADO
                     ================================================= */}
 
                     <div className="form-header">
@@ -449,9 +382,7 @@ function Login() {
                             Iniciar sesión
                         </h1>
 
-
                         <div className="title-line"></div>
-
 
                         <p>
                             Ingresa tus datos para acceder
@@ -460,16 +391,14 @@ function Login() {
 
                     </div>
 
-
                     {/* =================================================
-                       FORMULARIO
+                        FORMULARIO
                     ================================================= */}
 
                     <form onSubmit={handleSubmit}>
 
-
                         {/* =========================================
-                           CORREO
+                            CORREO
                         ========================================== */}
 
                         <div className="form-group">
@@ -478,9 +407,7 @@ function Login() {
                                 Correo electrónico
                             </label>
 
-
                             <div className="input-wrapper">
-
 
                                 <Mail
                                     className="login-input-icon"
@@ -488,7 +415,6 @@ function Login() {
                                     strokeWidth={2}
                                     aria-hidden="true"
                                 />
-
 
                                 <input
                                     id="email"
@@ -502,18 +428,15 @@ function Login() {
                                     required
                                 />
 
-
                             </div>
 
                         </div>
 
-
                         {/* =========================================
-                           CONTRASEÑA
+                            CONTRASEÑA
                         ========================================== */}
 
                         <div className="form-group">
-
 
                             <div className="label-row">
 
@@ -521,16 +444,13 @@ function Login() {
                                     Contraseña
                                 </label>
 
-
                                 <span className="forgot-password">
                                     ¿Olvidaste tu contraseña?
                                 </span>
 
                             </div>
 
-
                             <div className="input-wrapper">
-
 
                                 <LockKeyhole
                                     className="login-input-icon"
@@ -538,7 +458,6 @@ function Login() {
                                     strokeWidth={2}
                                     aria-hidden="true"
                                 />
-
 
                                 <input
                                     id="password"
@@ -556,7 +475,6 @@ function Login() {
                                     required
                                 />
 
-
                                 <button
                                     type="button"
                                     className="password-toggle"
@@ -571,33 +489,25 @@ function Login() {
                                             : "Mostrar contraseña"
                                     }
                                 >
-
                                     {mostrarPassword ? (
-
                                         <EyeOff
                                             size={20}
                                             strokeWidth={2}
                                         />
-
                                     ) : (
-
                                         <Eye
                                             size={20}
                                             strokeWidth={2}
                                         />
-
                                     )}
-
                                 </button>
-
 
                             </div>
 
                         </div>
 
-
                         {/* =========================================
-                           RECORDARME
+                            RECORDARME
                         ========================================== */}
 
                         <div className="remember-row">
@@ -614,11 +524,9 @@ function Login() {
                                     }
                                 />
 
-
                                 <span className="custom-checkbox">
                                     ✓
                                 </span>
-
 
                                 <span>
                                     Recordarme
@@ -628,9 +536,8 @@ function Login() {
 
                         </div>
 
-
                         {/* =========================================
-                           BOTÓN
+                            BOTÓN
                         ========================================== */}
 
                         <button
@@ -638,20 +545,16 @@ function Login() {
                             className="login-button"
                             disabled={cargando}
                         >
-
                             {cargando
                                 ? "Ingresando..."
                                 : "Iniciar sesión"
                             }
-
                         </button>
-
 
                     </form>
 
-
                     {/* =================================================
-                       REGISTRO
+                        REGISTRO
                     ================================================= */}
 
                     <p className="register-text">
@@ -664,17 +567,11 @@ function Login() {
 
                     </p>
 
-
                 </section>
 
-
             </div>
-
         </main>
-
     );
-
 }
-
 
 export default Login;
