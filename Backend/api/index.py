@@ -53,3 +53,10 @@ os.environ.setdefault(
 from django.core.wsgi import get_wsgi_application  # noqa: E402
 
 app = get_wsgi_application()  # noqa: E402
+
+# ============================================================
+# DEBUGGING
+# ============================================================
+print("Django app loaded successfully")
+print(f"Project root: {_PROJECT_ROOT}")
+print(f"Python path: {sys.path[:3]}")
