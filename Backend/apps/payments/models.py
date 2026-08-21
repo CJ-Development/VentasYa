@@ -38,6 +38,14 @@ class Pago(models.Model):
         null=True,
     )
 
+    # ID real de la transacción generado por Wompi
+    wompi_transaction_id = models.CharField(
+        max_length=120,
+        blank=True,
+        null=True,
+        db_index=True,
+    )
+
     estado = models.CharField(
         max_length=20,
         choices=ESTADOS,

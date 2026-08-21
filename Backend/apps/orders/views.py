@@ -125,25 +125,6 @@ class MisPedidosView(APIView):
 
 @method_decorator(ensure_csrf_cookie, name="dispatch")
 class CheckoutView(APIView):
-    """
-    POST /api/orders/checkout/
-    body: {
-        "usuario_id":      int,
-        "direccion_id":    int,
-        "metodo_pago_id":  int,
-        "telefono_contacto": str (opcional)
-    }
-
-    Flujo transaccional:
-      1. Valida usuario, dirección, método de pago y stock del carrito.
-      2. Crea la Compra con sus DetalleCompra.
-      3. Descuenta stock de cada Variante.
-      4. Crea el Pago (simulado, estado 'aprobado').
-      5. Marca la Compra como 'pagado'.
-      6. Vacía el carrito del usuario.
-
-    Devuelve la Compra creada con sus detalles.
-    """
 
     def post(self, request):
 
@@ -155,16 +136,29 @@ class CheckoutView(APIView):
         if not (usuario_id and direccion_id and metodo_pago_id):
             return Response(
                 {
-                    "detail": "usuario_id, direccion_id y metodo_pago_id son obligatorios."
+                    "detail": (
+                        "usuario_id, direccion_id y metodo_pago_id "
+                        "son obligatorios."
+                    )
                 },
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        usuario = get_object_or_404(Usuario, id_usuario=usuario_id)
-        direccion = get_object_or_404(
-            Direccion, id_direccion=direccion_id, usuario=usuario
+        usuario = get_object_or_404(
+            Usuario,
+            id_usuario=usuario_id
         )
-        metodo_pago = get_object_or_404(MetodoPago, id_metodo_pago=metodo_pago_id)
+
+        direccion = get_object_or_404(
+            Direccion,
+            id_direccion=direccion_id,
+            usuario=usuario
+        )
+
+        metodo_pago = get_object_or_404(
+            MetodoPago,
+            id_metodo_pago=metodo_pago_id
+        )
 
         try:
             carrito = Carrito.objects.get(usuario=usuario)
@@ -174,7 +168,11 @@ class CheckoutView(APIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        items = list(carrito.items.select_related("variante__producto").all())
+        items = list(
+            carrito.items
+            .select_related("variante__producto")
+            .all()
+        )
 
         if not items:
             return Response(
@@ -182,14 +180,18 @@ class CheckoutView(APIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        # Validar stock antes de hacer cualquier cambio
+        # Validar stock
         for it in items:
+
             if it.cantidad > it.variante.stock:
+
                 return Response(
                     {
                         "detail": (
-                            f"Stock insuficiente para {it.variante.producto.nombre}. "
-                            f"Disponible: {it.variante.stock}, solicitado: {it.cantidad}."
+                            f"Stock insuficiente para "
+                            f"{it.variante.producto.nombre}. "
+                            f"Disponible: {it.variante.stock}, "
+                            f"solicitado: {it.cantidad}."
                         )
                     },
                     status=status.HTTP_400_BAD_REQUEST,
@@ -198,45 +200,62 @@ class CheckoutView(APIView):
         with transaction.atomic():
 
             total = sum(
-                (it.variante.producto.precio * it.cantidad for it in items),
+                (
+                    it.variante.producto.precio * it.cantidad
+                    for it in items
+                ),
                 start=0,
             )
 
+            # IMPORTANTE:
+            # La compra todavía NO está pagada.
             compra = Compra.objects.create(
                 usuario=usuario,
                 direccion=direccion,
                 metodo_pago=metodo_pago,
                 total=total,
-                estado_compra="pagado",
-                telefono_contacto=telefono_contacto or usuario.telefono,
+                estado_compra="pendiente",
+                telefono_contacto=(
+                    telefono_contacto or usuario.telefono
+                ),
             )
 
             for it in items:
+
                 DetalleCompra.objects.create(
                     compra=compra,
                     variante=it.variante,
                     cantidad=it.cantidad,
-                    precio_unitario=it.variante.producto.precio,
-                    subtotal=it.variante.producto.precio * it.cantidad,
+                    precio_unitario=(
+                        it.variante.producto.precio
+                    ),
+                    subtotal=(
+                        it.variante.producto.precio
+                        * it.cantidad
+                    ),
                 )
 
-                # Descontar stock
-                Variante.objects.filter(
-                    id_variante=it.variante.id_variante
-                ).update(stock=it.variante.stock - it.cantidad)
-
-            Pago.objects.create(
+            # Crear pago pendiente
+            pago = Pago.objects.create(
                 compra=compra,
                 metodo_pago=metodo_pago,
                 monto=total,
-                estado="aprobado",
-                referencia_transaccion=f"SIM-{compra.id_compra}",
+                estado="pendiente",
             )
 
-            # Vaciar carrito
-            carrito.items.all().delete()
-
         return Response(
-            CompraSerializer(compra).data,
+            {
+                "ok": True,
+                "compra_id": compra.id_compra,
+                "pago_id": pago.id_pago,
+                "estado": "pendiente",
+                "total": float(total),
+                "metodo_pago": {
+                    "id": metodo_pago.id_metodo_pago,
+                    "tipo": metodo_pago.tipo,
+                    "detalle": metodo_pago.detalle or "",
+                },
+                "compra": CompraSerializer(compra).data,
+            },
             status=status.HTTP_201_CREATED,
         )
