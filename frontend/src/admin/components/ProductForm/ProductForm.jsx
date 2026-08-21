@@ -1163,12 +1163,12 @@ function ProductForm({
                         }
                         : {}),
 
-                    color:
+                    color_id:
                         Number(
                             variant.color
                         ),
 
-                    talla:
+                    talla_id:
                         Number(
                             variant.talla
                         ),

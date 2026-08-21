@@ -134,16 +134,16 @@ class ProductoService:
                 image_data = variant_data.pop("imagenes", []) or []
 
                 # Validar relaciones obligatorias
-                if variant_data.get("color") is None:
+                if variant_data.get("color_id") is None:
                     raise ValueError(
                         "Cada variante necesita un color válido. "
-                        "El frontend debe enviar color_id."
+                        "Debe enviarse color_id."
                     )
 
-                if variant_data.get("talla") is None:
+                if variant_data.get("talla_id") is None:
                     raise ValueError(
                         "Cada variante necesita una talla válida. "
-                        "El frontend debe enviar talla_id."
+                        "Debe enviarse talla_id."
                     )
 
                 existing_variant = (
