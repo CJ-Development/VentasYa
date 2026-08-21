@@ -69,6 +69,13 @@ class ProductoService:
         # En producción (Vercel), solo usar Vercel Blob Storage
         # El sistema de archivos es read-only en serverless
         token = os.environ.get("BLOB_READ_WRITE_TOKEN")
+        
+        # Debug: imprimir todas las variables de entorno que empiezan con BLOB
+        import sys
+        blob_vars = {k: v for k, v in os.environ.items() if 'BLOB' in k}
+        print(f"DEBUG - Variables BLOB: {blob_vars}", file=sys.stderr)
+        print(f"DEBUG - Token existe: {token is not None}", file=sys.stderr)
+        print(f"DEBUG - Token longitud: {len(token) if token else 0}", file=sys.stderr)
 
         if not token:
             raise ValueError(
