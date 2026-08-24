@@ -13,6 +13,8 @@ function CheckoutConfirm() {
 
     const [estado, setEstado] = useState("cargando");
     const [error, setError] = useState(null);
+    const [intentos, setIntentos] = useState(0);
+    const MAX_INTENTOS = 15; // Máximo 30 segundos (15 intentos × 2 segundos)
 
     useEffect(() => {
         const verificarPago = async () => {
@@ -57,7 +59,16 @@ function CheckoutConfirm() {
                     setEstado("rechazado");
                 } else {
                     // Si sigue pendiente, reintentar después de 2 segundos
-                    setTimeout(() => verificarPago(), 2000);
+                    // pero con un límite de intentos para evitar loops infinitos
+                    if (intentos < MAX_INTENTOS) {
+                        setIntentos(prev => prev + 1);
+                        setTimeout(() => verificarPago(), 2000);
+                    } else {
+                        // Si después de varios intentos sigue pendiente,
+                        // mostramos un mensaje indicando que se está procesando
+                        setError("El pago está siendo procesado. Te notificaremos cuando se confirme.");
+                        setEstado("procesando");
+                    }
                 }
             } catch (err) {
                 console.error("Error verificando pago:", err);
@@ -67,7 +78,7 @@ function CheckoutConfirm() {
         };
 
         verificarPago();
-    }, [searchParams, navigate]);
+    }, [searchParams, navigate, intentos]);
 
     return (
         <main className="checkout-page">
@@ -100,6 +111,21 @@ function CheckoutConfirm() {
                                 onClick={() => navigate("/cart")}
                             >
                                 Volver al carrito
+                            </button>
+                        </>
+                    )}
+
+                    {estado === "procesando" && (
+                        <>
+                            <Loader2 size={48} className="checkout-spin" />
+                            <h2>Tu pago está siendo procesado</h2>
+                            <p>{error || "El pago está siendo procesado por Wompi. Te notificaremos cuando se confirme."}</p>
+                            <p>Puedes verificar el estado en tus pedidos.</p>
+                            <button
+                                className="checkout-pay"
+                                onClick={() => navigate("/orders")}
+                            >
+                                Ir a mis pedidos
                             </button>
                         </>
                     )}

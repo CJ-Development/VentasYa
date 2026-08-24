@@ -57,6 +57,9 @@ function Checkout() {
     const [metodoPagoId, setMetodoPagoId] = useState(null);
     const [telefono, setTelefono] = useState("");
 
+    const [terminosAceptados, setTerminosAceptados] = useState(false);
+    const [datosAceptados, setDatosAceptados] = useState(false);
+
     const [mostrarFormDireccion, setMostrarFormDireccion] = useState(false);
     const [nuevaDireccion, setNuevaDireccion] = useState({
         direccion: "",
@@ -113,6 +116,13 @@ function Checkout() {
         [total, costoEnvio]
     );
 
+    const metodoSeleccionado = metodos.find(
+        (m) => m.id === metodoPagoId
+    );
+    const esWompi =
+        metodoSeleccionado?.tipo?.toLowerCase() ===
+        "wompi";
+
     /* ----------- Guardar nueva dirección ----------- */
     const handleGuardarDireccion = async (e) => {
         e.preventDefault();
@@ -153,6 +163,19 @@ function Checkout() {
             return;
         }
 
+        // Validar aceptaciones legales
+        const metodoSeleccionado = metodos.find(
+            (m) => m.id === metodoPagoId
+        );
+        const esWompi =
+            metodoSeleccionado?.tipo?.toLowerCase() ===
+            "wompi";
+
+        if (esWompi && (!terminosAceptados || !datosAceptados)) {
+            setError("Debes aceptar los Términos y Condiciones y la Política de Tratamiento de Datos para pagar con Wompi.");
+            return;
+        }
+
         setProcesando(true);
         setError(null);
 
@@ -163,6 +186,8 @@ function Checkout() {
                 direccion_id: direccionId,
                 metodo_pago_id: metodoPagoId,
                 telefono_contacto: telefono || usuario.telefono,
+                terminos_aceptados: terminosAceptados,
+                datos_aceptados: datosAceptados,
             });
 
             console.log("RESPUESTA COMPLETA DEL CHECKOUT:", compraData);
@@ -200,25 +225,65 @@ function Checkout() {
                 return;
             }
 
-            // Crear transacción de Wompi
+            // Crear transacción de Wompi y obtener datos para Web Checkout
             const { data: wompiData } = await crearTransaccionWompi(compraId);
 
-            const checkoutUrl =
-                wompiData?.checkout_url ||
-                wompiData?.redirect_url;
+            // Verificar si tenemos los datos necesarios para Web Checkout
+            const {
+                public_key,
+                currency,
+                amount_in_cents,
+                reference,
+                signature,
+                redirect_url,
+                simulated
+            } = wompiData;
 
-            if (!checkoutUrl) {
+            if (!public_key || !currency || !amount_in_cents || !reference || !signature) {
                 throw new Error(
-                    "No se pudo generar la URL de pago de Wompi"
+                    "No se pudieron obtener los datos necesarios para el checkout de Wompi"
                 );
             }
 
-            // Vaciar carrito local
+            // Si es modo simulado, redirigir directamente
+            if (simulated) {
+                await clear();
+                window.location.href = redirect_url;
+                return;
+            }
+
+            // Construir y enviar formulario para Web Checkout de Wompi
+            const form = document.createElement('form');
+            form.method = 'GET';
+            form.action = 'https://checkout.wompi.co/p/';
+
+            const fields = [
+                { name: 'public-key', value: public_key },
+                { name: 'currency', value: currency },
+                { name: 'amount-in-cents', value: amount_in_cents },
+                { name: 'reference', value: reference },
+                { name: 'signature:integrity', value: signature.integrity },
+            ];
+
+            if (redirect_url) {
+                fields.push({ name: 'redirect-url', value: redirect_url });
+            }
+
+            fields.forEach(field => {
+                const input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = field.name;
+                input.value = field.value;
+                form.appendChild(input);
+            });
+
+            document.body.appendChild(form);
+
+            // Vaciar carrito local antes de redirigir
             await clear();
 
-            // Redirigir al checkout de Wompi (o a la URL
-            // simulada que devuelve el backend).
-            window.location.href = checkoutUrl;
+            // Enviar formulario para redirigir a Wompi
+            form.submit();
 
         } catch (err) {
             console.error("Checkout error:", err);
@@ -516,6 +581,54 @@ function Checkout() {
                                 </div>
                             )}
                         </section>
+
+                        {/* ACEPTACIONES LEGALES */}
+                        <section className="checkout-card">
+                            <h2>
+                                <LockKeyhole size={18} /> Aceptaciones legales
+                            </h2>
+                            <p>Para continuar con tu compra, debes aceptar los siguientes documentos:</p>
+
+                            <div className="checkout-legal-section">
+                                <label className="checkout-legal-option">
+                                    <input
+                                        type="checkbox"
+                                        checked={terminosAceptados}
+                                        onChange={(e) => setTerminosAceptados(e.target.checked)}
+                                    />
+                                    <span>
+                                        He leído y acepto los <strong>Términos y Condiciones</strong> de VentasYa.
+                                        <a
+                                            href="/terminos-y-condiciones"
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="checkout-legal-link"
+                                        >
+                                            [Leer documento]
+                                        </a>
+                                    </span>
+                                </label>
+
+                                <label className="checkout-legal-option">
+                                    <input
+                                        type="checkbox"
+                                        checked={datosAceptados}
+                                        onChange={(e) => setDatosAceptados(e.target.checked)}
+                                    />
+                                    <span>
+                                        Autorizo el tratamiento de mis datos personales conforme a la <strong>Política de Tratamiento de Datos Personales</strong>.
+                                        <a
+                                            href="/politica-tratamiento-datos"
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="checkout-legal-link"
+                                        >
+                                            [Leer documento]
+                                        </a>
+                                    </span>
+                                </label>
+                            </div>
+                        </section>
                     </div>
 
                     {/* ===========================
@@ -579,7 +692,8 @@ function Checkout() {
                             disabled={
                                 procesando ||
                                 !direccionId ||
-                                !metodoPagoId
+                                !metodoPagoId ||
+                                (esWompi && (!terminosAceptados || !datosAceptados))
                             }
                         >
                             {procesando ? (

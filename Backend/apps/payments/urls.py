@@ -5,6 +5,7 @@ from .views import (
     PagosView,
     WompiCrearView,
     WompiStatusView,
+    WompiWebhookView,
     ConfirmarPagoView,
 )
 
@@ -16,6 +17,7 @@ urlpatterns = [
     # Wompi — integración real con la pasarela de pagos
     path("wompi/crear/", WompiCrearView.as_view(), name="payments-wompi-crear"),
     path("wompi/status/", WompiStatusView.as_view(), name="payments-wompi-status"),
+    path("wompi/webhook/", WompiWebhookView.as_view(), name="payments-wompi-webhook"),
 ]
 
 app_name = "payments"

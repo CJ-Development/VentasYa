@@ -5,6 +5,7 @@ from django.shortcuts import get_object_or_404
 from django.db import transaction
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import ensure_csrf_cookie
+from django.utils import timezone
 
 from .models import Compra, DetalleCompra, MetodoPago
 from .serializers import CompraSerializer
@@ -132,6 +133,8 @@ class CheckoutView(APIView):
         direccion_id = request.data.get("direccion_id")
         metodo_pago_id = request.data.get("metodo_pago_id")
         telefono_contacto = request.data.get("telefono_contacto") or None
+        terminos_aceptados = request.data.get("terminos_aceptados", False)
+        datos_aceptados = request.data.get("datos_aceptados", False)
 
         if not (usuario_id and direccion_id and metodo_pago_id):
             return Response(
@@ -236,12 +239,21 @@ class CheckoutView(APIView):
                         ),
                     )
 
-                # Crear pago pendiente
+                # Crear pago pendiente con aceptaciones legales
+                fecha_aceptacion = (
+                    timezone.now()
+                    if (terminos_aceptados and datos_aceptados)
+                    else None
+                )
+
                 pago = Pago.objects.create(
                     compra=compra,
                     metodo_pago=metodo_pago,
                     monto=total,
                     estado="pendiente",
+                    terminos_aceptados=terminos_aceptados,
+                    datos_aceptados=datos_aceptados,
+                    fecha_aceptacion=fecha_aceptacion,
                 )
 
             return Response(
@@ -255,6 +267,11 @@ class CheckoutView(APIView):
                         "id": metodo_pago.id_metodo_pago,
                         "tipo": metodo_pago.tipo,
                         "detalle": metodo_pago.detalle or "",
+                    },
+                    "aceptaciones_legales": {
+                        "terminos_aceptados": pago.terminos_aceptados,
+                        "datos_aceptados": pago.datos_aceptados,
+                        "fecha_aceptacion": pago.fecha_aceptacion.isoformat() if pago.fecha_aceptacion else None,
                     },
                     "compra": CompraSerializer(compra).data,
                 },

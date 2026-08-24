@@ -54,6 +54,11 @@ class Pago(models.Model):
 
     fecha_pago = models.DateTimeField(auto_now_add=True)
 
+    # Aceptaciones legales de VentasYa
+    terminos_aceptados = models.BooleanField(default=False)
+    datos_aceptados = models.BooleanField(default=False)
+    fecha_aceptacion = models.DateTimeField(null=True, blank=True)
+
     class Meta:
         db_table = "pagos"
 

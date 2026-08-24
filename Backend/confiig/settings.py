@@ -485,5 +485,6 @@ BLOB_READ_WRITE_TOKEN = os.environ.get("BLOB_READ_WRITE_TOKEN")
 # Credenciales para integración con Wompi
 WOMPI_PUBLIC_KEY = os.environ.get("WOMPI_PUBLIC_KEY")
 WOMPI_PRIVATE_KEY = os.environ.get("WOMPI_PRIVATE_KEY")
+WOMPI_INTEGRITY_SECRET = os.environ.get("WOMPI_INTEGRITY_SECRET")
 WOMPI_EVENT_ID = os.environ.get("WOMPI_EVENT_ID")
 WOMPI_REDIRECT_URL = os.environ.get("WOMPI_REDIRECT_URL")
