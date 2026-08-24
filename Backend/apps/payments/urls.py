@@ -3,6 +3,7 @@ from django.urls import path
 from .views import (
     MetodosPagoView,
     PagosView,
+    WompiMerchantView,
     WompiCrearView,
     WompiStatusView,
     WompiWebhookView,
@@ -15,6 +16,7 @@ urlpatterns = [
     path("confirmar/", ConfirmarPagoView.as_view(), name="payments-confirmar"),
 
     # Wompi — integración real con la pasarela de pagos
+    path("wompi/merchant/", WompiMerchantView.as_view(), name="payments-wompi-merchant"),
     path("wompi/crear/", WompiCrearView.as_view(), name="payments-wompi-crear"),
     path("wompi/status/", WompiStatusView.as_view(), name="payments-wompi-status"),
     path("wompi/webhook/", WompiWebhookView.as_view(), name="payments-wompi-webhook"),

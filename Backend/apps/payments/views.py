@@ -5,6 +5,8 @@ import hashlib
 
 from decimal import Decimal
 
+from django.views.decorators.csrf import ensure_csrf_cookie
+
 from django.conf import settings
 from django.db import transaction
 from django.shortcuts import get_object_or_404
@@ -22,6 +24,89 @@ from .serializers import (
     PagoSerializer,
 )
 from .models import Pago
+
+
+class WompiMerchantView(APIView):
+
+    """
+    GET /api/payments/wompi/merchant/
+
+    Obtiene la información del merchant de Wompi incluyendo los acceptance tokens.
+    """
+
+    def get(self, request):
+
+        public_key = settings.WOMPI_PUBLIC_KEY
+
+        if not public_key:
+
+            return Response(
+                {"detail": "WOMPI_PUBLIC_KEY no configurada."},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+
+        try:
+
+            url = f"https://production.wompi.co/v1/merchants/{public_key}"
+
+            # Detectar si es sandbox por el prefijo de la clave
+            if public_key.startswith("pub_test_"):
+                url = f"https://sandbox.wompi.co/v1/merchants/{public_key}"
+
+            req = urllib.request.Request(
+                url,
+                method="GET",
+            )
+
+            with urllib.request.urlopen(req, timeout=30) as response:
+
+                response_data = response.read()
+
+            data = json.loads(response_data.decode("utf-8"))
+
+        except urllib.error.HTTPError as e:
+
+            error_body = e.read().decode("utf-8", errors="ignore")
+
+            return Response(
+                {
+                    "detail": "Error obteniendo información del merchant de Wompi.",
+                    "wompi_response": error_body,
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        except Exception as e:
+
+            return Response(
+                {
+                    "detail": "Error conectando con Wompi.",
+                    "error": str(e),
+                },
+                status=status.HTTP_502_BAD_GATEWAY,
+            )
+
+        merchant_data = data.get("data", {})
+
+        presigned_acceptance = merchant_data.get("presigned_acceptance", {})
+        presigned_personal_data = merchant_data.get("presigned_personal_data_auth", {})
+
+        return Response(
+            {
+                "ok": True,
+                "merchant": {
+                    "id": merchant_data.get("id"),
+                    "name": merchant_data.get("name"),
+                    "email": merchant_data.get("email"),
+                },
+                "acceptance_tokens": {
+                    "acceptance_token": presigned_acceptance.get("acceptance_token"),
+                    "acceptance_permalink": presigned_acceptance.get("permalink"),
+                    "personal_data_token": presigned_personal_data.get("acceptance_token"),
+                    "personal_data_permalink": presigned_personal_data.get("permalink"),
+                },
+            }
+        )
 
 
 class MetodosPagoView(APIView):
