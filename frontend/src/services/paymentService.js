@@ -18,19 +18,25 @@ export const checkout = (payload) =>
 
 
 /* ===========================
-   WOMPI
+   WOMPI — Widget embebido
 =========================== */
 
-export const crearTransaccionWompi = (compraId) =>
-    api.post(`/payments/wompi/crear/`, { compra_id: compraId });
+export const getWompiMerchant = () =>
+    api.get(`/payments/wompi/merchant/`);
+
+export const getWompiWidgetData = (compraId) =>
+    api.get(`/payments/wompi/widget-data/`, {
+        params: { compra_id: compraId },
+    });
 
 export const consultarEstadoPago = (compraId) =>
-    api.get(`/payments/wompi/status/`, { params: { compra_id: compraId } });
+    api.get(`/payments/wompi/status/`, {
+        params: { compra_id: compraId },
+    });
 
 /* ===========================
    CONFIRMAR PAGO
-   (para métodos distintos a Wompi: contra entrega,
-   transferencia bancaria, o modo simulación)
+   Solo métodos distintos a Wompi.
 =========================== */
 
 export const confirmarPago = (compraId) =>

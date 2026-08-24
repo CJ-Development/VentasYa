@@ -1,7 +1,6 @@
 from rest_framework import serializers
 
 from .models import Pago
-from apps.orders.serializers import MetodoPagoSerializer
 
 
 class PagoSerializer(serializers.ModelSerializer):
@@ -13,9 +12,8 @@ class PagoSerializer(serializers.ModelSerializer):
 
 class MetodoPagoCatalogoSerializer(serializers.Serializer):
     """
-    Catálogo simple de métodos de pago que el frontend
-    puede mostrar en el checkout. Reutiliza el modelo
-    MetodoPago de orders para mantener una sola fuente.
+    Catálogo simple de métodos de pago para el frontend.
+    Reutiliza el modelo MetodoPago de orders.
     """
 
     id = serializers.IntegerField()

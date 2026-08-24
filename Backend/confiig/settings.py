@@ -482,9 +482,34 @@ BLOB_READ_WRITE_TOKEN = os.environ.get("BLOB_READ_WRITE_TOKEN")
 # ============================================================
 # WOMPI PAYMENTS
 # ============================================================
-# Credenciales para integración con Wompi
+# Credenciales para integración con Wompi (Widget embebido).
+#
+# Sandbox:    pub_test_* / prv_test_* / test_integrity_* / test_events_*
+# Producción:  pub_prod_* / prv_prod_* / prod_integrity_* / prod_events_*
+#
+# - WOMPI_PUBLIC_KEY: se envía al frontend. Segura de exponer.
+# - WOMPI_PRIVATE_KEY: NUNCA sale del backend. Para consultar /transactions/.
+# - WOMPI_INTEGRITY_SECRET: firma SHA256(ref + amount + currency + secret).
+# - WOMPI_EVENT_SECRET: valida el X-Event-Checksum de los webhooks.
+#   (WOMPI_EVENT_ID se mantiene por compatibilidad con config vieja.)
+# - WOMPI_REDIRECT_URL: a dónde redirige el Widget después del pago (UX).
+# - CLEANUP_SECRET: protege el endpoint /wompi/cleanup/ (jobs).
+#
 WOMPI_PUBLIC_KEY = os.environ.get("WOMPI_PUBLIC_KEY")
 WOMPI_PRIVATE_KEY = os.environ.get("WOMPI_PRIVATE_KEY")
 WOMPI_INTEGRITY_SECRET = os.environ.get("WOMPI_INTEGRITY_SECRET")
-WOMPI_EVENT_ID = os.environ.get("WOMPI_EVENT_ID")
-WOMPI_REDIRECT_URL = os.environ.get("WOMPI_REDIRECT_URL")
+
+# Nombre "oficial" según docs Wompi.
+WOMPI_EVENT_SECRET = os.environ.get("WOMPI_EVENT_SECRET")
+
+# Alias de compatibilidad: si no se setea WOMPI_EVENT_SECRET,
+# se usa WOMPI_EVENT_ID como fallback (config anterior del proyecto).
+WOMPI_EVENT_ID = os.environ.get("WOMPI_EVENT_ID") or WOMPI_EVENT_SECRET
+
+WOMPI_REDIRECT_URL = os.environ.get(
+    "WOMPI_REDIRECT_URL",
+    "http://localhost:5173/checkout/confirm",
+)
+
+# Secret para el endpoint interno de limpieza de reservas expiradas.
+CLEANUP_SECRET = os.environ.get("CLEANUP_SECRET")

@@ -1,5 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
-
+import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 
 import {
@@ -24,7 +23,11 @@ import {
     getMisDirecciones,
     crearDireccion,
 } from "../../services/addressService";
-import { getMetodosPago, checkout, crearTransaccionWompi, confirmarPago } from "../../services/paymentService";
+import {
+    getMetodosPago,
+    getWompiMerchant,
+    getWompiWidgetData,
+} from "../../services/paymentService";
 
 import NoImage from "../../assets/images/no-image.png";
 import { mediaUrl } from "../../utils/mediaUrl";
@@ -40,25 +43,23 @@ const formatearPesos = (valor) => {
 function Checkout() {
 
     const { usuario } = useAuth();
-
-    const { items, total, loading, clear } = useCart();
-
+    const { items, total, loading } = useCart();
     const navigate = useNavigate();
 
     /* ----------- Estado UI ----------- */
     const [direcciones, setDirecciones] = useState([]);
-    const [metodos, setMetodos] = useState([]);
-
     const [loadingDatos, setLoadingDatos] = useState(true);
     const [procesando, setProcesando] = useState(false);
     const [error, setError] = useState(null);
 
     const [direccionId, setDireccionId] = useState(null);
-    const [metodoPagoId, setMetodoPagoId] = useState(null);
     const [telefono, setTelefono] = useState("");
 
     const [terminosAceptados, setTerminosAceptados] = useState(false);
     const [datosAceptados, setDatosAceptados] = useState(false);
+
+    const [wompiTokens, setWompiTokens] = useState(null);
+    const [loadingWompiTokens, setLoadingWompiTokens] = useState(false);
 
     const [mostrarFormDireccion, setMostrarFormDireccion] = useState(false);
     const [nuevaDireccion, setNuevaDireccion] = useState({
@@ -76,19 +77,15 @@ function Checkout() {
         setLoadingDatos(true);
         Promise.all([
             getMisDirecciones(usuario.id_usuario),
-            getMetodosPago(),
+            getWompiMerchant(),
         ])
-            .then(([dirRes, metRes]) => {
+            .then(([dirRes, wompiRes]) => {
                 const dirs = dirRes.data || [];
                 setDirecciones(dirs);
-                setMetodos(metRes.data || []);
+                setWompiTokens(wompiRes.data?.acceptance_tokens || null);
 
                 const pred = dirs.find((d) => d.predeterminada) || dirs[0];
                 if (pred) setDireccionId(pred.id_direccion);
-
-                if ((metRes.data || []).length > 0) {
-                    setMetodoPagoId(metRes.data[0].id);
-                }
 
                 setTelefono(usuario.telefono || "");
             })
@@ -99,34 +96,23 @@ function Checkout() {
             .finally(() => setLoadingDatos(false));
     }, [usuario]);
 
-    /* ----------- Si el carrito se vacía ----------- */
+    /* ----------- Carrito vacío → redirigir ----------- */
     useEffect(() => {
         if (!loading && items.length === 0 && !procesando) {
             navigate("/cart", { replace: true });
         }
     }, [loading, items.length, procesando, navigate]);
 
-    const envioGratisDesde = 999900;
-    const envioGratis = total >= envioGratisDesde;
-
-    const costoEnvio = useMemo(() => (envioGratis ? 0 : 0), [envioGratis]);
-
-    const totalFinal = useMemo(
-        () => Number(total || 0) + Number(costoEnvio || 0),
-        [total, costoEnvio]
-    );
-
-    const metodoSeleccionado = metodos.find(
-        (m) => m.id === metodoPagoId
-    );
-    const esWompi =
-        metodoSeleccionado?.tipo?.toLowerCase() ===
-        "wompi";
+    const totalFinal = Number(total || 0);
 
     /* ----------- Guardar nueva dirección ----------- */
     const handleGuardarDireccion = async (e) => {
         e.preventDefault();
-        if (!nuevaDireccion.direccion || !nuevaDireccion.ciudad || !nuevaDireccion.departamento) {
+        if (
+            !nuevaDireccion.direccion ||
+            !nuevaDireccion.ciudad ||
+            !nuevaDireccion.departamento
+        ) {
             setError("Completa los campos obligatorios de la dirección.");
             return;
         }
@@ -163,16 +149,10 @@ function Checkout() {
             return;
         }
 
-        // Validar aceptaciones legales
-        const metodoSeleccionado = metodos.find(
-            (m) => m.id === metodoPagoId
-        );
-        const esWompi =
-            metodoSeleccionado?.tipo?.toLowerCase() ===
-            "wompi";
-
-        if (esWompi && (!terminosAceptados || !datosAceptados)) {
-            setError("Debes aceptar los Términos y Condiciones y la Política de Tratamiento de Datos para pagar con Wompi.");
+        if (!terminosAceptados || !datosAceptados) {
+            setError(
+                "Debes aceptar los Términos y la Política de Tratamiento de Datos para continuar."
+            );
             return;
         }
 
@@ -180,119 +160,103 @@ function Checkout() {
         setError(null);
 
         try {
-            // Primero crear la compra
+            // 1) Buscar el id del método Wompi (creado por el seed).
+            const { data: metodos } = await getMetodosPago();
+            const metodoWompi = (metodos || []).find(
+                (m) => m.tipo?.toLowerCase() === "wompi"
+            );
+
+            if (!metodoWompi) {
+                throw new Error(
+                    "No hay método de pago Wompi configurado en el sistema."
+                );
+            }
+
+            // 2) Crear la compra (descuento temporal de stock).
             const { data: compraData } = await checkout({
                 usuario_id: usuario.id_usuario,
                 direccion_id: direccionId,
-                metodo_pago_id: metodoPagoId,
+                metodo_pago_id: metodoWompi.id,
                 telefono_contacto: telefono || usuario.telefono,
                 terminos_aceptados: terminosAceptados,
                 datos_aceptados: datosAceptados,
             });
 
-            console.log("RESPUESTA COMPLETA DEL CHECKOUT:", compraData);
-
             const compraId =
                 compraData?.id_compra ??
-                compraData?.id ??
                 compraData?.compra?.id_compra ??
                 compraData?.compra?.id;
 
             if (!compraId) {
-                throw new Error("No se pudo crear la compra");
+                throw new Error("No se pudo crear la compra.");
             }
 
-            // Detectar método seleccionado. Si NO es Wompi
-            // (es Contra entrega o Transferencia), aprobamos
-            // la compra directamente sin pasar por la pasarela.
-            const metodoSeleccionado = metodos.find(
-                (m) => m.id === metodoPagoId
-            );
-            const esWompi =
-                metodoSeleccionado?.tipo?.toLowerCase() ===
-                "wompi";
+            // 3) Pedir al backend el payload del Widget.
+            const { data: widgetResp } = await getWompiWidgetData(compraId);
+            const widget = widgetResp?.widget;
 
-            if (!esWompi) {
-                // Para métodos distintos a Wompi (contra
-                // entrega, transferencia), aprobamos la
-                // compra directamente en el backend.
-                await confirmarPago(compraId);
-                await clear();
-                navigate(
-                    `/checkout/confirm?compra_id=${compraId}&simulated=1`,
-                    { replace: true }
-                );
-                return;
-            }
-
-            // Crear transacción de Wompi y obtener datos para Web Checkout
-            const { data: wompiData } = await crearTransaccionWompi(compraId);
-
-            // Verificar si tenemos los datos necesarios para Web Checkout
-            const {
-                public_key,
-                currency,
-                amount_in_cents,
-                reference,
-                signature,
-                redirect_url,
-                simulated
-            } = wompiData;
-
-            if (!public_key || !currency || !amount_in_cents || !reference || !signature) {
+            if (!widget?.public_key || !widget?.signature_integrity) {
                 throw new Error(
-                    "No se pudieron obtener los datos necesarios para el checkout de Wompi"
+                    "No se pudo preparar el widget de pago de Wompi."
                 );
             }
 
-            // Si es modo simulado, redirigir directamente
-            if (simulated) {
-                await clear();
-                window.location.href = redirect_url;
-                return;
+            // 4) Inyectar el <script> del Widget embebido de Wompi.
+            //    Wompi reemplaza este script por su botón + modal.
+            //
+            //    Documentación oficial:
+            //    https://docs.wompi.co/docs/widget-de-pagos
+            //
+            const form = document.createElement("form");
+            form.id = "wompi-checkout-form";
+
+            const script = document.createElement("script");
+            script.src = "https://checkout.wompi.co/widget.js";
+            script.async = true;
+            script.setAttribute("data-render", "button");
+            script.setAttribute("data-public-key", widget.public_key);
+            script.setAttribute("data-currency", widget.currency);
+            script.setAttribute(
+                "data-amount-in-cents",
+                String(widget.amount_in_cents)
+            );
+            script.setAttribute("data-reference", widget.reference);
+            script.setAttribute(
+                "data-signature:integrity",
+                widget.signature_integrity
+            );
+
+            if (widget.customer_email) {
+                script.setAttribute(
+                    "data-customer-email",
+                    widget.customer_email
+                );
             }
 
-            // Construir y enviar formulario para Web Checkout de Wompi
-            const form = document.createElement('form');
-            form.method = 'GET';
-            form.action = 'https://checkout.wompi.co/p/';
+            // Al volver de Wompi, el frontend hace polling en /status/.
+            script.setAttribute(
+                "data-redirect-url",
+                widget.redirect_url
+            );
 
-            const fields = [
-                { name: 'public-key', value: public_key },
-                { name: 'currency', value: currency },
-                { name: 'amount-in-cents', value: amount_in_cents },
-                { name: 'reference', value: reference },
-                { name: 'signature:integrity', value: signature.integrity },
-            ];
-
-            if (redirect_url) {
-                fields.push({ name: 'redirect-url', value: redirect_url });
-            }
-
-            fields.forEach(field => {
-                const input = document.createElement('input');
-                input.type = 'hidden';
-                input.name = field.name;
-                input.value = field.value;
-                form.appendChild(input);
-            });
-
+            form.appendChild(script);
             document.body.appendChild(form);
 
-            // Vaciar carrito local antes de redirigir
-            await clear();
-
-            // Enviar formulario para redirigir a Wompi
-            form.submit();
+            // 5) Redirigir a la pantalla de confirmación.
+            //    Wompi redirige allí automáticamente al terminar el pago.
+            //    El polling se hace desde /checkout/confirm.
+            navigate(
+                `/checkout/confirm?compra_id=${compraId}`,
+                { replace: true }
+            );
 
         } catch (err) {
             console.error("Checkout error:", err);
             const msg =
-                err?.response?.data?.wompi_response ||
                 err?.response?.data?.detail ||
                 err?.response?.data?.error ||
                 err?.message ||
-                "No fue posible procesar el pago. Intenta de nuevo.";
+                "No fue posible iniciar el pago. Intenta de nuevo.";
             setError(msg);
         } finally {
             setProcesando(false);
@@ -350,12 +314,15 @@ function Checkout() {
                 <Breadcrumb
                     items={[
                         { label: "Carrito", to: "/cart" },
-                        { label: "Checkout" }
+                        { label: "Checkout" },
                     ]}
                 />
 
                 <h1>Finalizar compra</h1>
-                <p>Confirma tu dirección y método de pago para completar el pedido.</p>
+                <p>
+                    Confirma tu dirección y revisa tu pedido. Te llevaremos al
+                    pago seguro de Wompi en el siguiente paso.
+                </p>
 
                 {error && <div className="checkout-error">{error}</div>}
 
@@ -544,90 +511,50 @@ function Checkout() {
                             </div>
                         </section>
 
-                        {/* MÉTODO DE PAGO */}
-                        <section className="checkout-card">
-                            <h2>
-                                <CreditCard size={18} /> Método de pago
-                            </h2>
-                            <p>Selecciona tu método de pago preferido.</p>
+                        {/* ACEPTACIONES LEGALES — minimalistas */}
+                        <section className="checkout-card checkout-legal-card">
+                            <p className="checkout-legal-text">
+                                Para procesar tu pago de forma segura, Wompi nos
+                                exige confirmar las siguientes autorizaciones:
+                            </p>
 
-                            {metodos.length === 0 ? (
-                                <div className="checkout-no-options">
-                                    No hay métodos de pago disponibles.
-                                </div>
-                            ) : (
-                                <div className="checkout-options">
-                                    {metodos.map((m) => (
-                                        <label
-                                            key={m.id}
-                                            className={
-                                                "checkout-option"
-                                                + (metodoPagoId === m.id ? " is-selected" : "")
-                                            }
-                                        >
-                                            <input
-                                                type="radio"
-                                                name="metodo_pago"
-                                                value={m.id}
-                                                checked={metodoPagoId === m.id}
-                                                onChange={() => setMetodoPagoId(m.id)}
-                                            />
-                                            <div className="checkout-option-main">
-                                                <strong>{m.tipo}</strong>
-                                                <span>{m.detalle}</span>
-                                            </div>
-                                        </label>
-                                    ))}
-                                </div>
-                            )}
-                        </section>
+                            <label className="checkout-legal-option">
+                                <input
+                                    type="checkbox"
+                                    checked={terminosAceptados}
+                                    onChange={(e) => setTerminosAceptados(e.target.checked)}
+                                />
+                                <span>
+                                    Acepto los{" "}
+                                    <a
+                                        href={wompiTokens?.acceptance_permalink || "/terminos-y-condiciones"}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                    >
+                                        Términos y Condiciones
+                                    </a>
+                                    .
+                                </span>
+                            </label>
 
-                        {/* ACEPTACIONES LEGALES */}
-                        <section className="checkout-card">
-                            <h2>
-                                <LockKeyhole size={18} /> Aceptaciones legales
-                            </h2>
-                            <p>Para continuar con tu compra, debes aceptar los siguientes documentos:</p>
-
-                            <div className="checkout-legal-section">
-                                <label className="checkout-legal-option">
-                                    <input
-                                        type="checkbox"
-                                        checked={terminosAceptados}
-                                        onChange={(e) => setTerminosAceptados(e.target.checked)}
-                                    />
-                                    <span>
-                                        He leído y acepto los <strong>Términos y Condiciones</strong> de VentasYa.
-                                        <a
-                                            href="/terminos-y-condiciones"
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            className="checkout-legal-link"
-                                        >
-                                            [Leer documento]
-                                        </a>
-                                    </span>
-                                </label>
-
-                                <label className="checkout-legal-option">
-                                    <input
-                                        type="checkbox"
-                                        checked={datosAceptados}
-                                        onChange={(e) => setDatosAceptados(e.target.checked)}
-                                    />
-                                    <span>
-                                        Autorizo el tratamiento de mis datos personales conforme a la <strong>Política de Tratamiento de Datos Personales</strong>.
-                                        <a
-                                            href="/politica-tratamiento-datos"
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            className="checkout-legal-link"
-                                        >
-                                            [Leer documento]
-                                        </a>
-                                    </span>
-                                </label>
-                            </div>
+                            <label className="checkout-legal-option">
+                                <input
+                                    type="checkbox"
+                                    checked={datosAceptados}
+                                    onChange={(e) => setDatosAceptados(e.target.checked)}
+                                />
+                                <span>
+                                    Autorizo el{" "}
+                                    <a
+                                        href={wompiTokens?.personal_data_permalink || "/politica-tratamiento-datos"}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                    >
+                                        Tratamiento de Datos Personales
+                                    </a>
+                                    .
+                                </span>
+                            </label>
                         </section>
                     </div>
 
@@ -675,9 +602,7 @@ function Checkout() {
                             <span>
                                 <Truck size={13} style={{ verticalAlign: -2 }} /> Envío
                             </span>
-                            <strong style={{ color: envioGratis ? "#0097A7" : "#031927" }}>
-                                {envioGratis ? "Gratis" : "Por calcular"}
-                            </strong>
+                            <strong style={{ color: "#0097A7" }}>Por calcular</strong>
                         </div>
                         <div className="checkout-summary-divider" />
                         <div className="checkout-summary-row checkout-summary-total">
@@ -692,22 +617,27 @@ function Checkout() {
                             disabled={
                                 procesando ||
                                 !direccionId ||
-                                !metodoPagoId ||
-                                (esWompi && (!terminosAceptados || !datosAceptados))
+                                !terminosAceptados ||
+                                !datosAceptados
                             }
                         >
                             {procesando ? (
                                 <>
                                     <Loader2 size={16} className="checkout-spin" />
-                                    Procesando pago...
+                                    Procesando...
                                 </>
                             ) : (
                                 <>
-                                    <LockKeyhole size={16} />
-                                    Pagar {formatearPesos(totalFinal)}
+                                    <CreditCard size={16} />
+                                    Pagar con Wompi {formatearPesos(totalFinal)}
                                 </>
                             )}
                         </button>
+
+                        <p className="checkout-secure-note">
+                            <LockKeyhole size={12} /> Pago seguro procesado por
+                            Wompi (Bancolombia).
+                        </p>
 
                         <Link
                             to="/cart"
@@ -715,7 +645,7 @@ function Checkout() {
                                 display: "inline-flex",
                                 alignItems: "center",
                                 gap: 6,
-                                marginTop: 14,
+                                marginTop: 10,
                                 color: "#0097A7",
                                 textDecoration: "none",
                                 fontWeight: 600,

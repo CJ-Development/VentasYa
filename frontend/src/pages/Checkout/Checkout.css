@@ -553,3 +553,21 @@
 .checkout-error-icon {
     color: #EF4444;
 }
+
+/* =========================================================
+   WOMPI WIDGET CONTAINER
+   ========================================================= */
+
+#wompi-widget-container {
+    margin: 20px 0;
+    min-height: 400px;
+}
+
+.checkout-loading-tokens {
+    color: #6E7271;
+    font-size: 13px;
+    padding: 12px;
+    text-align: center;
+    border: 1px dashed #C7D8DA;
+    border-radius: 10px;
+}
