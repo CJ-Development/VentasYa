@@ -1,192 +1,195 @@
 /* =========================================================
-   FAVORITOS
-========================================================= */
+   FAVORITOS — VENTASYA
+   Sistema: tokens.css
+   ========================================================= */
 
 .favorites-page {
     width: 100%;
     min-height: 70vh;
-    background: var(--background, #f8fafb);
+
+    background: var(--color-bg);
+
     padding: 32px 20px 90px;
+
     box-sizing: border-box;
+
+    animation: fadeInPage var(--transition-slow) var(--ease-out);
 }
 
 .favorites-container {
     width: 100%;
     max-width: 1420px;
     margin: 0 auto;
-    background: #ffffff;
-    border: 1px solid #edf1f3;
-    border-radius: 24px;
-    padding: 30px 28px;
+
+    background: var(--color-bg);
+
+    border: 1px solid var(--color-border-light);
+    border-radius: var(--radius-2xl);
+
+    padding: 32px 30px;
+
     box-sizing: border-box;
-    box-shadow: 0 8px 30px rgba(15, 41, 55, 0.06);
+
+    box-shadow: var(--shadow-md);
 }
+
 
 /* =========================================================
    ENCABEZADO
-========================================================= */
+   ========================================================= */
 
 .favorites-header {
     display: flex;
     flex-direction: column;
-    margin-bottom: 28px;
+    margin-bottom: 30px;
 }
 
 .favorites-header h1 {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 12px;
 
-    margin: 0 0 7px;
+    margin: 0 0 8px;
 
-    color: #0f2937;
+    color: var(--color-text);
+
     font-size: 30px;
     line-height: 1.2;
-    font-weight: 750;
+    font-weight: 800;
     letter-spacing: -0.5px;
 }
 
 .favorites-header h1 svg {
-    color: #0ea5b5;
+    color: var(--color-primary);
     width: 29px;
     height: 29px;
     stroke-width: 2;
+
+    transition: transform var(--transition);
+}
+
+.favorites-header:hover h1 svg {
+    transform: scale(1.08) rotate(-6deg);
 }
 
 .favorites-header p {
     margin: 0;
-
-    color: #526579;
+    color: var(--color-text-muted);
     font-size: 15px;
     line-height: 1.6;
 }
 
+
 /* =========================================================
    GRID
-========================================================= */
+   ========================================================= */
 
 .favorites-grid {
     display: grid;
     grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 20px;
+    gap: 22px;
 }
+
 
 /* =========================================================
    TARJETA
-========================================================= */
+   ========================================================= */
 
 .favorite-card {
-    background: #ffffff;
-
-    border: 1px solid #e7ecef;
-    border-radius: 17px;
-
+    background: var(--color-bg);
+    border: 1px solid var(--color-border-light);
+    border-radius: var(--radius-lg);
     overflow: hidden;
-
     cursor: pointer;
-
-    box-shadow: 0 4px 14px rgba(15, 41, 55, 0.05);
+    box-shadow: var(--shadow-sm);
 
     transition:
-        transform 0.25s ease,
-        box-shadow 0.25s ease,
-        border-color 0.25s ease;
+        transform var(--transition),
+        box-shadow var(--transition),
+        border-color var(--transition);
 }
 
 .favorite-card:hover {
     transform: translateY(-4px);
-
-    border-color: rgba(14, 165, 181, 0.35);
-
-    box-shadow:
-        0 12px 28px rgba(15, 41, 55, 0.10);
+    border-color: var(--color-primary-light);
+    box-shadow: var(--shadow-lg);
 }
+
 
 /* =========================================================
    IMAGEN
-========================================================= */
+   ========================================================= */
 
 .favorite-card-image {
     position: relative;
-
     width: 100%;
     height: 255px;
-
-    background: #f4f5f5;
-
+    background: var(--color-bg-alt);
     overflow: hidden;
 }
 
 .favorite-card-image img {
     width: 100%;
     height: 100%;
-
     display: block;
-
     object-fit: cover;
 
-    transition: transform 0.35s ease;
+    transition: transform var(--transition-slow);
 }
 
 .favorite-card:hover .favorite-card-image img {
-    transform: scale(1.035);
+    transform: scale(1.045);
 }
+
 
 /* =========================================================
    CATEGORÍA
-========================================================= */
+   ========================================================= */
 
 .favorite-card-category {
     position: absolute;
-
     left: 12px;
     bottom: 12px;
-
     padding: 6px 11px;
-
     background: rgba(255, 255, 255, 0.92);
-
-    border-radius: 8px;
-
-    color: #526579;
-
+    border-radius: var(--radius-sm);
+    color: var(--color-text-muted);
     font-size: 11px;
     font-weight: 700;
-
     text-transform: uppercase;
     letter-spacing: 0.4px;
-
     backdrop-filter: blur(8px);
 }
 
+
 /* =========================================================
    CONTENIDO
-========================================================= */
+   ========================================================= */
 
 .favorite-card-content {
-    padding: 17px 16px 15px;
+    padding: 18px 18px 16px;
 }
 
 .favorite-card-content h3 {
-    margin: 0 0 5px;
-
-    color: #0f2937;
-
+    margin: 0 0 6px;
+    color: var(--color-text);
     font-size: 15px;
     font-weight: 700;
-
     line-height: 1.35;
-
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+
+    transition: color var(--transition-fast);
+}
+
+.favorite-card:hover h3 {
+    color: var(--color-primary-darker);
 }
 
 .favorite-card-sku {
     margin: 0 0 10px;
-
-    color: #82909b;
-
+    color: var(--color-text-subtle);
     font-size: 11px;
     text-transform: uppercase;
     letter-spacing: 0.3px;
@@ -194,16 +197,15 @@
 
 .favorite-card-price {
     margin-bottom: 14px;
-
-    color: #0f2937;
-
+    color: var(--color-text);
     font-size: 18px;
     font-weight: 800;
 }
 
+
 /* =========================================================
    ACCIONES
-========================================================= */
+   ========================================================= */
 
 .favorite-card-actions {
     display: flex;
@@ -211,81 +213,78 @@
     gap: 8px;
 }
 
+
 /* Botón ver producto */
 
 .favorite-card-buy {
     flex: 1;
-
-    min-height: 38px;
-
+    min-height: 40px;
     display: flex;
     align-items: center;
     justify-content: center;
-
     gap: 7px;
-
-    padding: 9px 12px;
-
+    padding: 10px 12px;
     border: none;
-    border-radius: 9px;
-
-    background: #062f3d;
-    color: #ffffff;
-
+    border-radius: var(--radius-md);
+    background: var(--color-text);
+    color: var(--color-bg);
     font-size: 12px;
     font-weight: 700;
-
     cursor: pointer;
 
     transition:
-        background 0.2s ease,
-        transform 0.2s ease;
+        background var(--transition-fast),
+        transform var(--transition-fast),
+        box-shadow var(--transition-fast);
 }
 
 .favorite-card-buy:hover {
-    background: #0ea5b5;
+    background: var(--color-primary);
     transform: translateY(-1px);
+    box-shadow: var(--shadow-primary);
 }
 
 .favorite-card-buy svg {
     width: 15px;
     height: 15px;
+
+    transition: transform var(--transition-fast);
 }
+
+.favorite-card-buy:hover svg {
+    transform: translateX(3px);
+}
+
 
 /* Botón quitar */
 
 .favorite-card-remove {
-    min-height: 38px;
-
+    min-height: 40px;
     display: flex;
     align-items: center;
     justify-content: center;
-
     gap: 5px;
-
-    padding: 8px 10px;
-
-    border: 1px solid #e2e8eb;
-    border-radius: 9px;
-
-    background: #ffffff;
-    color: #526579;
-
+    padding: 9px 12px;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    background: var(--color-bg);
+    color: var(--color-text-muted);
     font-size: 11px;
     font-weight: 600;
-
     cursor: pointer;
 
     transition:
-        color 0.2s ease,
-        border-color 0.2s ease,
-        background 0.2s ease;
+        color var(--transition-fast),
+        border-color var(--transition-fast),
+        background var(--transition-fast),
+        transform var(--transition-fast);
 }
 
 .favorite-card-remove:hover {
-    color: #dc2626;
-    border-color: #fecaca;
-    background: #fff7f7;
+    color: var(--color-coral-darker);
+    border-color: var(--color-coral);
+    background: var(--color-coral-light);
+    transform: translateY(-1px);
 }
 
 .favorite-card-remove:disabled {
@@ -298,200 +297,151 @@
     height: 14px;
 }
 
+
 /* =========================================================
    ESTADOS
-========================================================= */
+   ========================================================= */
 
 .favorites-loading,
 .favorites-empty,
 .favorites-error {
     min-height: 420px;
-
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-
     text-align: center;
-
     padding: 40px 20px;
-
-    color: #6b7b88;
+    color: var(--color-text-muted);
 }
 
 .favorites-empty svg {
-    color: #0ea5b5;
-    margin-bottom: 10px;
+    color: var(--color-primary);
+    margin-bottom: 12px;
 }
 
 .favorites-empty h2 {
-    margin: 8px 0;
-
-    color: #0f2937;
-
+    margin: 10px 0;
+    color: var(--color-text);
     font-size: 22px;
 }
 
 .favorites-empty p {
     max-width: 450px;
-
     margin: 0 0 20px;
-
-    color: #6b7b88;
-
+    color: var(--color-text-muted);
     line-height: 1.6;
 }
 
 .favorites-error p {
-    color: #dc2626;
+    color: var(--color-coral-darker);
 }
+
 
 /* =========================================================
    BOTÓN CTA
-========================================================= */
+   ========================================================= */
 
 .favorites-cta {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-
-    min-height: 42px;
-
-    padding: 0 22px;
-
+    min-height: 44px;
+    padding: 0 24px;
     border: none;
-    border-radius: 10px;
-
-    background: #0ea5b5;
-    color: #ffffff;
-
+    border-radius: var(--radius-md);
+    background: var(--color-primary);
+    color: var(--color-bg);
     text-decoration: none;
-
     font-size: 13px;
     font-weight: 700;
-
     cursor: pointer;
+    box-shadow: var(--shadow-primary);
 
     transition:
-        background 0.2s ease,
-        transform 0.2s ease;
+        background var(--transition-fast),
+        transform var(--transition-fast),
+        box-shadow var(--transition-fast);
 }
 
 .favorites-cta:hover {
-    background: #078b9a;
+    background: var(--color-primary-dark);
     transform: translateY(-2px);
+    box-shadow: 0 10px 24px rgba(14, 165, 181, 0.3);
 }
 
 .favorites-secondary {
-    margin-top: 10px;
-
-    color: #0ea5b5;
-
+    margin-top: 12px;
+    color: var(--color-primary-dark);
     font-size: 13px;
     font-weight: 600;
-
     text-decoration: none;
+
+    transition: color var(--transition-fast);
 }
 
 .favorites-secondary:hover {
+    color: var(--color-primary-darker);
     text-decoration: underline;
 }
 
+
 /* =========================================================
    LOADING
-========================================================= */
+   ========================================================= */
 
 .favorites-spin {
-    color: #0ea5b5;
-
+    color: var(--color-primary);
     animation: favorites-spin 0.9s linear infinite;
 }
 
 @keyframes favorites-spin {
-    from {
-        transform: rotate(0deg);
-    }
-
-    to {
-        transform: rotate(360deg);
-    }
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
 }
 
+
 /* =========================================================
-   PRODUCT DETAIL
-========================================================= */
+   FADE IN DE PÁGINA
+   ========================================================= */
+
+@keyframes fadeInPage {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+
+/* =========================================================
+   PRODUCT DETAIL OVERRIDE
+   ========================================================= */
 
 .favorites-container > .product-detail-overlay {
     z-index: 9999;
 }
 
+
 /* =========================================================
    RESPONSIVE
-========================================================= */
+   ========================================================= */
 
 @media (max-width: 1200px) {
-
-    .favorites-grid {
-        grid-template-columns: repeat(3, minmax(0, 1fr));
-    }
-
+    .favorites-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 }
 
 @media (max-width: 900px) {
-
-    .favorites-page {
-        padding: 25px 16px 70px;
-    }
-
-    .favorites-container {
-        padding: 25px 20px;
-        border-radius: 20px;
-    }
-
-    .favorites-grid {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
-
-    .favorite-card-image {
-        height: 240px;
-    }
-
+    .favorites-page { padding: 25px 16px 70px; }
+    .favorites-container { padding: 26px 22px; border-radius: var(--radius-xl); }
+    .favorites-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .favorite-card-image { height: 240px; }
 }
 
 @media (max-width: 600px) {
-
-    .favorites-page {
-        padding: 18px 12px 60px;
-    }
-
-    .favorites-container {
-        padding: 20px 14px;
-        border-radius: 16px;
-    }
-
-    .favorites-header h1 {
-        font-size: 25px;
-    }
-
-    .favorites-grid {
-        grid-template-columns: 1fr;
-        gap: 16px;
-    }
-
-    .favorite-card-image {
-        height: 280px;
-    }
-
-    .favorite-card-actions {
-        gap: 7px;
-    }
-
-    .favorite-card-buy {
-        padding: 9px 10px;
-    }
-
-    .favorite-card-remove {
-        padding: 8px 9px;
-    }
-
+    .favorites-page { padding: 18px 12px 60px; }
+    .favorites-container { padding: 22px 16px; border-radius: var(--radius-lg); }
+    .favorites-header h1 { font-size: 25px; }
+    .favorites-grid { grid-template-columns: 1fr; gap: 16px; }
+    .favorite-card-image { height: 280px; }
+    .favorite-card-actions { gap: 7px; }
+    .favorite-card-buy { padding: 9px 10px; }
+    .favorite-card-remove { padding: 8px 9px; }
 }
