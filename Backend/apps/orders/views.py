@@ -2,11 +2,13 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from django.shortcuts import get_object_or_404
-from django.db import transaction
+from django.db import transaction, OperationalError, IntegrityError
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import ensure_csrf_cookie
 from django.utils import timezone
 from datetime import timedelta
+
+import logging
 
 from .models import Compra, DetalleCompra, MetodoPago
 from .serializers import CompraSerializer
@@ -16,6 +18,9 @@ from apps.cart.models import Carrito
 from apps.products.models import Variante
 from apps.users.models import Direccion, Usuario
 from apps.payments.models import Pago, ReservaStock
+
+
+logger = logging.getLogger(__name__)
 
 
 # Ventana de reserva de stock: alineada con la expiración del Widget
@@ -269,7 +274,48 @@ class CheckoutView(APIView):
             )
 
         except Exception as e:
+            # SIEMPRE logueamos el traceback completo. Antes solo se
+            # devolvía str(e) y el 500 salía sin contexto en Vercel.
+            logger.exception(
+                "Checkout falló | usuario_id=%s direccion_id=%s "
+                "metodo_pago_id=%s items=%s",
+                usuario_id, direccion_id, metodo_pago_id,
+                len(items) if 'items' in locals() else 0,
+            )
+
+            # Distinguimos errores comunes para dar mensajes accionables.
+            if isinstance(e, OperationalError):
+                # PostgreSQL timeout / conexión caída (común con Supabase
+                # pooler + Vercel serverless cold start).
+                return Response(
+                    {
+                        "detail": (
+                            "No se pudo conectar con la base de datos. "
+                            "Intenta de nuevo en unos segundos."
+                        ),
+                        "error_type": "db_unavailable",
+                    },
+                    status=status.HTTP_503_SERVICE_UNAVAILABLE,
+                )
+
+            if isinstance(e, IntegrityError):
+                # FK inválida, unique constraint, check violation, etc.
+                return Response(
+                    {
+                        "detail": (
+                            "Datos inconsistentes al crear la compra. "
+                            "Verifica dirección y método de pago."
+                        ),
+                        "error_type": "data_integrity",
+                    },
+                    status=status.HTTP_409_CONFLICT,
+                )
+
+            # Cualquier otra cosa: 500 genérico pero con traceback en logs.
             return Response(
-                {"detail": f"Error en checkout: {str(e)}"},
+                {
+                    "detail": f"Error en checkout: {type(e).__name__}: {e}",
+                    "error_type": "internal_error",
+                },
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
