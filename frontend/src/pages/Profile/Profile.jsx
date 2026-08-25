@@ -140,8 +140,8 @@ function EditarPerfilModal({ open, onClose, usuario, onSaved }) {
             if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) {
                 age--;
             }
-            if (age < 13) {
-                next.fecha_nacimiento = "Debes tener al menos 13 años";
+            if (age < 18) {
+                next.fecha_nacimiento = "Debes tener al menos 18 años";
             }
         }
 
@@ -834,13 +834,6 @@ function Profile() {
 
             <section className="profile-hero">
                 <div className="profile-hero-container">
-                    <div className="profile-hero-text">
-                        <h1>Mi cuenta</h1>
-                        <p>
-                            Administra tu información personal y
-                            tus preferencias de compra.
-                        </p>
-                    </div>
 
                     <div className="profile-user-summary">
                         <div className="profile-summary-avatar">
