@@ -349,21 +349,9 @@ function ProductCard({ product, onSelect }) {
                 >
 
                     <Heart
-                        size={21}
+                        size={20}
 
                         strokeWidth={2}
-
-                        fill={
-                            fav
-                                ? "#FF3F4A"
-                                : "none"
-                        }
-
-                        color={
-                            fav
-                                ? "#FF3F4A"
-                                : "#031927"
-                        }
                     />
 
                 </button>

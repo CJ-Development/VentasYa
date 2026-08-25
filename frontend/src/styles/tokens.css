@@ -1,0 +1,142 @@
+/* ============================================================
+   DESIGN TOKENS — VentasYa
+   Paleta oficial + variables de diseño
+   ============================================================ */
+
+:root {
+    /* ============================================================
+       COLORES BASE
+       ============================================================ */
+
+    /* Turquesa (primario) */
+    --color-primary: #0EA5B5;
+    --color-primary-dark: #087E8F;   /* Más oscuro para hover */
+    --color-primary-darker: #066976; /* Texto sobre fondo claro, pasa AA */
+    --color-primary-light: #E9F8FA;  /* Fondo suave */
+    --color-primary-lighter: #F4FAFB;
+
+    /* Coral (ofertas / alertas) */
+    --color-coral: #FF6B6B;
+    --color-coral-dark: #D85555;     /* Hover */
+    --color-coral-darker: #B23A3A;   /* Texto, pasa AA */
+    --color-coral-light: #FFF0F0;
+    --color-coral-lighter: #FFF8F8;
+
+    /* Naranja (ofertas / secundario cálido) */
+    --color-orange: #FF7A00;
+    --color-orange-dark: #CC6200;
+    --color-orange-darker: #A04F00;  /* Texto, pasa AA */
+    --color-orange-light: #FFF1E6;
+    --color-orange-lighter: #FFF8F2;
+
+    /* Grises (texto y superficies) */
+    --color-text: #1F2937;           /* Texto principal — 13.6:1 sobre blanco */
+    --color-text-muted: #4B5563;     /* Texto secundario — 7.5:1 sobre blanco */
+    --color-text-subtle: #6B7280;    /* Texto auxiliar — 4.8:1 sobre blanco */
+    --color-border: #E5E7EB;
+    --color-border-light: #EEF1F2;
+
+    /* Superficies */
+    --color-bg: #FFFFFF;
+    --color-bg-alt: #F3F4F6;         /* Fondo gris claro oficial */
+    --color-bg-alt-2: #F9FAFB;
+
+    /* ============================================================
+       SOMBRAS
+       ============================================================ */
+    --shadow-sm: 0 1px 2px rgba(31, 41, 55, .05);
+    --shadow-md: 0 4px 12px rgba(31, 41, 55, .06);
+    --shadow-lg: 0 10px 28px rgba(31, 41, 55, .08);
+    --shadow-xl: 0 16px 40px rgba(31, 41, 55, .12);
+
+    /* Sombras de color (acentos) */
+    --shadow-primary: 0 6px 18px rgba(14, 165, 181, .22);
+    --shadow-coral: 0 6px 18px rgba(255, 107, 107, .25);
+    --shadow-orange: 0 6px 18px rgba(255, 122, 0, .25);
+
+    /* ============================================================
+       RADIOS
+       ============================================================ */
+    --radius-sm: 6px;
+    --radius-md: 10px;
+    --radius-lg: 14px;
+    --radius-xl: 18px;
+    --radius-2xl: 22px;
+    --radius-full: 9999px;
+
+    /* ============================================================
+       TIPOGRAFÍA
+       ============================================================ */
+    --font-sans: "Inter", "Segoe UI", system-ui, -apple-system,
+        "Helvetica Neue", Arial, sans-serif;
+
+    --fs-xs: 11px;
+    --fs-sm: 13px;
+    --fs-base: 14px;
+    --fs-md: 16px;
+    --fs-lg: 18px;
+    --fs-xl: 22px;
+    --fs-2xl: 28px;
+    --fs-3xl: 36px;
+
+    /* ============================================================
+       ESPACIADO (escala 4px)
+       ============================================================ */
+    --space-1: 4px;
+    --space-2: 8px;
+    --space-3: 12px;
+    --space-4: 16px;
+    --space-5: 20px;
+    --space-6: 24px;
+    --space-8: 32px;
+    --space-10: 40px;
+    --space-12: 48px;
+
+    /* ============================================================
+       TRANSICIONES
+       ============================================================ */
+    --ease-out: cubic-bezier(.16, 1, .3, 1);
+    --ease-in-out: cubic-bezier(.65, 0, .35, 1);
+    --transition-fast: 150ms var(--ease-out);
+    --transition: 250ms var(--ease-out);
+    --transition-slow: 400ms var(--ease-out);
+
+    /* ============================================================
+       Z-INDEX
+       ============================================================ */
+    --z-dropdown: 100;
+    --z-sticky: 200;
+    --z-drawer: 300;
+    --z-modal: 400;
+    --z-toast: 500;
+}
+
+/* ============================================================
+   MODO OSCURO — preparación futura
+   ============================================================ */
+
+@media (prefers-color-scheme: dark) {
+    /* Descomentar cuando se active dark mode
+    :root {
+        --color-bg: #0F1419;
+        --color-bg-alt: #1A1F26;
+        --color-text: #F3F4F6;
+        --color-text-muted: #D1D5DB;
+        --color-text-subtle: #9CA3AF;
+        --color-border: #2D3540;
+        --color-border-light: #232A33;
+    }
+    */
+}
+
+/* ============================================================
+   REDUCED MOTION
+   ============================================================ */
+
+@media (prefers-reduced-motion: reduce) {
+    :root {
+        --transition-fast: 0ms;
+        --transition: 0ms;
+        --transition-slow: 0ms;
+    }
+}

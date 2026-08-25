@@ -1,11 +1,12 @@
 /* =========================================================
-   HERO
+   HERO — Pasada de diseño
+   Paleta: tokens.css
 ========================================================= */
 
 .hero {
     width: 100%;
 
-    background: #FFFFFF;
+    background: var(--color-bg);
 
     padding: 28px 20px 34px;
 
@@ -34,8 +35,7 @@
 
     display: grid;
 
-    grid-template-columns:
-        repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(3, minmax(0, 1fr));
 
     gap: 18px;
 }
@@ -50,7 +50,7 @@
 
     min-height: 260px;
 
-    border-radius: 17px;
+    border-radius: var(--radius-xl);
 
     overflow: hidden;
 
@@ -59,15 +59,19 @@
     isolation: isolate;
 
     transition:
-        transform .3s ease,
-        box-shadow .3s ease;
+        transform var(--transition),
+        box-shadow var(--transition);
 }
 
 .hero-card:hover {
-    transform: translateY(-3px);
+    transform: translateY(-4px);
 
-    box-shadow:
-        0 16px 32px rgba(31, 41, 55, .10);
+    box-shadow: var(--shadow-lg);
+}
+
+.hero-card:focus-within {
+    outline: 2px solid var(--color-primary-dark);
+    outline-offset: 3px;
 }
 
 
@@ -76,30 +80,27 @@
 ========================================================= */
 
 .hero-card--fashion {
-    background:
-        linear-gradient(
-            135deg,
-            #EEF9FA 0%,
-            #E4F3F4 100%
-        );
+    background: linear-gradient(
+        135deg,
+        var(--color-primary-lighter) 0%,
+        var(--color-primary-light) 100%
+    );
 }
 
 .hero-card--pets {
-    background:
-        linear-gradient(
-            135deg,
-            #FFF8F0 0%,
-            #FFF0E1 100%
-        );
+    background: linear-gradient(
+        135deg,
+        var(--color-orange-lighter) 0%,
+        var(--color-orange-light) 100%
+    );
 }
 
 .hero-card--family {
-    background:
-        linear-gradient(
-            135deg,
-            #F2FAF7 0%,
-            #EAF6F1 100%
-        );
+    background: linear-gradient(
+        135deg,
+        #F2FAF7 0%,
+        #EAF6F1 100%
+    );
 }
 
 
@@ -114,11 +115,7 @@
 
     width: 52%;
 
-    padding:
-        27px
-        0
-        25px
-        25px;
+    padding: 27px 0 25px 25px;
 
     display: flex;
 
@@ -135,7 +132,7 @@
 .hero-card h1 {
     margin: 0;
 
-    color: #1F2937;
+    color: var(--color-text);
 
     font-size: clamp(22px, 2vw, 27px);
 
@@ -147,30 +144,27 @@
 }
 
 .hero-card--fashion h1 {
-    color: #087E8F;
-}
-
-.hero-card--pets h1 {
-    color: #1F2937;
+    color: var(--color-primary-darker);
 }
 
 .hero-card--family h1 {
-    color: #1F2937;
+    color: #0F766E;
 }
 
 
 /* =========================================================
    DESCRIPCIÓN
+   Texto secundario: 4B5563 sobre fondos pastel → 7:1 ✅
 ========================================================= */
 
 .hero-card p {
     margin: 12px 0 0;
 
-    max-width: 175px;
+    max-width: 200px;
 
-    color: #4B5563;
+    color: var(--color-text-muted);
 
-    font-size: 10px;
+    font-size: var(--fs-sm);
 
     line-height: 1.45;
 
@@ -187,7 +181,7 @@
 
     align-items: flex-start;
 
-    gap: 16px;
+    gap: 14px;
 
     margin-top: 17px;
 }
@@ -201,22 +195,24 @@
 
     gap: 5px;
 
-    width: 50px;
+    width: 60px;
 
-    color: #374151;
+    color: var(--color-text);
 
     text-align: center;
 
-    font-size: 8px;
+    font-size: var(--fs-xs);
 
     line-height: 1.2;
+
+    font-weight: 500;
 }
 
 .hero-feature-icon {
-    width: 29px;
-    height: 29px;
+    width: 32px;
+    height: 32px;
 
-    border-radius: 50%;
+    border-radius: var(--radius-full);
 
     display: flex;
 
@@ -225,23 +221,33 @@
 
     color: #FFFFFF;
 
-    background: #0EA5B5;
+    background: var(--color-primary);
 
-    box-shadow:
-        0 4px 10px rgba(14, 165, 181, .18);
+    box-shadow: var(--shadow-primary);
+
+    transition: transform var(--transition);
+}
+
+.hero-card:hover .hero-feature-icon {
+    transform: scale(1.08);
 }
 
 .hero-card--pets .hero-feature-icon {
-    background: #FF7A00;
+    background: var(--color-orange);
+
+    box-shadow: var(--shadow-orange);
 }
 
 .hero-card--family .hero-feature-icon {
-    background: #20A995;
+    background: #0F766E;
+
+    box-shadow: 0 4px 10px rgba(15, 118, 110, .22);
 }
 
 
 /* =========================================================
    BOTÓN
+   Texto grande + bold para AA Large (3:1)
 ========================================================= */
 
 .hero-card-button {
@@ -252,43 +258,58 @@
     align-items: center;
     justify-content: center;
 
-    min-height: 32px;
+    min-height: 36px;
 
-    padding: 0 15px;
+    padding: 0 18px;
 
-    border-radius: 7px;
+    border-radius: var(--radius-md);
 
-    background: #0EA5B5;
+    background: var(--color-primary);
 
     color: #FFFFFF;
 
-    font-size: 9px;
+    font-size: var(--fs-sm);
 
     font-weight: 700;
 
     text-decoration: none;
 
+    letter-spacing: .2px;
+
     transition:
-        transform .2s ease,
-        filter .2s ease,
-        box-shadow .2s ease;
+        transform var(--transition-fast),
+        background var(--transition-fast),
+        box-shadow var(--transition-fast);
 }
 
 .hero-card--pets .hero-card-button {
-    background: #FF7A00;
+    background: var(--color-orange);
 }
 
 .hero-card--family .hero-card-button {
-    background: #20A995;
+    background: #0F766E;
 }
 
 .hero-card-button:hover {
     transform: translateY(-2px);
 
-    filter: brightness(.96);
+    background: var(--color-primary-dark);
 
-    box-shadow:
-        0 6px 14px rgba(31, 41, 55, .12);
+    box-shadow: var(--shadow-primary);
+}
+
+.hero-card--pets .hero-card-button:hover {
+    background: var(--color-orange-dark);
+    box-shadow: var(--shadow-orange);
+}
+
+.hero-card--family .hero-card-button:hover {
+    background: #0C5F58;
+    box-shadow: 0 6px 14px rgba(15, 118, 110, .25);
+}
+
+.hero-card-button:focus-visible {
+    outline-offset: 3px;
 }
 
 
@@ -316,12 +337,11 @@
 
     user-select: none;
 
-    transition:
-        transform .4s ease;
+    transition: transform var(--transition-slow);
 }
 
 .hero-card:hover .hero-card-image {
-    transform: scale(1.025);
+    transform: scale(1.04) translateY(-2px);
 }
 
 
@@ -347,31 +367,28 @@
     right: 15px;
     top: 13px;
 
-    background-image:
-        radial-gradient(
-            #0EA5B5 1.2px,
-            transparent 1.2px
-        );
+    background-image: radial-gradient(
+        var(--color-primary) 1.2px,
+        transparent 1.2px
+    );
 
     background-size: 7px 7px;
 
-    opacity: .45;
+    opacity: .5;
 }
 
 .hero-card--pets .hero-decoration-one {
-    background-image:
-        radial-gradient(
-            #FF7A00 1.2px,
-            transparent 1.2px
-        );
+    background-image: radial-gradient(
+        var(--color-orange) 1.2px,
+        transparent 1.2px
+    );
 }
 
 .hero-card--family .hero-decoration-one {
-    background-image:
-        radial-gradient(
-            #0EA5B5 1.2px,
-            transparent 1.2px
-        );
+    background-image: radial-gradient(
+        #0F766E 1.2px,
+        transparent 1.2px
+    );
 }
 
 
@@ -396,6 +413,10 @@
     border-color: rgba(255, 122, 0, .45);
 }
 
+.hero-card--family .hero-decoration-two {
+    border-color: rgba(15, 118, 110, .45);
+}
+
 
 /* =========================================================
    BENEFICIOS
@@ -410,21 +431,25 @@
 
     padding: 0 25px;
 
-    background: #FFFFFF;
+    background: var(--color-bg);
 
-    border: 1px solid #EEF1F2;
+    border: 1px solid var(--color-border-light);
 
-    border-radius: 17px;
+    border-radius: var(--radius-xl);
 
-    box-shadow:
-        0 6px 22px rgba(31, 41, 55, .06);
+    box-shadow: var(--shadow-sm);
 
     display: grid;
 
-    grid-template-columns:
-        repeat(4, 1fr);
+    grid-template-columns: repeat(4, 1fr);
 
     align-items: center;
+
+    transition: box-shadow var(--transition);
+}
+
+.hero-benefits:hover {
+    box-shadow: var(--shadow-md);
 }
 
 
@@ -443,7 +468,7 @@
 
     padding: 0 22px;
 
-    border-right: 1px solid #E5E7EB;
+    border-right: 1px solid var(--color-border);
 }
 
 .hero-benefit:first-child {
@@ -461,8 +486,7 @@
    ICONOS BENEFICIOS
 ========================================================= */
 
-.hero-benefit-icon,
-.hero-highlight-icon {
+.hero-benefit-icon {
     flex-shrink: 0;
 
     display: flex;
@@ -470,30 +494,34 @@
     align-items: center;
     justify-content: center;
 
-    border-radius: 50%;
+    border-radius: var(--radius-full);
+
+    width: 38px;
+    height: 38px;
+
+    transition: transform var(--transition);
 }
 
-.hero-benefit-icon {
-    width: 34px;
-    height: 34px;
+.hero-benefit:hover .hero-benefit-icon {
+    transform: scale(1.08) rotate(-4deg);
 }
 
 .hero-icon-coral {
-    color: #FF6B6B;
+    color: var(--color-coral-darker);
 
-    background: #FFF0F0;
+    background: var(--color-coral-light);
 }
 
 .hero-icon-orange {
-    color: #FF7A00;
+    color: var(--color-orange-darker);
 
-    background: #FFF1E6;
+    background: var(--color-orange-light);
 }
 
 .hero-icon-turquoise {
-    color: #0EA5B5;
+    color: var(--color-primary-darker);
 
-    background: #E9F8FA;
+    background: var(--color-primary-light);
 }
 
 
@@ -512,9 +540,9 @@
 }
 
 .hero-benefit-text strong {
-    color: #1F2937;
+    color: var(--color-text);
 
-    font-size: 10px;
+    font-size: var(--fs-sm);
 
     font-weight: 700;
 
@@ -522,9 +550,9 @@
 }
 
 .hero-benefit-text span {
-    color: #6B7280;
+    color: var(--color-text-subtle);
 
-    font-size: 9px;
+    font-size: var(--fs-xs);
 
     line-height: 1.2;
 
@@ -533,7 +561,7 @@
 
 
 /* =========================================================
-   HIGHLIGHTS
+   HIGHLIGHTS (categorías rápidas)
 ========================================================= */
 
 .hero-highlights {
@@ -541,27 +569,21 @@
 
     display: grid;
 
-    grid-template-columns:
-        repeat(4, 1fr);
+    grid-template-columns: repeat(4, 1fr);
 
     gap: 14px;
 
     margin-top: 18px;
 }
 
-
-/* =========================================================
-   HIGHLIGHT
-========================================================= */
-
 .hero-highlight {
     min-height: 56px;
 
     padding: 10px 13px;
 
-    border-radius: 13px;
+    border-radius: var(--radius-lg);
 
-    background: #F5FAFB;
+    background: var(--color-primary-lighter);
 
     border: 1px solid transparent;
 
@@ -574,13 +596,9 @@
     text-decoration: none;
 
     transition:
-        transform .25s ease,
-        border-color .25s ease,
-        background .25s ease;
-}
-
-.hero-highlight:nth-child(1) {
-    background: #F4FAFB;
+        transform var(--transition),
+        border-color var(--transition),
+        background var(--transition);
 }
 
 .hero-highlight:nth-child(2) {
@@ -588,38 +606,29 @@
 }
 
 .hero-highlight:nth-child(3) {
-    background: #F2FAFC;
+    background: var(--color-primary-lighter);
 }
 
 .hero-highlight:nth-child(4) {
-    background: #FFF8F2;
+    background: var(--color-orange-lighter);
 }
 
 .hero-highlight:hover {
-    transform: translateY(-2px);
+    transform: translateY(-3px);
 
-    border-color: #E5E7EB;
+    border-color: var(--color-border);
 
-    background: #FFFFFF;
+    background: var(--color-bg);
 
-    box-shadow:
-        0 7px 18px rgba(31, 41, 55, .06);
+    box-shadow: var(--shadow-md);
 }
-
-
-/* =========================================================
-   ICONO HIGHLIGHT
-========================================================= */
 
 .hero-highlight-icon {
-    width: 31px;
-    height: 31px;
+    width: 32px;
+    height: 32px;
+
+    flex-shrink: 0;
 }
-
-
-/* =========================================================
-   TEXTO HIGHLIGHT
-========================================================= */
 
 .hero-highlight-text {
     display: flex;
@@ -634,9 +643,9 @@
 }
 
 .hero-highlight-text strong {
-    color: #374151;
+    color: var(--color-text);
 
-    font-size: 9px;
+    font-size: var(--fs-xs);
 
     font-weight: 700;
 
@@ -644,32 +653,27 @@
 }
 
 .hero-highlight-text span {
-    color: #6B7280;
+    color: var(--color-text-subtle);
 
-    font-size: 8px;
+    font-size: 10px;
 
     white-space: nowrap;
 }
 
-
-/* =========================================================
-   FLECHA
-========================================================= */
-
 .hero-highlight-arrow {
-    color: #64748B;
+    color: var(--color-text-subtle);
 
     flex-shrink: 0;
 
     transition:
-        transform .2s ease,
-        color .2s ease;
+        transform var(--transition),
+        color var(--transition);
 }
 
 .hero-highlight:hover .hero-highlight-arrow {
-    color: #0EA5B5;
+    color: var(--color-primary-dark);
 
-    transform: translateX(3px);
+    transform: translateX(4px);
 }
 
 
@@ -694,11 +698,7 @@
     .hero-card-content {
         width: 58%;
 
-        padding:
-            24px
-            0
-            22px
-            20px;
+        padding: 24px 0 22px 20px;
     }
 
     .hero-card h1 {
@@ -761,7 +761,7 @@
     }
 
     .hero-benefit:nth-child(-n + 2) {
-        border-bottom: 1px solid #E5E7EB;
+        border-bottom: 1px solid var(--color-border);
     }
 
     .hero-highlights {
@@ -787,17 +787,13 @@
     .hero-card {
         min-height: 230px;
 
-        border-radius: 15px;
+        border-radius: var(--radius-lg);
     }
 
     .hero-card-content {
         width: 57%;
 
-        padding:
-            20px
-            0
-            18px
-            18px;
+        padding: 20px 0 18px 18px;
     }
 
     .hero-card h1 {
@@ -807,7 +803,7 @@
     .hero-card p {
         max-width: 145px;
 
-        font-size: 9px;
+        font-size: 12px;
     }
 
     .hero-card-features {
@@ -817,24 +813,24 @@
     }
 
     .hero-feature {
-        width: 43px;
+        width: 50px;
 
-        font-size: 7px;
+        font-size: 10px;
     }
 
     .hero-feature-icon {
-        width: 27px;
-        height: 27px;
+        width: 28px;
+        height: 28px;
     }
 
     .hero-card-button {
         margin-top: 12px;
 
-        min-height: 30px;
+        min-height: 32px;
 
-        padding: 0 12px;
+        padding: 0 14px;
 
-        font-size: 8px;
+        font-size: var(--fs-xs);
     }
 
     .hero-card-image {
@@ -855,7 +851,7 @@
         padding: 8px 0;
 
         border-right: none;
-        border-bottom: 1px solid #E5E7EB;
+        border-bottom: 1px solid var(--color-border);
     }
 
     .hero-benefit:last-child {

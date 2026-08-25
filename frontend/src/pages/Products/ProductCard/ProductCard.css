@@ -11,9 +11,6 @@
      que el producto se vea completo.
 ============================================================ */
 
-@import url("https://fonts.googleapis.com/css2?family=Agbalumo&family=Fjalla+One&display?family=Agbalumo&family=Fjalla+One&display");
-
-
 .pc-card {
     width: 100%;
     min-width: 0;
@@ -25,28 +22,29 @@
 
     position: relative;
 
-    background: #ffffff;
+    background: var(--color-bg);
 
-    border: 1px solid #e7eaed;
+    border: 1px solid var(--color-border);
 
-    border-radius: 15px;
+    border-radius: var(--radius-lg);
 
     cursor: pointer;
 
-    box-shadow:
-        0 3px 12px rgba(16, 42, 58, 0.06);
+    box-shadow: var(--shadow-sm);
 
     transition:
-        transform 0.25s ease,
-        box-shadow 0.25s ease;
+        transform var(--transition),
+        box-shadow var(--transition),
+        border-color var(--transition);
 }
 
 
 .pc-card:hover {
-    transform: translateY(-4px);
+    transform: translateY(-5px);
 
-    box-shadow:
-        0 10px 22px rgba(16, 42, 58, 0.11);
+    border-color: var(--color-primary-light);
+
+    box-shadow: var(--shadow-lg);
 }
 
 
@@ -63,7 +61,7 @@
 
     overflow: hidden;
 
-    background: #f4f3f2;
+    background: var(--color-bg-alt);
 
     display: flex;
 
@@ -84,13 +82,12 @@
 
     object-position: center;
 
-    transition:
-        transform 0.4s ease;
+    transition: transform var(--transition-slow);
 }
 
 
 .pc-card:hover .pc-image img {
-    transform: scale(1.035);
+    transform: scale(1.045);
 }
 
 
@@ -106,9 +103,9 @@
 
     object-fit: contain;
 
-    opacity: 0.75;
+    opacity: .75;
 
-    background: #f4f5f5;
+    background: var(--color-bg-alt-2);
 }
 
 
@@ -119,11 +116,11 @@
 .pc-favorite {
     position: absolute;
 
-    top: 9px;
-    right: 9px;
+    top: 10px;
+    right: 10px;
 
-    width: 34px;
-    height: 34px;
+    width: 36px;
+    height: 36px;
 
     padding: 0;
 
@@ -136,40 +133,45 @@
 
     border-radius: 50%;
 
-    background: #ffffff;
+    background: var(--color-bg);
 
-    box-shadow:
-        0 3px 10px rgba(0, 0, 0, 0.12);
+    box-shadow: var(--shadow-md);
 
     cursor: pointer;
 
     z-index: 5;
 
     transition:
-        transform 0.2s ease,
-        box-shadow 0.2s ease;
+        transform var(--transition-fast),
+        background var(--transition-fast);
 }
 
 
 .pc-favorite svg {
-    color: #102a3a;
+    color: var(--color-text);
+
+    transition: color var(--transition-fast);
 }
 
 
 .pc-favorite:hover {
-    transform: scale(1.08);
+    transform: scale(1.1);
 
-    box-shadow:
-        0 5px 13px rgba(0, 0, 0, 0.16);
+    background: var(--color-coral-light);
+}
+
+
+.pc-favorite.is-favorite {
+    background: var(--color-coral-light);
 }
 
 
 .pc-favorite.is-favorite svg {
-    color: #ff3f4a;
+    color: var(--color-coral);
 
-    fill: #ff3f4a;
+    fill: var(--color-coral);
 
-    stroke: #ff3f4a;
+    stroke: var(--color-coral);
 }
 
 
@@ -183,21 +185,24 @@
     top: 10px;
     left: 10px;
 
-    padding: 5px 8px;
+    padding: 6px 10px;
 
-    border-radius: 999px;
+    border-radius: var(--radius-full);
 
-    background: #ff6b6b;
+    background: var(--color-coral);
 
-    color: #ffffff;
+    color: #FFFFFF;
 
-    font-size: 10px;
+    font-size: 11px;
     font-weight: 800;
 
     line-height: 1;
 
-    box-shadow:
-        0 4px 10px rgba(255, 107, 107, 0.22);
+    letter-spacing: .3px;
+
+    box-shadow: var(--shadow-coral);
+
+    animation: pulse-coral 2s ease-in-out infinite;
 }
 
 
@@ -206,13 +211,79 @@
 ============================================================ */
 
 .pc-content {
-    min-height: 124px;
+    min-height: 130px;
 
-    padding: 12px 13px 13px;
+    padding: 14px 14px 14px;
 
     display: flex;
 
     flex-direction: column;
+}
+
+
+/* ============================================================
+   CATEGORÍA
+============================================================ */
+
+.pc-category {
+    order: 3;
+
+    display: block;
+
+    margin-bottom: 6px;
+
+    color: var(--color-text-subtle);
+
+    font-size: 10px;
+
+    font-weight: 600;
+
+    text-transform: uppercase;
+
+    letter-spacing: .8px;
+
+    white-space: nowrap;
+
+    overflow: hidden;
+
+    text-overflow: ellipsis;
+}
+
+
+/* ============================================================
+   NOMBRE
+============================================================ */
+
+.pc-content h3 {
+    order: 2;
+
+    margin: 0 0 8px;
+
+    min-height: 20px;
+
+    color: var(--color-text);
+
+    font-size: var(--fs-sm);
+
+    font-weight: 600;
+
+    line-height: 1.3;
+
+    display: -webkit-box;
+
+    -webkit-box-orient: vertical;
+
+    -webkit-line-clamp: 2;
+
+    line-clamp: 2;
+
+    overflow: hidden;
+
+    transition: color var(--transition);
+}
+
+.pc-card:hover h3 {
+    color: var(--color-primary-darker);
 }
 
 
@@ -225,102 +296,38 @@
 
     display: flex;
 
-    align-items: center;
+    align-items: baseline;
 
-    gap: 6px;
+    gap: 8px;
 
-    margin-bottom: 7px;
+    margin-bottom: 8px;
 }
 
 
 .pc-price-current {
-    color: #111111;
+    color: var(--color-text);
 
-    font-family: Fjalla One, sans-serif;
+    font-size: var(--fs-lg);
 
-    font-size: 15px;
-
-    font-weight: 400;
+    font-weight: 800;
 
     line-height: 1.1;
 }
 
 
 .pc-price-old {
-    color: #8d8d8d;
+    color: var(--color-text-subtle);
 
-    font-size: 11px;
+    font-size: var(--fs-xs);
 
     text-decoration: line-through;
+
+    font-weight: 500;
 }
 
 
 /* ============================================================
-   NOMBRE
-============================================================ */
-
-.pc-content h3 {
-    order: 2;
-
-    margin: 0 0 7px;
-
-    min-height: 18px;
-
-    color: #17202a;
-
-    font-family: Fjalla One, sans-serif;
-
-    font-size: 13px;
-
-    font-weight: 400;
-
-    line-height: 1.25;
-
-    display: -webkit-box;
-
-    -webkit-box-orient: vertical;
-
-    -webkit-line-clamp: 2;
-
-    line-clamp: 2;
-
-    overflow: hidden;
-}
-
-
-/* ============================================================
-   CATEGORIA
-============================================================ */
-
-.pc-category {
-    order: 3;
-
-    display: block;
-
-    margin-bottom: 10px;
-
-    color: #64748b;
-
-    font-family: Fjalla One, sans-serif;
-
-    font-size: 10px;
-
-    font-weight: 400;
-
-    text-transform: uppercase;
-
-    letter-spacing: 0.5px;
-
-    white-space: nowrap;
-
-    overflow: hidden;
-
-    text-overflow: ellipsis;
-}
-
-
-/* ============================================================
-   BOTON
+   BOTÓN CARRITO
 ============================================================ */
 
 .pc-cart-button {
@@ -328,7 +335,7 @@
 
     width: 100%;
 
-    height: 39px;
+    height: 40px;
 
     margin-top: auto;
 
@@ -337,34 +344,36 @@
     align-items: center;
     justify-content: center;
 
-    gap: 7px;
+    gap: 8px;
 
     border: none;
 
-    border-radius: 8px;
+    border-radius: var(--radius-md);
 
-    background: #102a3a;
+    background: var(--color-text);
 
-    color: #ffffff;
+    color: var(--color-bg);
 
     font-family: inherit;
 
-    font-size: 12px;
+    font-size: var(--fs-sm);
 
     font-weight: 700;
 
     cursor: pointer;
 
     transition:
-        background 0.2s ease,
-        transform 0.2s ease;
+        background var(--transition-fast),
+        transform var(--transition-fast);
 }
 
 
 .pc-cart-button:hover {
-    background: #0ea5b5;
+    background: var(--color-primary);
 
-    transform: translateY(-1px);
+    transform: translateY(-2px);
+
+    box-shadow: var(--shadow-primary);
 }
 
 
@@ -429,11 +438,29 @@
     }
 
     .pc-price-current {
-        font-size: 16px;
+        font-size: var(--fs-lg);
     }
 
     .pc-content h3 {
-        font-size: 14px;
+        font-size: var(--fs-sm);
+    }
+
+}
+
+
+/* ============================================================
+   REDUCED MOTION
+============================================================ */
+
+@media (prefers-reduced-motion: reduce) {
+
+    .pc-card,
+    .pc-image img,
+    .pc-favorite,
+    .pc-cart-button,
+    .pc-discount {
+        animation: none !important;
+        transition: none !important;
     }
 
 }
