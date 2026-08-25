@@ -23,8 +23,6 @@ import uuid
 from datetime import timedelta
 from decimal import Decimal, ROUND_HALF_UP
 
-import urllib.request
-import urllib.error
 import hashlib
 import hmac
 
@@ -51,6 +49,11 @@ from .serializers import (
     PagoSerializer,
     MetodoPagoCatalogoSerializer,
 )
+from .wompi_client import (
+    WompiError,
+    base_url_for,
+    wompi_request_with_retry,
+)
 
 
 logger = logging.getLogger(__name__)
@@ -65,10 +68,7 @@ def _wompi_base_url():
     Devuelve la URL base de Wompi según el tipo de public key.
     pub_test_* → sandbox, pub_prod_* → producción.
     """
-    public_key = (settings.WOMPI_PUBLIC_KEY or "").strip()
-    if public_key.startswith("pub_test_"):
-        return "https://sandbox.wompi.co/v1"
-    return "https://production.wompi.co/v1"
+    return base_url_for(settings.WOMPI_PUBLIC_KEY)
 
 
 def _amount_in_cents(total):
@@ -128,23 +128,36 @@ class WompiMerchantView(APIView):
         url = f"{_wompi_base_url()}/merchants/{public_key}"
 
         try:
-            req = urllib.request.Request(url, method="GET")
-            with urllib.request.urlopen(req, timeout=30) as response:
-                response_data = response.read()
-            data = json.loads(response_data.decode("utf-8"))
-
-        except urllib.error.HTTPError as e:
-            logger.warning(
-                "Error HTTP merchant Wompi: %s",
-                e.read().decode("utf-8", errors="ignore"),
+            data = wompi_request_with_retry(
+                "GET",
+                url,
+                context={"endpoint": "merchant"},
             )
+
+        except WompiError as e:
+            logger.warning(
+                "Error merchant Wompi: type=%s status=%s",
+                e.type, e.status,
+            )
+            # 401 = llave inválida → 500 (configuración del servidor).
+            if e.is_auth_error:
+                return Response(
+                    {
+                        "detail": (
+                            "Llave pública de Wompi inválida. "
+                            "Verifica WOMPI_PUBLIC_KEY."
+                        )
+                    },
+                    status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                )
+            # Errores transitorios agotados o 5xx.
             return Response(
                 {"detail": "Error obteniendo merchant de Wompi."},
-                status=status.HTTP_400_BAD_REQUEST,
+                status=status.HTTP_502_BAD_GATEWAY,
             )
 
         except Exception:
-            logger.exception("Error conectando con Wompi (merchant).")
+            logger.exception("Error inesperado conectando con Wompi (merchant).")
             return Response(
                 {"detail": "Error conectando con Wompi."},
                 status=status.HTTP_502_BAD_GATEWAY,
@@ -369,19 +382,41 @@ class WompiStatusView(APIView):
         )
 
         try:
-            req = urllib.request.Request(
+            wompi_response = wompi_request_with_retry(
+                "GET",
                 url,
                 headers={"Authorization": f"Bearer {private_key}"},
-                method="GET",
+                context={
+                    "endpoint": "transactions_get",
+                    "transaction_id": pago.wompi_transaction_id,
+                    "reference": pago.referencia_transaccion,
+                },
             )
-            with urllib.request.urlopen(req, timeout=30) as response:
-                wompi_response = json.loads(response.read().decode("utf-8"))
 
-        except urllib.error.HTTPError as e:
+        except WompiError as e:
             logger.warning(
-                "Error consultando Wompi: %s",
-                e.read().decode("utf-8", errors="ignore"),
+                "Error consultando transacción en Wompi: "
+                "type=%s status=%s ref=%s",
+                e.type, e.status, pago.referencia_transaccion,
             )
+            if e.is_not_found:
+                # La transacción no existe (o fue purgada). Mantenemos el
+                # estado interno y devolvemos 502 para que el frontend
+                # decida qué hacer.
+                return Response(
+                    {"detail": "Transacción no encontrada en Wompi."},
+                    status=status.HTTP_502_BAD_GATEWAY,
+                )
+            if e.is_auth_error:
+                return Response(
+                    {
+                        "detail": (
+                            "Llave privada de Wompi inválida. "
+                            "Verifica WOMPI_PRIVATE_KEY."
+                        )
+                    },
+                    status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                )
             return Response(
                 {"detail": "Error consultando la transacción en Wompi."},
                 status=status.HTTP_502_BAD_GATEWAY,
@@ -776,12 +811,15 @@ class WompiWebhookView(APIView):
         """
         Valida el X-Event-Checksum de Wompi.
 
-        Regla oficial Wompi:
+        Regla oficial Wompi (docs/webhooks.md):
           checksum = SHA256(
               concat(valores de signature.properties en orden)
-              + timestamp
               + events_secret
           )
+
+        NO se incluye timestamp en el cálculo. Solo values + events_secret.
+        El timestamp SÍ viene en el payload para auditoría, pero NO
+        participa del checksum.
         """
         if not received_checksum:
             return False
@@ -797,9 +835,8 @@ class WompiWebhookView(APIView):
 
         signature_data = body.get("signature") or {}
         properties = signature_data.get("properties") or []
-        timestamp = body.get("timestamp")
 
-        if not properties or timestamp is None:
+        if not properties:
             return False
 
         # Aceptar properties como lista o como string separado por espacios.
@@ -827,8 +864,8 @@ class WompiWebhookView(APIView):
 
             values.append(str(value))
 
-        # Construir string de firma.
-        signature_string = "".join(values) + str(timestamp) + events_secret
+        # Construir string de firma: SOLO values + events_secret.
+        signature_string = "".join(values) + events_secret
 
         calculated = hashlib.sha256(
             signature_string.encode("utf-8")

@@ -24,6 +24,7 @@ import {
     crearDireccion,
 } from "../../services/addressService";
 import {
+    checkout,
     getMetodosPago,
     getWompiMerchant,
     getWompiWidgetData,
@@ -59,7 +60,6 @@ function Checkout() {
     const [datosAceptados, setDatosAceptados] = useState(false);
 
     const [wompiTokens, setWompiTokens] = useState(null);
-    const [loadingWompiTokens, setLoadingWompiTokens] = useState(false);
 
     const [mostrarFormDireccion, setMostrarFormDireccion] = useState(false);
     const [nuevaDireccion, setNuevaDireccion] = useState({
@@ -70,6 +70,9 @@ function Checkout() {
         predeterminada: true,
     });
     const [guardandoDireccion, setGuardandoDireccion] = useState(false);
+
+    /* ----------- Estado del Widget Wompi ----------- */
+    const [widgetPayload, setWidgetPayload] = useState(null);
 
     /* ----------- Carga inicial ----------- */
     useEffect(() => {
@@ -98,10 +101,60 @@ function Checkout() {
 
     /* ----------- Carrito vacío → redirigir ----------- */
     useEffect(() => {
-        if (!loading && items.length === 0 && !procesando) {
+        if (!loading && items.length === 0 && !procesando && !widgetPayload) {
             navigate("/cart", { replace: true });
         }
-    }, [loading, items.length, procesando, navigate]);
+    }, [loading, items.length, procesando, widgetPayload, navigate]);
+
+    /* ----------- Inyección limpia del script del Widget -----------
+       useEffect con cleanup garantiza que el script se elimina del
+       DOM cuando el componente se desmonta (ej. al navegar). */
+    useEffect(() => {
+        if (!widgetPayload) return;
+
+        const formId = "wompi-checkout-form";
+        const existing = document.getElementById(formId);
+        if (existing) existing.remove();
+
+        const form = document.createElement("form");
+        form.id = formId;
+
+        const script = document.createElement("script");
+        script.src = "https://checkout.wompi.co/widget.js";
+        script.async = true;
+        script.setAttribute("data-render", "button");
+        script.setAttribute("data-public-key", widgetPayload.public_key);
+        script.setAttribute("data-currency", widgetPayload.currency);
+        script.setAttribute(
+            "data-amount-in-cents",
+            String(widgetPayload.amount_in_cents)
+        );
+        script.setAttribute("data-reference", widgetPayload.reference);
+        script.setAttribute(
+            "data-signature:integrity",
+            widgetPayload.signature_integrity
+        );
+
+        if (widgetPayload.customer_email) {
+            script.setAttribute(
+                "data-customer-email",
+                widgetPayload.customer_email
+            );
+        }
+
+        script.setAttribute(
+            "data-redirect-url",
+            widgetPayload.redirect_url
+        );
+
+        form.appendChild(script);
+        document.body.appendChild(form);
+
+        return () => {
+            const el = document.getElementById(formId);
+            if (el) el.remove();
+        };
+    }, [widgetPayload]);
 
     const totalFinal = Number(total || 0);
 
@@ -160,7 +213,7 @@ function Checkout() {
         setError(null);
 
         try {
-            // 1) Buscar el id del método Wompi (creado por el seed).
+            // 1) Buscar el id del método Wompi.
             const { data: metodos } = await getMetodosPago();
             const metodoWompi = (metodos || []).find(
                 (m) => m.tipo?.toLowerCase() === "wompi"
@@ -173,7 +226,7 @@ function Checkout() {
             }
 
             // 2) Crear la compra (descuento temporal de stock).
-            const { data: compraData } = await checkout({
+            const { data: checkoutData } = await checkout({
                 usuario_id: usuario.id_usuario,
                 direccion_id: direccionId,
                 metodo_pago_id: metodoWompi.id,
@@ -183,9 +236,10 @@ function Checkout() {
             });
 
             const compraId =
-                compraData?.id_compra ??
-                compraData?.compra?.id_compra ??
-                compraData?.compra?.id;
+                checkoutData?.compra_id ??
+                checkoutData?.id_compra ??
+                checkoutData?.compra?.id_compra ??
+                checkoutData?.compra?.id;
 
             if (!compraId) {
                 throw new Error("No se pudo crear la compra.");
@@ -193,62 +247,18 @@ function Checkout() {
 
             // 3) Pedir al backend el payload del Widget.
             const { data: widgetResp } = await getWompiWidgetData(compraId);
-            const widget = widgetResp?.widget;
+            const w = widgetResp?.widget;
 
-            if (!widget?.public_key || !widget?.signature_integrity) {
+            if (!w?.public_key || !w?.signature_integrity) {
                 throw new Error(
                     "No se pudo preparar el widget de pago de Wompi."
                 );
             }
 
-            // 4) Inyectar el <script> del Widget embebido de Wompi.
-            //    Wompi reemplaza este script por su botón + modal.
-            //
-            //    Documentación oficial:
-            //    https://docs.wompi.co/docs/widget-de-pagos
-            //
-            const form = document.createElement("form");
-            form.id = "wompi-checkout-form";
-
-            const script = document.createElement("script");
-            script.src = "https://checkout.wompi.co/widget.js";
-            script.async = true;
-            script.setAttribute("data-render", "button");
-            script.setAttribute("data-public-key", widget.public_key);
-            script.setAttribute("data-currency", widget.currency);
-            script.setAttribute(
-                "data-amount-in-cents",
-                String(widget.amount_in_cents)
-            );
-            script.setAttribute("data-reference", widget.reference);
-            script.setAttribute(
-                "data-signature:integrity",
-                widget.signature_integrity
-            );
-
-            if (widget.customer_email) {
-                script.setAttribute(
-                    "data-customer-email",
-                    widget.customer_email
-                );
-            }
-
-            // Al volver de Wompi, el frontend hace polling en /status/.
-            script.setAttribute(
-                "data-redirect-url",
-                widget.redirect_url
-            );
-
-            form.appendChild(script);
-            document.body.appendChild(form);
-
-            // 5) Redirigir a la pantalla de confirmación.
-            //    Wompi redirige allí automáticamente al terminar el pago.
-            //    El polling se hace desde /checkout/confirm.
-            navigate(
-                `/checkout/confirm?compra_id=${compraId}`,
-                { replace: true }
-            );
+            // 4) Activar el Widget. El useEffect lo inyecta y limpia.
+            //    Cuando Wompi termine, redirige a /checkout/confirm
+            //    y este componente se desmonta → cleanup elimina el script.
+            setWidgetPayload(w);
 
         } catch (err) {
             console.error("Checkout error:", err);
@@ -292,7 +302,7 @@ function Checkout() {
         );
     }
 
-    if (items.length === 0) {
+    if (items.length === 0 && !widgetPayload) {
         return (
             <main className="checkout-page">
                 <div className="checkout-container">
@@ -610,34 +620,62 @@ function Checkout() {
                             <strong>{formatearPesos(totalFinal)}</strong>
                         </div>
 
-                        <button
-                            type="button"
-                            className="checkout-pay"
-                            onClick={handlePagar}
-                            disabled={
-                                procesando ||
-                                !direccionId ||
-                                !terminosAceptados ||
-                                !datosAceptados
-                            }
-                        >
-                            {procesando ? (
-                                <>
-                                    <Loader2 size={16} className="checkout-spin" />
-                                    Procesando...
-                                </>
-                            ) : (
-                                <>
-                                    <CreditCard size={16} />
-                                    Pagar con Wompi {formatearPesos(totalFinal)}
-                                </>
-                            )}
-                        </button>
+                        {widgetPayload ? (
+                            <div className="checkout-widget-active">
+                                <p className="checkout-widget-hint">
+                                    <LockKeyhole size={12} /> Wompi está listo.
+                                    Pulsa el botón para abrir el pago seguro.
+                                </p>
+                                <p className="checkout-widget-hint-sub">
+                                    (El botón de Wompi aparecerá aquí cuando Wompi
+                                    termine de cargar. Si no aparece en 5 segundos,
+                                    recarga la página.)
+                                </p>
+                                {/* El botón real lo inyecta el script de Wompi
+                                    dentro del <form id="wompi-checkout-form">. */}
+                                <div id="wompi-button-mount" />
+                                <button
+                                    type="button"
+                                    className="checkout-pay"
+                                    style={{ background: "#888" }}
+                                    onClick={() => navigate("/cart")}
+                                >
+                                    Cancelar y volver al carrito
+                                </button>
+                            </div>
+                        ) : (
+                            <>
+                                <button
+                                    type="button"
+                                    className="checkout-pay"
+                                    onClick={handlePagar}
+                                    disabled={
+                                        procesando ||
+                                        !direccionId ||
+                                        !terminosAceptados ||
+                                        !datosAceptados
+                                    }
+                                >
+                                    {procesando ? (
+                                        <>
+                                            <Loader2 size={16} className="checkout-spin" />
+                                            Procesando...
+                                        </>
+                                    ) : (
+                                        <>
+                                            <CreditCard size={16} />
+                                            Continuar al pago con Wompi
+                                        </>
+                                    )}
+                                </button>
 
-                        <p className="checkout-secure-note">
-                            <LockKeyhole size={12} /> Pago seguro procesado por
-                            Wompi (Bancolombia).
-                        </p>
+                                <p className="checkout-secure-note">
+                                    <LockKeyhole size={12} /> En el siguiente
+                                    paso verás el pago seguro procesado por
+                                    Wompi (Bancolombia).
+                                </p>
+                            </>
+                        )}
 
                         <Link
                             to="/cart"
