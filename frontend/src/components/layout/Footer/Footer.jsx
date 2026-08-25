@@ -187,16 +187,6 @@ function Footer() {
                     </a>
 
 
-                    <a href="/categorias">
-
-                        <Grid2X2 />
-
-                        <span>
-                            Categorías
-                        </span>
-
-                    </a>
-
                 </div>
 
 
@@ -223,16 +213,6 @@ function Footer() {
 
                     </a>
 
-
-                    <a href="/trabaja-con-nosotros">
-
-                        <BriefcaseBusiness />
-
-                        <span>
-                            Trabaja con nosotros
-                        </span>
-
-                    </a>
 
 
                     <a href="/politica-privacidad">
@@ -305,16 +285,6 @@ function Footer() {
                     </a>
 
 
-                    <a href="/preguntas">
-
-                        <MessagesSquare />
-
-                        <span>
-                            Preguntas frecuentes
-                        </span>
-
-                    </a>
-
                 </div>
 
 
@@ -336,32 +306,22 @@ function Footer() {
                         <Phone />
 
                         <span>
-                            +57 300 123 4567
+                            +57 XXX XXX XXXX
                         </span>
 
                     </a>
 
 
-                    <a href="mailto:contacto@ventasya.com">
+                    <a href="mailto:ventasya@gmail.com">
 
                         <Mail />
 
                         <span>
-                            contacto@ventasya.com
+                            ventasya@gmail.com
                         </span>
 
                     </a>
 
-
-                    <div className="footer-contact-item">
-
-                        <MapPin />
-
-                        <span>
-                            Colombia
-                        </span>
-
-                    </div>
 
                 </div>
 
@@ -383,58 +343,6 @@ function Footer() {
                         © 2026 VentasYa. Todos los derechos reservados.
                     </p>
 
-
-                    {/* =================================================
-                        MÉTODOS DE PAGO
-                    ================================================= */}
-
-                    <div className="payment-methods">
-
-
-                        {/* VISA */}
-
-                        <div
-                            className="payment-card payment-visa"
-                            aria-label="Visa"
-                        >
-                            VISA
-                        </div>
-
-
-                        {/* MASTERCARD */}
-
-                        <div
-                            className="payment-card payment-mastercard"
-                            aria-label="Mastercard"
-                        >
-
-                            <span className="mastercard-circle red"></span>
-
-                            <span className="mastercard-circle yellow"></span>
-
-                        </div>
-
-
-                        {/* PSE */}
-
-                        <div
-                            className="payment-card payment-pse"
-                            aria-label="PSE"
-                        >
-                            PSE
-                        </div>
-
-
-                        {/* NEQUI */}
-
-                        <div
-                            className="payment-card payment-nequi"
-                            aria-label="Nequi"
-                        >
-                            Nequi
-                        </div>
-
-                    </div>
 
                 </div>
 
