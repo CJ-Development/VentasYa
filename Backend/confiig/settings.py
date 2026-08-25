@@ -394,14 +394,34 @@ if FRONTEND_URL:
 # ============================================================
 # COOKIES
 # ============================================================
+#
+# Política unificada entre dev y prod para evitar
+# "funciona en local, se rompe en Vercel" y viceversa.
+#
+# - Mismo sitio (localhost en dev, dominio único en prod):
+#     SameSite=Lax es suficiente y más seguro.
+# - Subdominios distintos del MISMO eTLD+1
+#   (ventas-ya.vercel.app vs ventasya-backend.vercel.app):
+#     el navegador los trata como cross-site, así que Lax
+#     BLOQUEA la cookie. Hay que usar SameSite=None + Secure.
+#
+# En dev usamos HTTP (localhost) → Secure=False.
+# En prod (Vercel) todo va por HTTPS → Secure=True obligatorio
+# para que SameSite=None funcione en navegadores modernos.
+#
+# CSRF_COOKIE_HTTPONLY=False para que el frontend pueda leer
+# la cookie csrftoken desde JS (axios xsrfCookieName).
+#
 
 if DEBUG:
 
-    SESSION_COOKIE_SAMESITE = "None"
+    SESSION_COOKIE_SAMESITE = "Lax"
     SESSION_COOKIE_SECURE = False
 
-    CSRF_COOKIE_SAMESITE = "None"
+    CSRF_COOKIE_SAMESITE = "Lax"
     CSRF_COOKIE_SECURE = False
+
+    CSRF_COOKIE_HTTPONLY = False
 
 else:
 
@@ -410,6 +430,8 @@ else:
 
     CSRF_COOKIE_SAMESITE = "None"
     CSRF_COOKIE_SECURE = True
+
+    CSRF_COOKIE_HTTPONLY = False
 
 
 # ============================================================
@@ -456,8 +478,6 @@ if not DEBUG:
     )
 
     SECURE_SSL_REDIRECT = False
-
-    CSRF_COOKIE_HTTPONLY = False
 
     X_FRAME_OPTIONS = "DENY"
 

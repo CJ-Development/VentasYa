@@ -14,44 +14,21 @@ from .serializers import OfertaSerializer
 from .services import OfertaService
 
 
-class CsrfExemptSessionAuthentication(SessionAuthentication):
+class IsStaff(BasePermission):
     """
-    Igual que SessionAuthentication pero no exige CSRF en métodos
-    no-GET. Se usa en endpoints admin (ofertas, productos, etc.)
-    para que el navegador pueda enviar POST/PUT/DELETE con la
-    cookie de sesión sin necesidad del header X-CSRFToken, que
-    en algunas configuraciones se pierde entre sub-paths.
-    """
-
-    def enforce_csrf(self, request):
-        return  # no-op
-
-
-class IsStaffOrQueryStaff(BasePermission):
-    """
-    Acepta dos formas de autenticación para no depender solo de la
-    cookie de sesión (que en dev cross-host entre localhost:5173 y
-    127.0.0.1:8000 puede no llegar al backend):
-
-    1) Sesión Django con usuario staff (request.user.is_staff).
-    2) Query param ?usuario_id=<id> donde ese usuario es staff.
-
-    Esto replica el patrón de favorites/cart y permite que el admin
-    funcione aunque la cookie sessionid no esté viajando.
+    Solo permite usuarios autenticados con is_staff=True.
+    La sesión debe llegar vía cookie sessionid (Django
+    SessionAuthentication). NO se acepta ?usuario_id= como
+    autenticación: eso sería un hueco de seguridad crítico.
     """
 
     def has_permission(self, request, view):
         user = getattr(request, "user", None)
-        if user and getattr(user, "is_authenticated", False) and getattr(user, "is_staff", False):
-            return True
-        usuario_id = request.query_params.get("usuario_id") or request.data.get("usuario_id")
-        if usuario_id:
-            try:
-                usuario = Usuario.objects.get(id_usuario=int(usuario_id))
-                return bool(usuario.is_staff)
-            except (Usuario.DoesNotExist, ValueError, TypeError):
-                return False
-        return False
+        return bool(
+            user
+            and getattr(user, "is_authenticated", False)
+            and getattr(user, "is_staff", False)
+        )
 
 
 @method_decorator(ensure_csrf_cookie, name="dispatch")
@@ -62,15 +39,15 @@ class OfertaView(APIView):
     Permisos:
     - GET: público (AllowAny). El home y las páginas de categoría
       necesitan listar ofertas activas sin requerir login.
-    - POST: solo administradores (sesión staff o ?usuario_id= de staff).
+    - POST: solo administradores autenticados por sesión Django.
     """
 
-    authentication_classes = [CsrfExemptSessionAuthentication]
+    authentication_classes = [SessionAuthentication]
 
     def get_permissions(self):
         if self.request.method == "GET":
             return [AllowAny()]
-        return [IsStaffOrQueryStaff()]
+        return [IsStaff()]
 
     def get(self, request):
 
@@ -100,15 +77,15 @@ class OfertaDetalleView(APIView):
     Detalle, edición y eliminación de una oferta.
 
     Mismo criterio de permisos que OfertaView: GET público,
-    mutaciones restringidas a staff.
+    mutaciones restringidas a staff autenticado.
     """
 
-    authentication_classes = [CsrfExemptSessionAuthentication]
+    authentication_classes = [SessionAuthentication]
 
     def get_permissions(self):
         if self.request.method == "GET":
             return [AllowAny()]
-        return [IsStaffOrQueryStaff()]
+        return [IsStaff()]
 
     def get(self, request, id):
 

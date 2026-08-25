@@ -2,6 +2,8 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from django.shortcuts import get_object_or_404
+from django.utils.decorators import method_decorator
+from django.views.decorators.csrf import ensure_csrf_cookie
 
 from .models import Carrito, ItemCarrito
 from .serializers import CarritoSerializer, ItemCarritoSerializer
@@ -10,6 +12,7 @@ from .services import CarritoService
 from apps.products.models import Variante
 
 
+@method_decorator(ensure_csrf_cookie, name="dispatch")
 class CarritoView(APIView):
 
     def get(self, request):
@@ -72,6 +75,7 @@ class CarritoView(APIView):
         )
 
 
+@method_decorator(ensure_csrf_cookie, name="dispatch")
 class ItemCarritoDetalleView(APIView):
 
     def put(self, request, id_item):

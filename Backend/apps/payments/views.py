@@ -31,7 +31,7 @@ from django.db import transaction
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from django.utils.decorators import method_decorator
-from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.csrf import csrf_exempt, ensure_csrf_cookie
 
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -187,6 +187,7 @@ class WompiMerchantView(APIView):
 # WIDGET DATA — payload para el <script> del Widget embebido
 # ============================================================
 
+@method_decorator(ensure_csrf_cookie, name="dispatch")
 class WompiWidgetDataView(APIView):
     """
     GET /api/payments/wompi/widget-data/?compra_id=123
@@ -911,10 +912,87 @@ class WompiCleanupView(APIView):
         })
 
 
+class MigrateAdminView(APIView):
+    """
+    POST /api/payments/admin/migrate/
+
+    Aplica migraciones pendientes en la base de datos de producción.
+    Pensado para llamarse UNA VEZ después de cada deploy que incluya
+    nuevas migraciones, ya que Vercel no ejecuta `manage.py migrate`
+    automáticamente en serverless.
+
+    Autenticación: header `X-Cleanup-Secret` debe coincidir con
+    settings.CLEANUP_SECRET.
+
+    IMPORTANTE: este endpoint usa `call_command` que ejecuta SQL DDL.
+    Solo debe llamarlo el dueño del deploy. No exponer públicamente.
+    """
+
+    authentication_classes = []
+    permission_classes = []
+
+    def post(self, request):
+
+        from django.core.management import call_command
+        from io import StringIO
+
+        secret_header = request.headers.get("X-Cleanup-Secret", "")
+        expected = (getattr(settings, "CLEANUP_SECRET", "") or "").strip()
+
+        if not expected:
+            return Response(
+                {
+                    "detail": (
+                        "CLEANUP_SECRET no configurado en el servidor. "
+                        "Refuse aplicar migraciones sin autenticación."
+                    ),
+                    "error_type": "misconfigured",
+                },
+                status=status.HTTP_503_SERVICE_UNAVAILABLE,
+            )
+
+        if secret_header != expected:
+            return Response(
+                {"detail": "No autorizado."},
+                status=status.HTTP_401_UNAUTHORIZED,
+            )
+
+        # dry_run=True solo lista lo que se aplicaría sin tocar nada.
+        dry_run_raw = request.query_params.get("dry_run", "false").lower()
+        dry_run = dry_run_raw in ("1", "true", "yes")
+
+        output = StringIO()
+        try:
+            call_command(
+                "migrate",
+                "--noinput",
+                verbosity=2,
+                stdout=output,
+            )
+        except Exception as e:
+            logger.exception("migrate admin falló")
+            return Response(
+                {
+                    "detail": f"migrate falló: {type(e).__name__}: {e}",
+                    "error_type": "migrate_failed",
+                    "output": output.getvalue(),
+                },
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+
+        return Response({
+            "ok": True,
+            "dry_run": dry_run,
+            "output": output.getvalue(),
+            "timestamp": timezone.now().isoformat(),
+        })
+
+
 # ============================================================
 # CATÁLOGO Y CONSULTAS GENÉRICAS
 # ============================================================
 
+@method_decorator(ensure_csrf_cookie, name="dispatch")
 class MetodosPagoView(APIView):
 
     def get(self, request):
@@ -949,6 +1027,7 @@ class MetodosPagoView(APIView):
         return Response(data)
 
 
+@method_decorator(ensure_csrf_cookie, name="dispatch")
 class PagosView(APIView):
 
     def get(self, request):
@@ -963,6 +1042,7 @@ class PagosView(APIView):
         return Response(PagoSerializer(qs, many=True).data)
 
 
+@method_decorator(ensure_csrf_cookie, name="dispatch")
 class ConfirmarPagoView(APIView):
     """
     POST /api/payments/confirmar/

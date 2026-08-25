@@ -26,8 +26,13 @@ from .services import UserService
 class CsrfExemptSessionAuthentication(SessionAuthentication):
     """
     Igual que SessionAuthentication pero no exige CSRF en el método.
-    Se usa en endpoints que crean o destruyen la sesión (login, register,
-    logout) porque en esos casos todavía no hay token CSRF disponible.
+    SOLO debe usarse en endpoints que crean o destruyen la sesión
+    (login, register, logout) porque en esos casos todavía no hay
+    token CSRF disponible.
+
+    ⚠️  NO usar esta clase en endpoints sensibles (cambiar
+    contraseña, editar perfil, checkout, admin…). Un uso
+    accidental abriría un hueco CSRF grave.
     """
 
     def enforce_csrf(self, request):

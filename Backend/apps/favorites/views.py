@@ -2,6 +2,8 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from django.shortcuts import get_object_or_404
+from django.utils.decorators import method_decorator
+from django.views.decorators.csrf import ensure_csrf_cookie
 
 from .serializers import FavoritoSerializer
 from .services import FavoritoService
@@ -10,6 +12,7 @@ from apps.users.models import Usuario
 from apps.products.models import Producto
 
 
+@method_decorator(ensure_csrf_cookie, name="dispatch")
 class FavoritoView(APIView):
 
     def get(self, request):
@@ -71,6 +74,7 @@ class FavoritoView(APIView):
         )
 
 
+@method_decorator(ensure_csrf_cookie, name="dispatch")
 class FavoritoDetalleView(APIView):
 
     def delete(self, request, id):

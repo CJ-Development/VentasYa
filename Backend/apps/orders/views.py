@@ -29,6 +29,7 @@ logger = logging.getLogger(__name__)
 RESERVA_MINUTOS = 30
 
 
+@method_decorator(ensure_csrf_cookie, name="dispatch")
 class CompraView(APIView):
 
     def get(self, request):
@@ -75,6 +76,7 @@ class CompraDetalleView(APIView):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
+@method_decorator(ensure_csrf_cookie, name="dispatch")
 class MisPedidosView(APIView):
 
     def get(self, request):
