@@ -1,6 +1,7 @@
 /* =========================================================
    LOGIN PAGE
-========================================================= */
+   Consume tokens de /styles/tokens.css
+   ========================================================= */
 
 .login-page {
 
@@ -11,7 +12,7 @@
     align-items: center;
     justify-content: center;
 
-    background: var(--background);
+    background: var(--surface-page);
 
     padding: 40px;
 
@@ -20,7 +21,7 @@
 
 /* =========================================================
    LOGIN CARD
-========================================================= */
+   ========================================================= */
 
 .login-card {
 
@@ -33,23 +34,22 @@
 
     grid-template-columns: 52% 48%;
 
-    background: var(--white);
+    background: var(--surface-card);
 
     border-radius: 20px;
 
     overflow: hidden;
 
-    border: 1px solid #edf0f2;
+    border: 1px solid var(--border-default);
 
-    box-shadow:
-        0 12px 35px rgba(7, 29, 45, 0.09);
+    box-shadow: var(--shadow-xl);
 
 }
 
 
 /* =========================================================
    PANEL IZQUIERDO
-========================================================= */
+   ========================================================= */
 
 .login-image {
 
@@ -62,7 +62,7 @@
 
     overflow: hidden;
 
-    background: #edf8f8;
+    background: var(--color-primary-light);
 
 }
 
@@ -82,8 +82,8 @@
 
 
 /* =========================================================
-   CAPA SOBRE IMAGEN
-========================================================= */
+   CAPA SOBRE IMAGEN (turquesa suave)
+   ========================================================= */
 
 .login-image::after {
 
@@ -93,15 +93,14 @@
 
     inset: 0;
 
-    background:
-        linear-gradient(
-            90deg,
-            rgba(237, 248, 248, 0.97) 0%,
-            rgba(237, 248, 248, 0.88) 28%,
-            rgba(237, 248, 248, 0.42) 52%,
-            rgba(237, 248, 248, 0.05) 76%,
-            rgba(237, 248, 248, 0) 100%
-        );
+    background: linear-gradient(
+        90deg,
+        rgba(233, 248, 250, 0.97) 0%,
+        rgba(233, 248, 250, 0.88) 28%,
+        rgba(233, 248, 250, 0.42) 52%,
+        rgba(233, 248, 250, 0.05) 76%,
+        rgba(233, 248, 250, 0) 100%
+    );
 
     pointer-events: none;
 
@@ -110,7 +109,7 @@
 
 /* =========================================================
    CONTENIDO IZQUIERDO
-========================================================= */
+   ========================================================= */
 
 .image-content {
 
@@ -123,7 +122,7 @@
 
     width: 355px;
 
-    color: #071d2d;
+    color: var(--text-heading-soft);
 
 }
 
@@ -145,7 +144,7 @@
 
 .image-content h2 span {
 
-    color: #0ea5b5;
+    color: var(--color-primary);
 
 }
 
@@ -156,7 +155,7 @@
 
     margin: 0 0 42px;
 
-    color: #29465c;
+    color: var(--text-muted);
 
     font-size: 16px;
 
@@ -167,7 +166,7 @@
 
 /* =========================================================
    CARACTERÍSTICAS
-========================================================= */
+   ========================================================= */
 
 .image-features {
 
@@ -207,7 +206,7 @@
 
     background: rgba(14, 165, 181, 0.13);
 
-    color: #0b97a7;
+    color: var(--color-primary-dark);
 
 }
 
@@ -225,7 +224,7 @@
 
 .feature-info strong {
 
-    color: #071d2d;
+    color: var(--text-heading-soft);
 
     font-size: 15px;
 
@@ -236,7 +235,7 @@
 
 .feature-info span {
 
-    color: #38546a;
+    color: var(--text-muted);
 
     font-size: 14px;
 
@@ -247,7 +246,7 @@
 
 /* =========================================================
    FORMULARIO DERECHO
-========================================================= */
+   ========================================================= */
 
 .login-form {
 
@@ -259,14 +258,14 @@
 
     padding: 45px 75px 40px;
 
-    background: #ffffff;
+    background: var(--surface-card);
 
 }
 
 
 /* =========================================================
    ENCABEZADO
-========================================================= */
+   ========================================================= */
 
 .form-header {
 
@@ -281,7 +280,7 @@
 
     margin: 0;
 
-    color: #062f40;
+    color: var(--text-heading);
 
     font-size: 35px;
 
@@ -303,7 +302,7 @@
 
     border-radius: 20px;
 
-    background: #0ea5b5;
+    background: var(--color-primary);
 
 }
 
@@ -314,7 +313,7 @@
 
     margin: 0 auto;
 
-    color: #536b7d;
+    color: var(--text-muted);
 
     font-size: 15px;
 
@@ -325,7 +324,7 @@
 
 /* =========================================================
    FORM
-========================================================= */
+   ========================================================= */
 
 .login-form form {
 
@@ -351,7 +350,7 @@
 
 .form-group label {
 
-    color: #071d2d;
+    color: var(--text-heading-soft);
 
     font-size: 15px;
 
@@ -362,7 +361,7 @@
 
 /* =========================================================
    LABEL PASSWORD
-========================================================= */
+   ========================================================= */
 
 .label-row {
 
@@ -377,7 +376,7 @@
 
 .forgot-password {
 
-    color: #0795a6;
+    color: var(--text-link);
 
     text-decoration: none;
 
@@ -385,19 +384,23 @@
 
     font-weight: 700;
 
+    cursor: pointer;
+
+    transition: color var(--transition-fast);
+
 }
 
 
 .forgot-password:hover {
 
-    color: #006f7d;
+    color: var(--text-link-hover);
 
 }
 
 
 /* =========================================================
    CONTENEDOR INPUT
-========================================================= */
+   ========================================================= */
 
 .login-form .input-wrapper {
 
@@ -408,24 +411,24 @@
 
     align-items: center;
 
-    border: 1px solid #d7e0e5;
+    border: 1px solid var(--border-input);
 
-    border-radius: 12px;
+    border-radius: var(--radius-md);
 
-    background: #ffffff;
+    background: var(--surface-input);
 
     overflow: hidden;
 
     transition:
-        border-color 0.2s ease,
-        box-shadow 0.2s ease;
+        border-color var(--transition-fast),
+        box-shadow var(--transition-fast);
 
 }
 
 
 /* =========================================================
    ICONOS DE LOS INPUTS
-========================================================= */
+   ========================================================= */
 
 .login-form .input-wrapper .login-input-icon {
 
@@ -454,7 +457,7 @@
 
     box-shadow: none !important;
 
-    color: #64788b !important;
+    color: var(--text-muted) !important;
 
     stroke: currentColor !important;
 
@@ -462,23 +465,25 @@
 
     overflow: visible !important;
 
+    transition: color var(--transition-fast);
+
 }
 
 
 /* =========================================================
    ICONO CUANDO INPUT TIENE FOCUS
-========================================================= */
+   ========================================================= */
 
 .login-form .input-wrapper:focus-within .login-input-icon {
 
-    color: #0ea5b5 !important;
+    color: var(--color-primary) !important;
 
 }
 
 
 /* =========================================================
    INPUT
-========================================================= */
+   ========================================================= */
 
 .login-form .input-wrapper input {
 
@@ -501,7 +506,7 @@
 
     padding: 0 15px !important;
 
-    color: #071d2d;
+    color: var(--text-primary);
 
     font-size: 15px;
 
@@ -510,28 +515,27 @@
 
 .login-form .input-wrapper input::placeholder {
 
-    color: #82909c;
+    color: var(--text-subtle);
 
 }
 
 
 /* =========================================================
    INPUT FOCUS
-========================================================= */
+   ========================================================= */
 
 .login-form .input-wrapper:focus-within {
 
-    border-color: #0ea5b5;
+    border-color: var(--color-primary);
 
-    box-shadow:
-        0 0 0 3px rgba(14, 165, 181, 0.12);
+    box-shadow: var(--ring-primary);
 
 }
 
 
 /* =========================================================
    PASSWORD TOGGLE
-========================================================= */
+   ========================================================= */
 
 .login-form .password-toggle {
 
@@ -557,16 +561,18 @@
 
     background: transparent !important;
 
-    color: #64788b;
+    color: var(--text-muted);
 
     cursor: pointer;
+
+    transition: color var(--transition-fast);
 
 }
 
 
 .login-form .password-toggle:hover {
 
-    color: #0ea5b5;
+    color: var(--color-primary);
 
 }
 
@@ -596,7 +602,7 @@
 
 /* =========================================================
    RECORDARME
-========================================================= */
+   ========================================================= */
 
 .remember-row {
 
@@ -613,7 +619,7 @@
 
     gap: 10px;
 
-    color: #40566a;
+    color: var(--text-muted);
 
     font-size: 14px;
 
@@ -643,7 +649,7 @@
     align-items: center;
     justify-content: center;
 
-    border: 1px solid #d2dce1;
+    border: 1px solid var(--border-input);
 
     border-radius: 5px;
 
@@ -653,25 +659,28 @@
 
     font-weight: 800;
 
-    transition: 0.2s ease;
+    transition:
+        background var(--transition-fast),
+        border-color var(--transition-fast),
+        color var(--transition-fast);
 
 }
 
 
 .remember-label input:checked + .custom-checkbox {
 
-    background: #0ea5b5;
+    background: var(--color-primary);
 
-    border-color: #0ea5b5;
+    border-color: var(--color-primary);
 
-    color: #ffffff;
+    color: var(--text-on-primary);
 
 }
 
 
 /* =========================================================
-   BOTÓN LOGIN
-========================================================= */
+   BOTÓN LOGIN (turquesa de marca)
+   ========================================================= */
 
 .login-button {
 
@@ -682,11 +691,11 @@
 
     border: none;
 
-    border-radius: 12px;
+    border-radius: var(--radius-md);
 
-    background: #062f40;
+    background: var(--color-primary);
 
-    color: #ffffff;
+    color: var(--text-on-primary);
 
     font-size: 15px;
 
@@ -694,29 +703,39 @@
 
     cursor: pointer;
 
+    box-shadow: var(--shadow-primary);
+
     transition:
-        background 0.2s ease,
-        transform 0.2s ease,
-        box-shadow 0.2s ease;
+        background var(--transition-fast),
+        transform var(--transition-fast),
+        box-shadow var(--transition-fast);
 
 }
 
 
 .login-button:hover {
 
-    background: #0ea5b5;
+    background: var(--color-primary-dark);
 
     transform: translateY(-1px);
 
-    box-shadow:
-        0 7px 18px rgba(14, 165, 181, 0.18);
+    box-shadow: 0 10px 24px rgba(14, 165, 181, .28);
+
+}
+
+
+.login-button:active {
+
+    transform: translateY(0);
 
 }
 
 
 .login-button:disabled {
 
-    opacity: 0.7;
+    background: var(--color-primary-light);
+
+    color: var(--text-subtle);
 
     cursor: not-allowed;
 
@@ -729,7 +748,7 @@
 
 /* =========================================================
    REGISTRO
-========================================================= */
+   ========================================================= */
 
 .register-text {
 
@@ -737,7 +756,7 @@
 
     text-align: center;
 
-    color: #53677a;
+    color: var(--text-muted);
 
     font-size: 14px;
 
@@ -748,25 +767,27 @@
 
     margin-left: 5px;
 
-    color: #0795a6;
+    color: var(--text-link);
 
     text-decoration: none;
 
     font-weight: 800;
+
+    transition: color var(--transition-fast);
 
 }
 
 
 .register-text a:hover {
 
-    color: #006f7d;
+    color: var(--text-link-hover);
 
 }
 
 
 /* =========================================================
    RESPONSIVE - TABLET
-========================================================= */
+   ========================================================= */
 
 @media (max-width: 1100px) {
 
@@ -797,7 +818,7 @@
 
 /* =========================================================
    RESPONSIVE - TABLET PEQUEÑA
-========================================================= */
+   ========================================================= */
 
 @media (max-width: 900px) {
 
@@ -844,7 +865,7 @@
 
 /* =========================================================
    RESPONSIVE - MÓVIL
-========================================================= */
+   ========================================================= */
 
 @media (max-width: 600px) {
 
@@ -857,7 +878,7 @@
 
     .login-card {
 
-        border-radius: 16px;
+        border-radius: var(--radius-lg);
 
     }
 

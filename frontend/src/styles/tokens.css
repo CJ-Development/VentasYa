@@ -42,6 +42,57 @@
     --color-bg-alt-2: #F9FAFB;
 
     /* ============================================================
+       TOKENS SEMÁNTICOS (estados y roles UI)
+       Los CSS de páginas deben consumir estos, NO colores sueltos.
+       ============================================================ */
+
+    /* Superficies */
+    --surface-page: #F3F4F6;         /* Fondo de página (Login, Register) */
+    --surface-card: #FFFFFF;         /* Fondo de tarjetas */
+    --surface-input: #FFFFFF;        /* Fondo de inputs */
+    --surface-input-alt: #F8FAFB;    /* Fondo alternativo inputs (Register) */
+    --surface-soft: #E9F8FA;         /* Fondo suave turquesa (badges, features) */
+
+    /* Texto */
+    --text-primary: #1F2937;         /* Texto principal (body, inputs) */
+    --text-on-primary: #FFFFFF;      /* Texto sobre turquesa sólido */
+    --text-on-dark: #FFFFFF;         /* Texto sobre azul marino */
+    --text-muted: #4B5563;           /* Texto secundario */
+    --text-subtle: #6B7280;          /* Texto auxiliar */
+    --text-heading: #062F40;         /* Títulos (azul marino VentasYa) */
+    --text-heading-soft: #071D2D;    /* Variante casi negra */
+    --text-link: #087E8F;            /* Color de links */
+    --text-link-hover: #066976;      /* Hover de links */
+
+    /* Bordes */
+    --border-default: #E5E7EB;
+    --border-input: #D7E0E5;
+    --border-input-focus: #0EA5B5;
+
+    /* Estados */
+    --color-success: #16A34A;
+    --color-success-dark: #15803D;
+    --color-success-soft: #DCFCE7;
+    --color-success-border: #BBF7D0;
+
+    --color-danger: #DC2626;
+    --color-danger-dark: #B91C1C;
+    --color-danger-soft: #FEE2E2;
+    --color-danger-border: #FECACA;
+
+    --color-warning: #FF7A00;
+    --color-warning-dark: #CC6200;
+    --color-warning-soft: #FFF1E6;
+    --color-warning-border: #FFD8B0;
+
+    /* Sombras de estados */
+    --shadow-success: 0 6px 18px rgba(22, 163, 74, .18);
+
+    /* Anillos de focus */
+    --ring-primary: 0 0 0 3px rgba(14, 165, 181, .12);
+    --ring-danger: 0 0 0 3px rgba(220, 38, 38, .12);
+
+    /* ============================================================
        SOMBRAS
        ============================================================ */
     --shadow-sm: 0 1px 2px rgba(31, 41, 55, .05);

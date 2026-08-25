@@ -11,8 +11,14 @@ export const getMisDirecciones = (usuarioId) =>
 export const crearDireccion = (payload) =>
     api.post(`/users/direcciones/`, payload);
 
+export const actualizarDireccion = (id, payload) =>
+    api.put(`/users/direcciones/${id}/`, payload);
+
 export const eliminarDireccion = (id) =>
     api.delete(`/users/direcciones/${id}/`);
 
-export const marcarPredeterminada = (id) =>
-    api.put(`/users/direcciones/${id}/`, { predeterminada: true });
+export const marcarPredeterminada = (id, usuarioId) =>
+    api.put(`/users/direcciones/${id}/`, {
+        usuario: usuarioId,
+        predeterminada: true,
+    });
