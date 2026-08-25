@@ -4,7 +4,6 @@ import {
     SlidersHorizontal,
     X,
     ChevronDown,
-    ChevronRight,
 } from "lucide-react";
 
 import ProductCard from "./ProductCard/ProductCard";
@@ -1303,74 +1302,13 @@ function Products() {
                         )}
 
 
-                        {/* =========================================
-                            PAGINACIÓN VISUAL
-                        ========================================= */}
-
-                        {!loading &&
-                            !unknownSlug &&
-                            productosFiltrados.length > 0 && (
-
-                                <div className="products-pagination">
-
-                                    <button
-                                        type="button"
-                                        className="pagination-number active"
-                                    >
-                                        1
-                                    </button>
-
-                                    <button
-                                        type="button"
-                                        className="pagination-number"
-                                    >
-                                        2
-                                    </button>
-
-                                    <button
-                                        type="button"
-                                        className="pagination-number"
-                                    >
-                                        3
-                                    </button>
-
-                                    <button
-                                        type="button"
-                                        className="pagination-number"
-                                    >
-                                        4
-                                    </button>
-
-                                    <button
-                                        type="button"
-                                        className="pagination-number"
-                                    >
-                                        5
-                                    </button>
-
-                                    <span className="pagination-dots">
-                                        ...
-                                    </span>
-
-                                    <button
-                                        type="button"
-                                        className="pagination-number"
-                                    >
-                                        10
-                                    </button>
-
-                                    <button
-                                        type="button"
-                                        className="pagination-next"
-                                    >
-                                        <ChevronRight
-                                            size={17}
-                                        />
-                                    </button>
-
-                                </div>
-
-                            )}
+                        {/*
+                            PAGINACIÓN
+                            — Deshabilitada temporalmente.
+                            — El backend aún no pagina; cuando
+                              lo haga se reactiva con la cantidad
+                              real de páginas.
+                        */}
 
                     </section>
 
