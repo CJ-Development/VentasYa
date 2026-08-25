@@ -1,4 +1,4 @@
-import logo from "../../../assets/icons/Frame 1.png";
+import logo from "../../../assets/images/LogoN.png";
 
 function Logo() {
     return (

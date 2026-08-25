@@ -2,24 +2,20 @@ import {
     ShoppingBag,
     Tag,
     Star,
-    Grid2X2,
     Users,
-    BriefcaseBusiness,
     ShieldCheck,
     FileText,
     CircleHelp,
     Truck,
     RotateCcw,
-    MessagesSquare,
     Phone,
     Mail,
-    MapPin
 } from "lucide-react";
 
 
 import "./Footer.css";
 
-import logo from "../../../assets/icons/Frame 1.png";
+import logo from "../../../assets/images/LogoB.png";
 
 
 function Footer() {
