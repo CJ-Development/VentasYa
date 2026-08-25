@@ -831,9 +831,9 @@ function Profile() {
             {/* =========================
                 ENCABEZADO DE PERFIL
             ========================= */}
-            <div className="profile-layout">
 
             <section className="profile-hero">
+                <div className="profile-hero-container">
 
                     <div className="profile-user-summary">
                         <div className="profile-summary-avatar">
@@ -850,12 +850,14 @@ function Profile() {
                             <small>Miembro de VentasYa</small>
                         </div>
                     </div>
+                </div>
             </section>
 
             {/* =========================
                 CONTENIDO PRINCIPAL
             ========================= */}
 
+            <div className="profile-layout">
                 {/* =========================
                     MENÚ LATERAL
                 ========================= */}
