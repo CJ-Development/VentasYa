@@ -2,7 +2,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from django.shortcuts import get_object_or_404
-from django.db import transaction, OperationalError, IntegrityError
+from django.db import transaction, OperationalError, IntegrityError, ProgrammingError, DataError
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import ensure_csrf_cookie
 from django.utils import timezone
@@ -299,6 +299,50 @@ class CheckoutView(APIView):
                     },
                     status=status.HTTP_503_SERVICE_UNAVAILABLE,
                 )
+
+            # ============================================================
+            # SCHEMA DRIFT: la DB de producción no tiene una columna
+            # o tabla que el código espera.
+            #
+            # Caso típico: el deploy incluyó una migración nueva
+            # (ej. payments 0005 agregó acceptance_token_usado,
+            # customer_email, etc.) pero nadie corrió
+            # POST /api/payments/admin/migrate/ en Vercel.
+            #
+            # psycopg2 surfacing:
+            #   - UndefinedColumn   ("column X of relation Y does not exist")
+            #   - UndefinedTable    ("relation X does not exist")
+            # Ambos vienen como ProgrammingError.
+            #
+            # Devolvemos 503 con error_type="migrations_pending" para
+            # que el operador sepa exactamente qué hacer, en vez de
+            # un 500 genérico.
+            # ============================================================
+            if isinstance(e, ProgrammingError):
+                msg = str(e).lower()
+                if (
+                    "does not exist" in msg
+                    and (
+                        "column" in msg
+                        or "relation" in msg
+                        or "table" in msg
+                    )
+                ):
+                    return Response(
+                        {
+                            "detail": (
+                                "La base de datos no está sincronizada "
+                                "con la última versión del backend. "
+                                "Por favor contacta al administrador."
+                            ),
+                            "error_type": "migrations_pending",
+                            "hint": (
+                                "POST /api/payments/admin/migrate/ "
+                                "con header X-Cleanup-Secret"
+                            ),
+                        },
+                        status=status.HTTP_503_SERVICE_UNAVAILABLE,
+                    )
 
             if isinstance(e, IntegrityError):
                 # FK inválida, unique constraint, check violation, etc.

@@ -2,6 +2,10 @@ import { createContext, useEffect, useState } from "react";
 
 import { getCsrfToken } from "../services/api";
 
+import { useInactivityLogout } from "../hooks/useInactivityLogout";
+
+import InactivityModal from "../components/InactivityModal/InactivityModal";
+
 export const AuthContext = createContext();
 
 function AuthProvider({ children }) {
@@ -9,6 +13,38 @@ function AuthProvider({ children }) {
     const [usuario, setUsuario] = useState(null);
 
     const [loading, setLoading] = useState(true);
+
+    /*
+    -----------------------------------------------------
+    AUTO-LOGOUT POR INACTIVIDAD
+
+    Solo se activa cuando hay un usuario autenticado
+    (enabled = !!usuario). Cierra sesión a los 15 min sin
+    actividad. Muestra un modal 60s antes con un botón
+    "Seguir conectado" para que el usuario pueda extender
+    la sesión sin reiniciar manualmente.
+    -----------------------------------------------------
+    */
+    const {
+        showWarning,
+        secondsLeft,
+        stayConnected,
+    } = useInactivityLogout({
+        enabled: !!usuario,
+        onExpire: () => {
+            // Forzamos navegación a /login al expirar.
+            // Usamos location en lugar de useNavigate para
+            // evitar añadir otro import + re-render.
+            if (
+                typeof window !== "undefined" &&
+                !window.location.pathname.startsWith(
+                    "/login"
+                )
+            ) {
+                window.location.href = "/login?expired=1";
+            }
+        },
+    });
 
     useEffect(() => {
 
@@ -83,6 +119,12 @@ function AuthProvider({ children }) {
         >
 
             {children}
+
+            <InactivityModal
+                open={showWarning}
+                secondsLeft={secondsLeft}
+                onStay={stayConnected}
+            />
 
         </AuthContext.Provider>
 

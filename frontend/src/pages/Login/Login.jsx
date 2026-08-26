@@ -1,7 +1,7 @@
 import "./Login.css";
 
 import { Link, useNavigate, useLocation } from "react-router-dom";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 import ModaImage from "../../assets/images/Moda.png";
 
@@ -28,7 +28,7 @@ function Login() {
 
     const { login: loginContext } = useAuth();
     const { syncOnLogin } = useCart();
-    const { success, error: showError } = useNotification();
+    const { success, error: showError, warning } = useNotification();
 
     // =====================================================
     // ESTADOS
@@ -42,6 +42,48 @@ function Login() {
     const [cargando, setCargando] = useState(false);
     const [mostrarPassword, setMostrarPassword] = useState(false);
     const [recordarme, setRecordarme] = useState(false);
+
+    // =====================================================
+    // TOAST "SESIÓN EXPIRADA"
+    //
+    // Si llegamos con ?expired=1 (porque useInactivityLogout
+    // nos redirigió al cerrar la sesión), mostramos un
+    // warning y limpiamos la query para que un refresh
+    // no lo muestre otra vez.
+    // =====================================================
+
+    useEffect(() => {
+
+        const params = new URLSearchParams(
+            location.search
+        );
+
+        if (params.get("expired") === "1") {
+
+            warning(
+                "Tu sesión se cerró por inactividad. " +
+                "Vuelve a iniciar sesión para continuar."
+            );
+
+            // Limpiamos el query param. Usamos replace
+            // para no contaminar el history del navegador.
+            params.delete("expired");
+            const restante = params.toString();
+            const nuevaUrl =
+                location.pathname +
+                (restante ? `?${restante}` : "");
+
+            window.history.replaceState(
+                {},
+                "",
+                nuevaUrl
+            );
+        }
+
+        // location.search es estable por ruta; si cambia
+        // (porque el usuario navega), el effect se vuelve
+        // a evaluar, lo cual está bien.
+    }, [location.pathname, location.search, warning]);
 
     // =====================================================
     // CAMBIAR INPUT
