@@ -12,6 +12,22 @@ import axios from "axios";
 =====================================================
 */
 
+/*
+=====================================================
+ CACHÉ DE CSRF EN MEMORIA
+=====================================================
+Fallback cuando la cookie csrftoken no es accesible desde
+document.cookie (caso típico: cross-site en Vercel, donde
+SameSite=None + Secure puede ser bloqueado por el navegador
+o por políticas de third-party cookies del browser).
+
+El backend siempre devuelve el token en `response.data.csrfToken`
+cuando llamas GET /api/users/csrf/. Lo cacheamos en memoria y
+el interceptor lo usa si la cookie no está disponible.
+=====================================================
+*/
+let csrfTokenCache = null;
+
 const API_BASE_URL =
     import.meta.env.VITE_API_URL ||
     "http://127.0.0.1:8000/api/";
@@ -70,20 +86,27 @@ api.interceptors.request.use(
         ---------------------------------------------
         CSRF
         ---------------------------------------------
+        Prioridad:
+          1) header ya puesto en config
+          2) cookie csrftoken (caso normal same-origin)
+          3) cache en memoria (fallback cross-site Vercel
+             donde document.cookie puede estar vacía aunque
+             la cookie exista a nivel de navegador)
         */
 
     if (
         ["post", "put", "patch", "delete"].includes(method)
     ) {
-        // Leer el token CSRF directamente de la cookie
-        const csrfToken = readCookie("csrftoken");
+        config.headers =
+            config.headers || {};
 
-        if (csrfToken) {
-            config.headers =
-                config.headers || {};
+        if (!config.headers["X-CSRFToken"]) {
+            const fromCookie = readCookie("csrftoken");
+            const fromCache = csrfTokenCache;
+            const token = fromCookie || fromCache;
 
-            if (!config.headers["X-CSRFToken"]) {
-                config.headers["X-CSRFToken"] = csrfToken;
+            if (token) {
+                config.headers["X-CSRFToken"] = token;
             }
         }
     }
@@ -299,11 +322,17 @@ export const getCsrfToken = async () => {
         throw new Error("El backend no devolvió el token CSRF");
     }
 
+    // Cacheamos el token en memoria como fallback para cuando
+    // la cookie no es accesible desde document.cookie (caso
+    // típico cross-site en Vercel: SameSite=None + Secure puede
+    // ser bloqueado por el navegador y axios no encuentra la
+    // cookie aunque el backend sí la haya emitido).
+    csrfTokenCache = token;
+
     // No tocamos api.defaults.headers.common["X-CSRFToken"]:
-    // el request interceptor (líneas 75-89) lee SIEMPRE
-    // readCookie("csrftoken") en cada POST/PUT/PATCH/DELETE.
-    // Si guardáramos aquí un valor, quedaría desincronizado
-    // con la cookie real en cuanto Django la rote.
+    // el request interceptor lee (cookie || cache) en cada
+    // POST/PUT/PATCH/DELETE. Mantener el cache separado evita
+    // desincronización con la cookie real si Django la rota.
 
     return response;
 };
