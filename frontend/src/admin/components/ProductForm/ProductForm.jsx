@@ -23,6 +23,8 @@ import {
     createTalla,
 } from "../../../services/adminService";
 
+import { ensureCsrf } from "../../../services/api";
+
 const API_ORIGIN = "http://127.0.0.1:8000";
 
 const MAX_IMAGES = 3;
@@ -1302,6 +1304,19 @@ function ProductForm({
         event.preventDefault();
 
         setError("");
+
+        /*
+        ---------------------------------------------
+        CSRF PROACTIVO
+
+        saveProductComplete hace POST /api/products/completo/
+        con multipart/form-data (puede pesar varios MB).
+        Si fallara por CSRF, el retry interceptor (api.js)
+        reintentaría resubiendo todo el archivo. Llamar
+        ensureCsrf() aquí evita ese round-trip caro.
+        ---------------------------------------------
+        */
+        await ensureCsrf();
 
         if (!validate()) {
 

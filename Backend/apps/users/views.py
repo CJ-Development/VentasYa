@@ -71,6 +71,13 @@ class RegisterView(APIView):
         # la cookie de sesión y el token CSRF queden disponibles.
         django_login(request, usuario)
 
+        # Forzamos la emisión del token CSRF ligado a la sesión
+        # recién creada. Sin esto, ensure_csrf_cookie puede emitir
+        # un token ligado a la sesión anterior (csrf_exempt evita
+        # la rotación normal) y el primer POST post-registro falla
+        # con 403.
+        get_token(request)
+
         return Response(
             UsuarioSerializer(usuario).data,
             status=status.HTTP_201_CREATED
@@ -120,6 +127,13 @@ class LoginView(APIView):
         # y el CSRF funcione en POST/PUT/DELETE.
         django_login(request, usuario)
 
+        # Forzamos la emisión del token CSRF ligado a la sesión
+        # recién creada. Igual que en RegisterView: csrf_exempt +
+        # ensure_csrf_cookie pueden dejar la cookie csrftoken con
+        # un token de la sesión anterior y el primer POST post-login
+        # falla con 403.
+        get_token(request)
+
         return Response(
             UsuarioSerializer(usuario).data,
             status=status.HTTP_200_OK
@@ -157,6 +171,7 @@ class UserListView(APIView):
         )
 
 
+@method_decorator(ensure_csrf_cookie, name="dispatch")
 class MeView(APIView):
     """
     Devuelve el usuario asociado a la sesión actual.
@@ -164,6 +179,12 @@ class MeView(APIView):
     de sesión y qué flags (is_staff / is_superuser / is_active) ve
     el backend. No requiere autenticación: si no hay sesión,
     responde 200 con `autenticado: False`.
+
+    Aunque es GET, lleva `ensure_csrf_cookie` porque el frontend
+    lo usa como ping de "¿estoy logueado?" justo tras un reload.
+    En ese momento la cookie `csrftoken` puede no existir todavía;
+    emitirla aquí garantiza que el primer POST protegido después
+    del reload tenga un token válido que enviar.
     """
 
     def get(self, request):

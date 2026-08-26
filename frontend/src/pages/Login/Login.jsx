@@ -70,27 +70,52 @@ function Login() {
 
             const { data } = await login(formData);
 
-            console.log("Respuesta login:", data);
-
             // =================================================
             // OBTENER TOKEN CSRF DESPUÉS DEL LOGIN
+            //
+            // Reintentamos UNA vez si falla (red intermitente,
+            // 5xx transitorio). Si tras el reintento sigue
+            // fallando, notificamos al usuario: sin CSRF su
+            // próximo POST fallará con 403 silencioso.
             // =================================================
 
-            try {
-                await getCsrfToken();
+            const fetchCsrfConReintento = async () => {
+                try {
+                    await getCsrfToken();
+                    return true;
+                } catch (primerError) {
+                    console.warn(
+                        "[Login] Primer fetch CSRF falló, reintentando:",
+                        primerError
+                    );
 
-                console.log(
-                    "Token CSRF obtenido exitosamente después del login"
-                );
-            } catch (csrfError) {
-                console.error(
-                    "Error obteniendo token CSRF:",
-                    csrfError
+                    try {
+                        await getCsrfToken();
+                        return true;
+                    } catch (segundoError) {
+                        console.error(
+                            "[Login] Segundo fetch CSRF falló:",
+                            segundoError
+                        );
+                        return false;
+                    }
+                }
+            };
+
+            const csrfOk = await fetchCsrfConReintento();
+
+            if (!csrfOk) {
+
+                showError(
+                    "No pudimos preparar la sesión para comprar. " +
+                    "Intenta de nuevo en unos segundos."
                 );
 
-                // No detenemos el login si falla la obtención
-                // del token. El error se manejará al realizar
-                // una operación protegida.
+                // Mantenemos la sesión iniciada (no es problema
+                // de credenciales), pero avisamos para que el
+                // usuario no descubra el 403 al intentar comprar.
+            } else {
+                // El usuario ya fue notificado vía showError.
             }
 
             // =================================================
@@ -151,11 +176,6 @@ function Login() {
             // =================================================
 
             const esAdministrador = esAdmin(usuarioData);
-
-            console.log(
-                "Usuario administrador:",
-                esAdministrador
-            );
 
             // =================================================
             // REDIRECCIÓN SOLICITADA

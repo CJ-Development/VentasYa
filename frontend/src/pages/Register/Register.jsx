@@ -15,7 +15,7 @@ import {
     XCircle
 } from "lucide-react";
 
-import { register } from "../../services/api";
+import { register, getCsrfToken } from "../../services/api";
 import { useAuth } from "../../hooks/useAuth";
 import { useNotification } from "../../components/Notifications/NotificationProvider";
 
@@ -634,10 +634,23 @@ function Register() {
                 response.data;
 
 
-            console.log(
-                "Usuario registrado:",
-                data
-            );
+            /* =================================
+               REFRESCAR TOKEN CSRF
+
+               El backend acaba de rotar la sesión al
+               registrarse (django_login en RegisterView).
+               Si no refrescamos el token aquí, el primer
+               POST post-registro falla con 403.
+            ================================= */
+
+            try {
+                await getCsrfToken();
+            } catch (csrfError) {
+                console.error(
+                    "Error refrescando CSRF tras registro:",
+                    csrfError
+                );
+            }
 
 
             /* =================================
