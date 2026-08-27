@@ -12,6 +12,12 @@ import "./Checkout.css";
  *
  * Hace polling a /payments/wompi/status/ hasta que el webhook haya
  * procesado el pago (estado: aprobado | rechazado | expirado).
+ *
+ * IMPORTANTE: solo tratamos como "aprobado de verdad" cuando el
+ * backend nos devuelve wompi_transaction_id. Sin ese id, un estado
+ * "aprobado" podría ser legacy (un pago viejo marcado aprobado por
+ * un test, un webhook de una compra anterior, etc.) y no queremos
+ * mandar al usuario a /orders como si hubiera pagado en este intento.
  */
 function CheckoutConfirm() {
 
@@ -24,6 +30,7 @@ function CheckoutConfirm() {
 
     const intentosRef = useRef(0);
     const MAX_INTENTOS = 20; // ~40s de polling (20 × 2s)
+    const yaRedirigidoRef = useRef(false);
 
     useEffect(() => {
         const compraId = searchParams.get("compra_id");
@@ -39,11 +46,32 @@ function CheckoutConfirm() {
                 const { data } = await consultarEstadoPago(compraId);
 
                 if (data.estado === "aprobado") {
-                    setEstado("aprobado");
+                    // Discriminador clave: un pago aprobado por el
+                    // webhook real de Wompi SIEMPRE tiene
+                    // transaction_id. Si no lo tiene, es un estado
+                    // legacy (un test anterior, una compra vieja,
+                    // etc.) y NO debemos celebrarlo.
+                    if (data.transaction_id) {
+                        setEstado("aprobado");
+                        setDetalle(data);
+                        if (!yaRedirigidoRef.current) {
+                            yaRedirigidoRef.current = true;
+                            setTimeout(() => {
+                                navigate("/orders", { replace: true });
+                            }, 3000);
+                        }
+                        return;
+                    }
+
+                    // Aprobado sin transaction_id: no es un pago real
+                    // de este intento. Mostrar como "expirado" para
+                    // que el usuario pueda reintentar.
+                    setEstado("expirado");
                     setDetalle(data);
-                    setTimeout(() => {
-                        navigate("/orders", { replace: true });
-                    }, 3000);
+                    setError(
+                        "Este pago no tiene una transacción válida de Wompi. " +
+                        "Probablemente estás reabriendo una URL antigua."
+                    );
                     return;
                 }
 
@@ -133,11 +161,10 @@ function CheckoutConfirm() {
                     {estado === "expirado" && (
                         <>
                             <XCircle size={48} className="checkout-error-icon" />
-                            <h2>Pago expirado</h2>
+                            <h2>Pago no confirmado</h2>
                             <p>
-                                No recibimos confirmación del pago dentro del
-                                tiempo establecido. Tu pedido fue cancelado y el
-                                stock liberado. Intenta de nuevo.
+                                {error ||
+                                    "No recibimos confirmación del pago dentro del tiempo establecido. Tu pedido fue cancelado y el stock liberado. Intenta de nuevo."}
                             </p>
                             <button
                                 className="checkout-pay"

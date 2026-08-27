@@ -106,15 +106,27 @@ function Checkout() {
         }
     }, [loading, items.length, procesando, widgetPayload, navigate]);
 
-    /* ----------- Inyección limpia del script del Widget -----------
+    /* ----------- Inyección del script del Widget -----------
+       IMPORTANTE: el &lt;script&gt; con data-render="button" de Wompi
+       pinta el botón DENTRO del &lt;form&gt; padre. Por eso el &lt;form&gt;
+       debe estar dentro del contenedor visible (#wompi-button-mount),
+       no suelto al final de &lt;body&gt; (ahí queda fuera de pantalla y
+       parece que el botón "no aparece").
+
        useEffect con cleanup garantiza que el script se elimina del
        DOM cuando el componente se desmonta (ej. al navegar). */
     useEffect(() => {
         if (!widgetPayload) return;
 
         const formId = "wompi-checkout-form";
-        const existing = document.getElementById(formId);
-        if (existing) existing.remove();
+        const mountId = "wompi-button-mount";
+
+        // Limpieza preventiva (por si quedó algo de un reintento).
+        const previous = document.getElementById(formId);
+        if (previous) previous.remove();
+
+        const mount = document.getElementById(mountId);
+        if (!mount) return;
 
         const form = document.createElement("form");
         form.id = formId;
@@ -142,13 +154,12 @@ function Checkout() {
             );
         }
 
-        script.setAttribute(
-            "data-redirect-url",
-            widgetPayload.redirect_url
-        );
+        // data-redirect-url NO se usa con data-render="button"
+        // (eso es del Web Checkout, no del Widget embebido).
+        // El modal de Wompi se cierra solo al terminar el pago.
 
         form.appendChild(script);
-        document.body.appendChild(form);
+        mount.appendChild(form);
 
         return () => {
             const el = document.getElementById(formId);
