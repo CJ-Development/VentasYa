@@ -16,6 +16,42 @@ function AuthProvider({ children }) {
 
     /*
     -----------------------------------------------------
+    IMPORTANTE: estas funciones (logout, login, updateUsuario)
+    se declaran ANTES de useInactivityLogout porque ese hook
+    recibe `logout` por prop. Si las declaráramos después,
+    el primer render del Provider evaluaría `logout` antes
+    de su inicialización → TDZ ("Cannot access 'logout' before
+    initialization") y la app no carga.
+    -----------------------------------------------------
+    */
+
+    const login = (data) => {
+
+        localStorage.setItem(
+            "usuario",
+            JSON.stringify(data)
+        );
+
+        setUsuario(data);
+
+    };
+
+    const updateUsuario = (data) => {
+        const merged = { ...(usuario || {}), ...data };
+        localStorage.setItem("usuario", JSON.stringify(merged));
+        setUsuario(merged);
+    };
+
+    const logout = () => {
+
+        localStorage.removeItem("usuario");
+
+        setUsuario(null);
+
+    };
+
+    /*
+    -----------------------------------------------------
     AUTO-LOGOUT POR INACTIVIDAD
 
     Solo se activa cuando hay un usuario autenticado
@@ -31,13 +67,15 @@ function AuthProvider({ children }) {
         stayConnected,
     } = useInactivityLogout({
         enabled: !!usuario,
-        // Importante: pasamos `logout` por prop en vez de
-        // hacer que el hook use useAuth() internamente.
-        // AuthProvider es quien provee el AuthContext, y
-        // durante su propio render useContext(AuthContext)
-        // devuelve undefined → el hook reventaría con
-        // "Cannot destructure property 'usuario' of undefined".
+        // Importante: pasamos `logout` y `usuario` por
+        // prop en vez de hacer que el hook use useAuth()
+        // internamente. AuthProvider es quien provee el
+        // AuthContext, y durante su propio render
+        // useContext(AuthContext) devuelve undefined → el
+        // hook reventaría con "Cannot destructure property
+        // 'usuario' of undefined".
         clearLocalAuth: logout,
+        usuario,
         onExpire: () => {
             // Forzamos navegación a /login al expirar.
             // Usamos location en lugar de useNavigate para
@@ -79,31 +117,6 @@ function AuthProvider({ children }) {
         setLoading(false);
 
     }, []);
-
-    const login = (data) => {
-
-        localStorage.setItem(
-            "usuario",
-            JSON.stringify(data)
-        );
-
-        setUsuario(data);
-
-    };
-
-    const updateUsuario = (data) => {
-        const merged = { ...(usuario || {}), ...data };
-        localStorage.setItem("usuario", JSON.stringify(merged));
-        setUsuario(merged);
-    };
-
-    const logout = () => {
-
-        localStorage.removeItem("usuario");
-
-        setUsuario(null);
-
-    };
 
     return (
 

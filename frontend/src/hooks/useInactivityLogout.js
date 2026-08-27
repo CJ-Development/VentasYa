@@ -57,6 +57,7 @@ export const useInactivityLogout = ({
     onExpire,
     onWarning,
     clearLocalAuth,
+    usuario = null,
 } = {}) => {
 
     const [showWarning, setShowWarning] = useState(false);
