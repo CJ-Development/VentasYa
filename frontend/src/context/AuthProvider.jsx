@@ -31,6 +31,13 @@ function AuthProvider({ children }) {
         stayConnected,
     } = useInactivityLogout({
         enabled: !!usuario,
+        // Importante: pasamos `logout` por prop en vez de
+        // hacer que el hook use useAuth() internamente.
+        // AuthProvider es quien provee el AuthContext, y
+        // durante su propio render useContext(AuthContext)
+        // devuelve undefined → el hook reventaría con
+        // "Cannot destructure property 'usuario' of undefined".
+        clearLocalAuth: logout,
         onExpire: () => {
             // Forzamos navegación a /login al expirar.
             // Usamos location en lugar de useNavigate para

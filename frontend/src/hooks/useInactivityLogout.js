@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 
 import { logout as apiLogout } from "../services/api";
-import { useAuth } from "./useAuth";
 
 /*
 =====================================================
@@ -15,6 +14,13 @@ muestra un modal con countdown. El usuario puede:
   - Pulsar "Seguir conectado" → resetea el timer.
   - No hacer nada → se llama POST /api/users/logout/ y
     se limpia localStorage.
+
+IMPORTANTE: este hook NO usa useAuth() internamente.
+AuthProvider lo invoca desde su propio body, y en ese
+momento useContext(AuthContext) devuelve undefined (el
+Provider todavía no está en el árbol durante su
+propio render). El hook recibe `enabled` y
+`clearLocalAuth` por props.
 
 Eventos que cuentan como actividad:
   mousedown, keydown, scroll, touchstart, mousemove
@@ -50,9 +56,8 @@ export const useInactivityLogout = ({
     enabled = true,
     onExpire,
     onWarning,
+    clearLocalAuth,
 } = {}) => {
-
-    const { usuario, logout: clearLocalAuth } = useAuth();
 
     const [showWarning, setShowWarning] = useState(false);
     const [secondsLeft, setSecondsLeft] = useState(
