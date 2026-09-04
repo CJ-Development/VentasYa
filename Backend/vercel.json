@@ -16,10 +16,5 @@
       "dest": "api/index.py"
     }
   ],
-  "crons": [
-    {
-      "path": "/api/payments/wompi/cleanup/",
-      "schedule": "*/5 * * * *"
-    }
-  ]
+  "crons": []
 }

@@ -1,12 +1,12 @@
+from django.conf import settings
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from django.shortcuts import get_object_or_404
-from django.db import transaction, OperationalError, IntegrityError, ProgrammingError, DataError
+from django.db import transaction, OperationalError, IntegrityError, ProgrammingError
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import ensure_csrf_cookie
 from django.utils import timezone
-from datetime import timedelta
 
 import logging
 
@@ -17,16 +17,10 @@ from .services import CompraService
 from apps.cart.models import Carrito
 from apps.products.models import Variante
 from apps.users.models import Direccion, Usuario
-from apps.payments.models import Pago, ReservaStock
+from apps.payments.models import Pago
 
 
 logger = logging.getLogger(__name__)
-
-
-# Ventana de reserva de stock: alineada con la expiración del Widget
-# de Wompi (30 minutos). Si en este tiempo el cliente no paga, el stock
-# se devuelve automáticamente al inventario.
-RESERVA_MINUTOS = 30
 
 
 @method_decorator(ensure_csrf_cookie, name="dispatch")
@@ -104,12 +98,11 @@ class CheckoutView(APIView):
     """
     POST /api/orders/checkout/
 
-    Crea la Compra + DetalleCompra + Pago(pendiente) + ReservaStock.
+    Crea la Compra + DetalleCompra + Pago(pendiente).
+    Descuenta stock definitivamente y vacía el carrito.
 
-    Si el método es Wompi: la reserva de stock descuenta temporalmente
-    el inventario durante RESERVA_MINUTOS minutos. Si el cliente paga,
-    la reserva se confirma y el stock queda descontado definitivamente.
-    Si no paga, el job de cleanup libera el stock.
+    Responde con los datos completos del pedido para que el frontend
+    pueda generar el mensaje de WhatsApp.
     """
 
     def post(self, request):
@@ -160,16 +153,13 @@ class CheckoutView(APIView):
                 )
 
             with transaction.atomic():
-                # Bloquear las variantes para validar y reservar stock
-                # de forma atómica.
-                variantes_bloqueadas = {}
+                # Bloquear las variantes para validar y deducir stock.
                 for it in items:
                     variante = (
                         Variante.objects
                         .select_for_update()
                         .get(id_variante=it.variante.id_variante)
                     )
-                    variantes_bloqueadas[it.variante.id_variante] = variante
 
                     if it.cantidad > variante.stock:
                         return Response(
@@ -203,14 +193,16 @@ class CheckoutView(APIView):
                 )
 
                 # 2) Crear DetalleCompra.
+                detalles_compra = []
                 for it in items:
-                    DetalleCompra.objects.create(
+                    detalle = DetalleCompra.objects.create(
                         compra=compra,
                         variante=it.variante,
                         cantidad=it.cantidad,
                         precio_unitario=it.variante.producto.precio,
                         subtotal=it.variante.producto.precio * it.cantidad,
                     )
+                    detalles_compra.append(detalle)
 
                 # 3) Crear Pago pendiente.
                 fecha_aceptacion = (
@@ -229,25 +221,38 @@ class CheckoutView(APIView):
                     customer_email=getattr(usuario, "email", None),
                 )
 
-                # 4) Reservar stock temporalmente.
-                #    Descontamos YA para que nadie más pueda comprar
-                #    las mismas unidades mientras el cliente paga.
-                #    Si paga, queda descontado. Si no paga, se devuelve.
-                ReservaStock.objects.create(
-                    compra=compra,
-                    estado="activa",
-                    fecha_expiracion=(
-                        timezone.now() + timedelta(minutes=RESERVA_MINUTOS)
-                    ),
-                )
-
+                # 4) Descontar stock definitivamente.
                 for it in items:
-                    variante = variantes_bloqueadas[it.variante.id_variante]
+                    variante = (
+                        Variante.objects
+                        .select_for_update()
+                        .get(id_variante=it.variante.id_variante)
+                    )
                     variante.stock -= it.cantidad
                     variante.save(update_fields=["stock"])
 
-                # 5) Limpiar carrito (ya estamos en transacción).
+                # 5) Vaciar carrito.
                 carrito.items.all().delete()
+
+            # Construir datos detallados para WhatsApp.
+            productos_whatsapp = []
+            for it in items:
+                v = it.variante
+                p = v.producto
+                productos_whatsapp.append({
+                    "nombre": p.nombre,
+                    "sku": v.sku or "",
+                    "color": v.color or "",
+                    "talla": v.talla or "",
+                    "cantidad": it.cantidad,
+                    "precio_unitario": float(p.precio),
+                    "subtotal": float(p.precio * it.cantidad),
+                    "imagen": (
+                        p.imagen.url if p.imagen else ""
+                    ),
+                })
+
+            whatsapp_number = getattr(settings, "WHATSAPP_NUMBER", "573001234567")
 
             return Response(
                 {
@@ -256,7 +261,7 @@ class CheckoutView(APIView):
                     "pago_id": pago.id_pago,
                     "estado": "pendiente",
                     "total": float(total),
-                    "reserva_minutos": RESERVA_MINUTOS,
+                    "whatsapp_number": whatsapp_number,
                     "metodo_pago": {
                         "id": metodo_pago.id_metodo_pago,
                         "tipo": metodo_pago.tipo,
@@ -270,14 +275,24 @@ class CheckoutView(APIView):
                             if pago.fecha_aceptacion else None
                         ),
                     },
+                    "cliente": {
+                        "nombre": usuario.nombre,
+                        "email": usuario.email or "",
+                        "telefono": telefono_contacto or usuario.telefono or "",
+                    },
+                    "direccion_envio": {
+                        "direccion": direccion.direccion,
+                        "ciudad": direccion.ciudad,
+                        "departamento": direccion.departamento,
+                        "codigo_postal": direccion.codigo_postal or "",
+                    },
+                    "productos": productos_whatsapp,
                     "compra": CompraSerializer(compra).data,
                 },
                 status=status.HTTP_201_CREATED,
             )
 
         except Exception as e:
-            # SIEMPRE logueamos el traceback completo. Antes solo se
-            # devolvía str(e) y el 500 salía sin contexto en Vercel.
             logger.exception(
                 "Checkout falló | usuario_id=%s direccion_id=%s "
                 "metodo_pago_id=%s items=%s",
@@ -285,10 +300,7 @@ class CheckoutView(APIView):
                 len(items) if 'items' in locals() else 0,
             )
 
-            # Distinguimos errores comunes para dar mensajes accionables.
             if isinstance(e, OperationalError):
-                # PostgreSQL timeout / conexión caída (común con Supabase
-                # pooler + Vercel serverless cold start).
                 return Response(
                     {
                         "detail": (
@@ -300,24 +312,6 @@ class CheckoutView(APIView):
                     status=status.HTTP_503_SERVICE_UNAVAILABLE,
                 )
 
-            # ============================================================
-            # SCHEMA DRIFT: la DB de producción no tiene una columna
-            # o tabla que el código espera.
-            #
-            # Caso típico: el deploy incluyó una migración nueva
-            # (ej. payments 0005 agregó acceptance_token_usado,
-            # customer_email, etc.) pero nadie corrió
-            # POST /api/payments/admin/migrate/ en Vercel.
-            #
-            # psycopg2 surfacing:
-            #   - UndefinedColumn   ("column X of relation Y does not exist")
-            #   - UndefinedTable    ("relation X does not exist")
-            # Ambos vienen como ProgrammingError.
-            #
-            # Devolvemos 503 con error_type="migrations_pending" para
-            # que el operador sepa exactamente qué hacer, en vez de
-            # un 500 genérico.
-            # ============================================================
             if isinstance(e, ProgrammingError):
                 msg = str(e).lower()
                 if (
@@ -336,16 +330,11 @@ class CheckoutView(APIView):
                                 "Por favor contacta al administrador."
                             ),
                             "error_type": "migrations_pending",
-                            "hint": (
-                                "POST /api/payments/admin/migrate/ "
-                                "con header X-Cleanup-Secret"
-                            ),
                         },
                         status=status.HTTP_503_SERVICE_UNAVAILABLE,
                     )
 
             if isinstance(e, IntegrityError):
-                # FK inválida, unique constraint, check violation, etc.
                 return Response(
                     {
                         "detail": (
@@ -357,7 +346,6 @@ class CheckoutView(APIView):
                     status=status.HTTP_409_CONFLICT,
                 )
 
-            # Cualquier otra cosa: 500 genérico pero con traceback en logs.
             return Response(
                 {
                     "detail": f"Error en checkout: {type(e).__name__}: {e}",

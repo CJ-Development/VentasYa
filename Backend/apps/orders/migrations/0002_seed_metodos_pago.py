@@ -8,8 +8,8 @@ def crear_metodos_pago(apps, schema_editor):
     
     metodos = [
         {
-            "tipo": "Wompi",
-            "detalle": "Pasarela de pagos segura con tarjetas de crédito/débito"
+            "tipo": "WhatsApp",
+            "detalle": "Envía tu pedido directamente por WhatsApp"
         },
         {
             "tipo": "Contra entrega",

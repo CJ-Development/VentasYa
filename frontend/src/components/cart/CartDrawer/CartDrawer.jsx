@@ -85,15 +85,9 @@ function CartDrawer() {
 
         closeDrawer();
 
-        if (!usuario) {
-
-            navigate("/login?from=/cart");
-
-            return;
-
-        }
-
-        navigate("/cart");
+        // Función deshabilitada temporalmente
+        // Se implementará flujo por WhatsApp en el futuro
+        alert("El flujo de pago estará disponible próximamente.");
 
     };
 

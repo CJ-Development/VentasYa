@@ -342,7 +342,7 @@ export const getCsrfToken = async () => {
  ENSURE CSRF
 =====================================================
 Helper proactivo para componentes que disparan un POST/PUT/
-DELETE sensible (checkout, admin product-form, etc.) justo
+DELETE sensible (admin product-form, etc.) justo
 después de un cold reload.
 
 En la mayoría de casos NO es necesario: el response
