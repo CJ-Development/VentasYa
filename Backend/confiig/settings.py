@@ -505,4 +505,4 @@ BLOB_READ_WRITE_TOKEN = os.environ.get("BLOB_READ_WRITE_TOKEN")
 # Número de WhatsApp del administrador/vendedor para recibir pedidos.
 # Formato: código de país + número, sin +, sin espacios, sin guiones.
 # Ejemplo: 573001234567
-WHATSAPP_NUMBER = os.environ.get("WHATSAPP_NUMBER", "573001234567")
+WHATSAPP_NUMBER = os.environ.get("WHATSAPP_NUMBER", "573125278094")

@@ -52,7 +52,6 @@ function Checkout() {
     const [loadingDirecciones, setLoadingDirecciones] = useState(true);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState(null);
-    const [metodoPagoWhatsApp, setMetodoPagoWhatsApp] = useState(null);
 
     // Cargar direcciones del usuario
     useEffect(() => {
@@ -86,21 +85,6 @@ function Checkout() {
             setTelefono(usuario.telefono);
         }
     }, [usuario]);
-
-    // Cargar método de pago WhatsApp
-    useEffect(() => {
-        const cargarMetodoPago = async () => {
-            try {
-                const response = await api.get("/payments/metodos/");
-                const metodoWhatsApp = response.data.find(m => m.tipo === "WhatsApp");
-                setMetodoPagoWhatsApp(metodoWhatsApp);
-            } catch (err) {
-                console.error("Error al cargar métodos de pago:", err);
-            }
-        };
-
-        cargarMetodoPago();
-    }, []);
 
     // Redirigir si no está autenticado
     useEffect(() => {
@@ -168,11 +152,6 @@ function Checkout() {
             return;
         }
 
-        if (!metodoPagoWhatsApp) {
-            setError("No se pudo obtener el método de pago WhatsApp");
-            return;
-        }
-
         try {
             setIsSubmitting(true);
             setError(null);
@@ -180,7 +159,6 @@ function Checkout() {
             const response = await createOrderFromCart({
                 usuario_id: usuario.id_usuario,
                 direccion_id: direccionSeleccionada,
-                metodo_pago_id: metodoPagoWhatsApp.id_metodo_pago,
                 telefono_contacto: telefono,
                 terminos_aceptados: terminosAceptados,
                 datos_aceptados: datosAceptados,

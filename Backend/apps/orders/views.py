@@ -108,16 +108,15 @@ class CheckoutView(APIView):
     def post(self, request):
         usuario_id = request.data.get("usuario_id")
         direccion_id = request.data.get("direccion_id")
-        metodo_pago_id = request.data.get("metodo_pago_id")
         telefono_contacto = request.data.get("telefono_contacto") or None
         terminos_aceptados = request.data.get("terminos_aceptados", False)
         datos_aceptados = request.data.get("datos_aceptados", False)
 
-        if not (usuario_id and direccion_id and metodo_pago_id):
+        if not (usuario_id and direccion_id):
             return Response(
                 {
                     "detail": (
-                        "usuario_id, direccion_id y metodo_pago_id son obligatorios."
+                        "usuario_id y direccion_id son obligatorios."
                     )
                 },
                 status=status.HTTP_400_BAD_REQUEST,
@@ -128,8 +127,11 @@ class CheckoutView(APIView):
             direccion = get_object_or_404(
                 Direccion, id_direccion=direccion_id, usuario=usuario
             )
-            metodo_pago = get_object_or_404(
-                MetodoPago, id_metodo_pago=metodo_pago_id
+            
+            # Obtener o crear el método de pago WhatsApp internamente
+            metodo_pago, _ = MetodoPago.objects.get_or_create(
+                tipo="WhatsApp",
+                defaults={"detalle": "Envía tu pedido directamente por WhatsApp"}
             )
 
             try:
