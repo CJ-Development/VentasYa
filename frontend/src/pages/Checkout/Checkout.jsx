@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import {
     Loader2,
@@ -32,7 +32,7 @@ const formatearPesos = (valor) => {
 
 function Checkout() {
     const { usuario } = useAuth();
-    const { items, total, loading: cartLoading } = useCart();
+    const { items, total, loading: cartLoading, recargar } = useCart();
     const navigate = useNavigate();
 
     const [direcciones, setDirecciones] = useState([]);
@@ -52,6 +52,11 @@ function Checkout() {
     const [loadingDirecciones, setLoadingDirecciones] = useState(true);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState(null);
+    const [carritoSincronizado, setCarritoSincronizado] = useState(false);
+
+    // Refs para controlar la recarga del carrito
+    const carritoRecargadoRef = useRef(false);
+    const recargaEnCursoRef = useRef(false);
 
     // Cargar direcciones del usuario
     useEffect(() => {
@@ -85,6 +90,41 @@ function Checkout() {
             setTelefono(usuario.telefono);
         }
     }, [usuario]);
+
+    // Recargar carrito al entrar a Checkout para asegurar datos actualizados
+    useEffect(() => {
+        const uid = usuario?.id_usuario;
+        if (!uid) return;
+
+        // Reiniciar control si cambia el usuario
+        if (carritoRecargadoRef.current && !recargaEnCursoRef.current) {
+            carritoRecargadoRef.current = false;
+            setCarritoSincronizado(false);
+        }
+
+        // Evitar múltiples recargas simultáneas
+        if (recargaEnCursoRef.current) return;
+
+        // Solo recargar una vez por sesión de Checkout por usuario
+        if (carritoRecargadoRef.current) return;
+
+        const recargarCarrito = async () => {
+            recargaEnCursoRef.current = true;
+            try {
+                await recargar();
+                carritoRecargadoRef.current = true;
+                setCarritoSincronizado(true);
+            } catch (err) {
+                console.error("Error al recargar carrito en Checkout:", err);
+                setError("Error al cargar el carrito. Por favor, recarga la página.");
+                setCarritoSincronizado(false);
+            } finally {
+                recargaEnCursoRef.current = false;
+            }
+        };
+
+        recargarCarrito();
+    }, [usuario?.id_usuario, recargar]);
 
     // Redirigir si no está autenticado
     useEffect(() => {
@@ -584,7 +624,9 @@ function Checkout() {
                                 className="checkout-submit-button"
                                 onClick={handleSubmit}
                                 disabled={
+                                    !carritoSincronizado ||
                                     isSubmitting ||
+                                    cartLoading ||
                                     !direccionSeleccionada ||
                                     !telefono ||
                                     !terminosAceptados ||

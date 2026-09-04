@@ -336,6 +336,16 @@ function CartProvider({ children }) {
     }, [cargar]);
 
     /* =====================================================
+       RECARGAR MANUAL — fuerza recarga desde backend
+    ===================================================== */
+
+    const recargar = useCallback(async () => {
+        const uid = usuario?.id_usuario;
+        if (!uid) return;
+        await cargar(uid);
+    }, [usuario?.id_usuario, cargar]);
+
+    /* =====================================================
        DRAWER
     ===================================================== */
 
@@ -378,6 +388,7 @@ function CartProvider({ children }) {
             removeItem,
             clear,
             syncOnLogin,
+            recargar,
             // Utilidades expuestas para componentes sin provider (poco frecuente)
             readLocalCart,
             countLocalCart,
@@ -386,7 +397,7 @@ function CartProvider({ children }) {
         [
             items, count, total, loading, isDrawerOpen,
             openDrawer, closeDrawer, addItem, updateQty,
-            removeItem, clear, syncOnLogin,
+            removeItem, clear, syncOnLogin, recargar,
         ]
     );
 
