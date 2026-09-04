@@ -248,9 +248,6 @@ class CheckoutView(APIView):
                     "cantidad": it.cantidad,
                     "precio_unitario": float(p.precio),
                     "subtotal": float(p.precio * it.cantidad),
-                    "imagen": (
-                        p.imagen.url if p.imagen else ""
-                    ),
                 })
 
             whatsapp_number = getattr(settings, "WHATSAPP_NUMBER", "573001234567")
@@ -296,8 +293,8 @@ class CheckoutView(APIView):
         except Exception as e:
             logger.exception(
                 "Checkout falló | usuario_id=%s direccion_id=%s "
-                "metodo_pago_id=%s items=%s",
-                usuario_id, direccion_id, metodo_pago_id,
+                "metodo_pago=%s items=%s",
+                usuario_id, direccion_id, metodo_pago.tipo if metodo_pago else None,
                 len(items) if 'items' in locals() else 0,
             )
 
