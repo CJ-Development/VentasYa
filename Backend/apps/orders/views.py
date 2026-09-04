@@ -235,60 +235,71 @@ class CheckoutView(APIView):
                 # 5) Vaciar carrito.
                 carrito.items.all().delete()
 
-            # Construir datos detallados para WhatsApp.
-            productos_whatsapp = []
-            for it in items:
-                v = it.variante
-                p = v.producto
-                productos_whatsapp.append({
-                    "nombre": p.nombre,
-                    "sku": v.sku or "",
-                    "color": v.color or "",
-                    "talla": v.talla or "",
-                    "cantidad": it.cantidad,
-                    "precio_unitario": float(p.precio),
-                    "subtotal": float(p.precio * it.cantidad),
-                })
+                # 6) Construir datos detallados para WhatsApp DENTRO de la transacción.
+                productos_whatsapp = []
+                for it in items:
+                    v = it.variante
+                    p = v.producto
+                    productos_whatsapp.append({
+                        "nombre": p.nombre,
+                        "sku": v.sku or "",
+                        "color": v.color.nombre if v.color else "",
+                        "talla": v.talla.nombre if v.talla else "",
+                        "cantidad": it.cantidad,
+                        "precio_unitario": float(p.precio),
+                        "subtotal": float(p.precio * it.cantidad),
+                    })
 
-            whatsapp_number = getattr(settings, "WHATSAPP_NUMBER", "573001234567")
+                whatsapp_number = getattr(settings, "WHATSAPP_NUMBER", None)
+                if not whatsapp_number:
+                    return Response(
+                        {
+                            "detail": (
+                                "El número de WhatsApp no está configurado. "
+                                "Por favor contacta al administrador."
+                            )
+                        },
+                        status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    )
 
-            return Response(
-                {
-                    "ok": True,
-                    "compra_id": compra.id_compra,
-                    "pago_id": pago.id_pago,
-                    "estado": "pendiente",
-                    "total": float(total),
-                    "whatsapp_number": whatsapp_number,
-                    "metodo_pago": {
-                        "id": metodo_pago.id_metodo_pago,
-                        "tipo": metodo_pago.tipo,
-                        "detalle": metodo_pago.detalle or "",
+                # 7) Construir y devolver la respuesta DENTRO de la transacción.
+                return Response(
+                    {
+                        "ok": True,
+                        "compra_id": compra.id_compra,
+                        "pago_id": pago.id_pago,
+                        "estado": "pendiente",
+                        "total": float(total),
+                        "whatsapp_number": whatsapp_number,
+                        "metodo_pago": {
+                            "id": metodo_pago.id_metodo_pago,
+                            "tipo": metodo_pago.tipo,
+                            "detalle": metodo_pago.detalle or "",
+                        },
+                        "aceptaciones_legales": {
+                            "terminos_aceptados": pago.terminos_aceptados,
+                            "datos_aceptados": pago.datos_aceptados,
+                            "fecha_aceptacion": (
+                                pago.fecha_aceptacion.isoformat()
+                                if pago.fecha_aceptacion else None
+                            ),
+                        },
+                        "cliente": {
+                            "nombre": usuario.nombres,
+                            "email": usuario.email or "",
+                            "telefono": telefono_contacto or usuario.telefono or "",
+                        },
+                        "direccion_envio": {
+                            "direccion": direccion.direccion,
+                            "ciudad": direccion.ciudad,
+                            "departamento": direccion.departamento,
+                            "codigo_postal": direccion.codigo_postal or "",
+                        },
+                        "productos": productos_whatsapp,
+                        "compra": CompraSerializer(compra).data,
                     },
-                    "aceptaciones_legales": {
-                        "terminos_aceptados": pago.terminos_aceptados,
-                        "datos_aceptados": pago.datos_aceptados,
-                        "fecha_aceptacion": (
-                            pago.fecha_aceptacion.isoformat()
-                            if pago.fecha_aceptacion else None
-                        ),
-                    },
-                    "cliente": {
-                        "nombre": usuario.nombres,
-                        "email": usuario.email or "",
-                        "telefono": telefono_contacto or usuario.telefono or "",
-                    },
-                    "direccion_envio": {
-                        "direccion": direccion.direccion,
-                        "ciudad": direccion.ciudad,
-                        "departamento": direccion.departamento,
-                        "codigo_postal": direccion.codigo_postal or "",
-                    },
-                    "productos": productos_whatsapp,
-                    "compra": CompraSerializer(compra).data,
-                },
-                status=status.HTTP_201_CREATED,
-            )
+                    status=status.HTTP_201_CREATED,
+                )
 
         except Exception as e:
             logger.exception(
