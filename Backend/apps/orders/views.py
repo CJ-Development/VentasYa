@@ -218,7 +218,6 @@ class CheckoutView(APIView):
                     terminos_aceptados=terminos_aceptados,
                     datos_aceptados=datos_aceptados,
                     fecha_aceptacion=fecha_aceptacion,
-                    customer_email=getattr(usuario, "email", None),
                 )
 
                 # 4) Descontar stock definitivamente.

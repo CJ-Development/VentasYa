@@ -22,6 +22,7 @@ import Profile from "../pages/Profile/Profile";
 import Favorites from "../pages/Favorites/Favorites";
 import Settings from "../pages/Settings/Settings";
 import Cart from "../pages/Cart/Cart";
+import Checkout from "../pages/Checkout/Checkout";
 import ClientOrders from "../pages/Orders/Orders";
 
 // ============================================================
@@ -152,6 +153,11 @@ function AppRouter() {
                 <Route
                     path="/cart"
                     element={<Cart />}
+                />
+
+                <Route
+                    path="/checkout"
+                    element={<Checkout />}
                 />
 
                 <Route

@@ -31,6 +31,9 @@ export const getMyOrders = (usuarioId) =>
 export const getOrderDetail = (id) =>
     api.get(`/orders/${id}/`);
 
+export const createOrderFromCart = (data) =>
+    api.post(`/orders/checkout/`, data);
+
 
 /* ===========================
    OFERTAS

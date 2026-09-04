@@ -85,9 +85,7 @@ function CartDrawer() {
 
         closeDrawer();
 
-        // Función deshabilitada temporalmente
-        // Se implementará flujo por WhatsApp en el futuro
-        alert("El flujo de pago estará disponible próximamente.");
+        navigate("/checkout");
 
     };
 
