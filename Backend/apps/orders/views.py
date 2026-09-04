@@ -274,7 +274,7 @@ class CheckoutView(APIView):
                         ),
                     },
                     "cliente": {
-                        "nombre": usuario.nombre,
+                        "nombre": usuario.nombres,
                         "email": usuario.email or "",
                         "telefono": telefono_contacto or usuario.telefono or "",
                     },
