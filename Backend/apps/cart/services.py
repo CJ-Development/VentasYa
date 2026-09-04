@@ -14,6 +14,9 @@ class CarritoService:
 
     @staticmethod
     def agregar(carrito, variante, cantidad):
+        # Validar que la variante tenga stock disponible
+        if variante.stock <= 0:
+            raise ValueError("Esta variante no tiene stock disponible.")
 
         item, created = ItemCarrito.objects.get_or_create(
             carrito=carrito,

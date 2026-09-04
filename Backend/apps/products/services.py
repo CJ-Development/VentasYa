@@ -17,6 +17,8 @@ class ProductoService:
     @staticmethod
     def listar(*, solo_nuevos=False, categoria_id=None, estado=None, ordering=None):
         qs = ProductoService._base_queryset()
+        # Filtrar productos que tengan al menos una variante con stock > 0
+        qs = qs.filter(variante_set__stock__gt=0).distinct()
         if solo_nuevos:
             qs = qs.filter(created_at__isnull=False).order_by("-created_at", "id_producto")
         elif ordering:
