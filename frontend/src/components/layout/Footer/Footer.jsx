@@ -79,7 +79,7 @@ function Footer() {
 
                         <img
                             src={logo}
-                            alt="VentasYa"
+                            alt="Baúl Mágico Shop"
                         />
 
                     </div>
@@ -87,7 +87,7 @@ function Footer() {
 
                     <p className="footer-description">
 
-                        En VentasYa encontrarás productos de
+                        En Baúl Mágico Shop encontrarás productos de
                         calidad para tu hogar, tecnología, moda
                         y mucho más, con envíos rápidos a
                         toda Colombia.
@@ -308,12 +308,12 @@ function Footer() {
                     </a>
 
 
-                    <a href="mailto:ventasya@gmail.com">
+                    <a href="mailto:baulmagico@gmail.com">
 
                         <Mail />
 
                         <span>
-                            ventasya@gmail.com
+                            baulmagico@gmail.com
                         </span>
 
                     </a>
@@ -336,7 +336,7 @@ function Footer() {
                     {/* COPYRIGHT */}
 
                     <p>
-                        © 2026 VentasYa. Todos los derechos reservados.
+                        © 2026 Baúl Mágico Shop. Todos los derechos reservados.
                     </p>
 
 

@@ -4,7 +4,7 @@ function Logo() {
     return (
         <img
             src={logo}
-            alt="VentasYa"
+            alt="Baúl Mágico Shop"
             className="logo"
         />
     );

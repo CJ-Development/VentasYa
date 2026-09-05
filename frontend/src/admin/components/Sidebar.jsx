@@ -71,7 +71,7 @@ function Sidebar() {
                 {!collapsed && (
                     <img
                         src={Logo}
-                        alt="VentasYa"
+                        alt="Baúl Mágico Shop"
                         className="sidebar-logo-image"
                     />
                 )}

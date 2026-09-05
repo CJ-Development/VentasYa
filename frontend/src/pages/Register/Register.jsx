@@ -856,7 +856,7 @@ function Register() {
 
                                 <p className="subtitle">
                                     Completa tus datos para comenzar
-                                    a comprar en VentasYa.
+                                    a comprar en Baúl Mágico Shop.
                                 </p>
 
                             </div>
@@ -1372,7 +1372,7 @@ function Register() {
 
 
                         <p>
-                            Bienvenido a VentasYa.
+                            Bienvenido a Baúl Mágico Shop.
                             Te estamos redirigiendo a
                             la página principal...
                         </p>

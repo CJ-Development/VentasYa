@@ -225,7 +225,7 @@ function Checkout() {
     const generarMensajeWhatsApp = (data) => {
         const { cliente, direccion_envio, productos, total } = data;
 
-        let mensaje = "🛒 *Nuevo pedido - VentasYa*\n\n";
+        let mensaje = "🛒 *Nuevo pedido - Baúl Mágico Shop*\n\n";
         mensaje += `👤 *Cliente:* ${cliente.nombre}\n`;
         mensaje += `📱 *Teléfono:* ${cliente.telefono}\n\n`;
         mensaje += `📍 *Dirección de envío:*\n`;
@@ -245,7 +245,7 @@ function Checkout() {
         });
 
         mensaje += `💰 *Total:* ${formatearPesos(total)}\n\n`;
-        mensaje += "Pedido realizado desde VentasYa";
+        mensaje += "Pedido realizado desde Baúl Mágico Shop";
 
         return mensaje;
     };
@@ -539,7 +539,7 @@ function Checkout() {
                                         }
                                     />
                                     <span>
-                                        Acepto los términos y condiciones de VentasYa *
+                                        Acepto los términos y condiciones de Baúl Mágico Shop *
                                     </span>
                                 </label>
 

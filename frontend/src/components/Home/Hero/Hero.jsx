@@ -9,7 +9,6 @@ import {
     Baby,
     Truck,
     ShieldCheck,
-    Headphones,
     Gift,
     CreditCard,
     BadgePercent,
@@ -104,12 +103,6 @@ function Hero() {
             title: "Pagos seguros",
             description: "Protegemos tu información",
             color: "turquoise"
-        },
-        {
-            icon: Headphones,
-            title: "Soporte 24/7",
-            description: "Estamos para ayudarte",
-            color: "orange"
         }
     ];
 

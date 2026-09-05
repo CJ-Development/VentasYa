@@ -19,7 +19,7 @@ function PoliticaDatos() {
           <section className="legal-section">
             <h2>1. Responsable del Tratamiento</h2>
             <p>
-              VentasYa, identificado con NIT xxxxxxxxxxx-x, es responsable del tratamiento 
+              Baúl Mágico Shop, identificado con NIT xxxxxxxxxxx-x, es responsable del tratamiento 
               de sus datos personales conforme a la Ley 1581 de 2012 de Habeas Data en Colombia.
             </p>
           </section>
@@ -145,16 +145,16 @@ function PoliticaDatos() {
               esta política, puede contactarnos en:
             </p>
             <p className="legal-contact">
-              <strong>Email:</strong> privacidad@ventasya.com<br />
+              <strong>Email:</strong> privacidad@baulmagicoshop.com<br />
               <strong>Teléfono:</strong> +57 1 234 5678<br />
-              <strong>Dirección:</strong> [Dirección física de VentasYa]<br />
+              <strong>Dirección:</strong> [Dirección física de Baúl Mágico Shop]<br />
               <strong>Correo físico:</strong> Carrera xx # xx-xx, Bogotá, Colombia
             </p>
           </section>
         </div>
 
         <div className="legal-footer">
-          <p>© 2026 VentasYa. Todos los derechos reservados.</p>
+          <p>© 2026 Baúl Mágico Shop. Todos los derechos reservados.</p>
         </div>
       </div>
     </div>

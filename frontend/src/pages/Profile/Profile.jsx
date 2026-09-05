@@ -847,7 +847,7 @@ function Profile() {
                                 <BadgeCheck size={15} />
                                 Cliente verificado
                             </span>
-                            <small>Miembro de VentasYa</small>
+                            <small>Miembro de Baúl Mágico Shop</small>
                         </div>
                     </div>
                 </div>

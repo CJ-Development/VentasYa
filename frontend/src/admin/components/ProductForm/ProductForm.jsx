@@ -1436,7 +1436,7 @@ function ProductForm({
                         </h2>
 
                         <p>
-                            Completa la información para publicar un nuevo producto en VentasYa.
+                            Completa la información para publicar un nuevo producto en Baúl Mágico Shop.
                         </p>
 
                     </div>

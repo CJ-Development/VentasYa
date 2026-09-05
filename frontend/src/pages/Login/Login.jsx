@@ -299,7 +299,7 @@ function Login() {
 
                     <img
                         src={ModaImage}
-                        alt="Moda VentasYa"
+                        alt="Moda Baúl Mágico Shop"
                     />
 
                     <div className="image-content">
