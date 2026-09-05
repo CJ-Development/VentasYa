@@ -1,4 +1,6 @@
 from django.db import models
+from django.core.exceptions import ValidationError
+from django.utils.text import slugify
 
 
 class Categoria(models.Model):
@@ -6,8 +8,13 @@ class Categoria(models.Model):
     id_categoria = models.AutoField(primary_key=True)
 
     nombre = models.CharField(
-        max_length=100,
-        unique=True
+        max_length=100
+    )
+
+    slug = models.SlugField(
+        max_length=255,
+        unique=True,
+        blank=True
     )
 
     descripcion = models.TextField(
@@ -38,9 +45,92 @@ class Categoria(models.Model):
     class Meta:
         db_table = "categorias"
         ordering = ["orden", "nombre"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["id_categoria_padre", "nombre"],
+                name="unique_nombre_por_padre",
+                violation_error_message="Ya existe una categoría con este nombre bajo el mismo padre."
+            )
+        ]
 
     def __str__(self):
         return self.nombre
+
+    def save(self, *args, **kwargs):
+        # Generar slug jerárquico antes de guardar
+        self.slug = self.generar_slug_jerarquico()
+        super().save(*args, **kwargs)
+
+    def generar_slug_jerarquico(self):
+        """
+        Genera un slug único basado en la jerarquía completa.
+        Ejemplo: hombre-ropa-pantalones
+        """
+        # Slugify del nombre actual
+        nombre_slug = slugify(self.nombre)
+        
+        # Si no tiene padre, el slug es solo el nombre
+        if not self.id_categoria_padre:
+            return nombre_slug
+        
+        # Si tiene padre, construir slug jerárquico
+        slugs_padres = []
+        padre = self.id_categoria_padre
+        
+        # Recorrer hacia arriba recolectando slugs
+        while padre:
+            slugs_padres.insert(0, slugify(padre.nombre))
+            padre = padre.id_categoria_padre
+        
+        # Agregar slug actual
+        slugs_padres.append(nombre_slug)
+        
+        # Unir con guiones
+        slug_completo = "-".join(slugs_padres)
+        
+        return slug_completo
+
+    def obtener_profundidad(self):
+        """
+        Devuelve la profundidad de la categoría en la jerarquía.
+        Nivel 1 (raíz) = 1, Nivel 2 = 2, Nivel 3 = 3
+        """
+        profundidad = 1
+        padre = self.id_categoria_padre
+        
+        while padre:
+            profundidad += 1
+            padre = padre.id_categoria_padre
+            if profundidad > 3:  # Límite de seguridad
+                break
+        
+        return profundidad
+
+    def clean(self):
+        """
+        Validaciones adicionales antes de guardar.
+        """
+        super().clean()
+        
+        # Validar profundidad máxima (3 niveles)
+        profundidad = self.obtener_profundidad()
+        if profundidad > 3:
+            raise ValidationError(
+                f"Las categorías no pueden tener más de 3 niveles de profundidad. "
+                f"La categoría '{self.nombre}' estaría en el nivel {profundidad}."
+            )
+        
+        # Validar que no sea su propio padre
+        if self.id_categoria_padre and self.id_categoria_padre.id_categoria == self.id_categoria:
+            raise ValidationError(
+                "Una categoría no puede ser su propia padre."
+            )
+        
+        # Validar que no cree un ciclo
+        if self.id_categoria_padre and self.es_descendiente_de(self.id_categoria_padre):
+            raise ValidationError(
+                "La categoría padre seleccionada crearía un ciclo en la jerarquía."
+            )
 
     def es_descendiente_de(self, otra):
         """

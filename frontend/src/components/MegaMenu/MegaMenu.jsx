@@ -13,24 +13,15 @@ import "./MegaMenu.css";
      destacado con CTA.
 
    Layout: panel destacado a la izquierda, columnas de
-   categorías/subcategorías a la derecha con menos peso
-   visual.
+   categorías/subcategorías/sub-subcategorías a la derecha.
 
-   Cada item de menú tiene la forma { label, href, badge? }.
+   Soporta hasta 3 niveles de jerarquía:
+   - Nivel 1: Categoría principal
+   - Nivel 2: Subcategoría
+   - Nivel 3: Sub-subcategoría
 ===================================================== */
 
-const slugify = (label) => label
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/\p{Diacritic}/gu, "")
-    .replace(/[^a-z0-9\s-]/g, "")
-    .trim()
-    .replace(/\s+/g, "-");
-
-const itemHref = (label) => `/categoria/${slugify(label)}`;
-
-const toItem = (entry) =>
-    typeof entry === "string" ? { label: entry, href: itemHref(entry) } : { ...entry, href: entry.href || itemHref(entry.label) };
+const itemHref = (slug) => `/categoria/${slug}`;
 
 /* =====================================================
    Cache simple en memoria para no re-fetchar en cada hover.
@@ -52,36 +43,64 @@ const fetchCategorias = async () => {
 };
 
 
-/* Acepta la respuesta plana de /categories/ y devuelve una lista
+/* Acepta la respuesta jerárquica de /categories/ y devuelve una lista
  * de columnas con { titulo, href, items }. Una columna por cada
- * categoría padre; sus subcategorías se vuelven items. */
+ * categoría padre; sus subcategorías y sub-subcategorías se vuelven items. */
 const armarColumnasProductos = (categorias) => {
 
     const activas = (categorias || []).filter((c) => c.estado !== "archivado");
 
+    // Filtrar solo categorías raíz (sin padre)
     const raices = activas.filter((c) => !c.categoria_padre);
-
-    const hijosDe = (idPadre) => activas
-        .filter((c) => c.categoria_padre?.id_categoria === idPadre)
-        .sort((a, b) => (a.orden || 0) - (b.orden || 0));
 
     if (raices.length === 0) {
         return [
             {
                 titulo: "Categorías",
-                items: activas.map((c) => ({ label: c.nombre })),
+                items: activas.map((c) => ({ 
+                    label: c.nombre, 
+                    slug: c.slug 
+                })),
             },
         ];
     }
 
     return raices.map((raiz) => {
-        const subs = hijosDe(raiz.id_categoria);
-        const items = subs.length > 0
-            ? subs.map((s) => ({ label: s.nombre }))
-            : [{ label: raiz.nombre }];
+        const items = [];
+        
+        // Agregar subcategorías del backend
+        const subs = raiz.subcategorias || [];
+        
+        subs.forEach((sub) => {
+            // Agregar subcategoría
+            items.push({
+                label: sub.nombre,
+                slug: sub.slug,
+                isSub: true
+            });
+            
+            // Agregar sub-subcategorías
+            const subsubs = sub.subcategorias || [];
+            subsubs.forEach((subsub) => {
+                items.push({
+                    label: subsub.nombre,
+                    slug: subsub.slug,
+                    isSubSub: true
+                });
+            });
+        });
+        
+        // Si no tiene subcategorías, agregar la categoría raíz como item
+        if (items.length === 0) {
+            items.push({
+                label: raiz.nombre,
+                slug: raiz.slug
+            });
+        }
+        
         return {
             titulo: raiz.nombre,
-            href: itemHref(raiz.nombre),
+            href: itemHref(raiz.slug),
             items,
         };
     });
@@ -153,15 +172,14 @@ function MegaMenu({ variant = "productos" }) {
                             </span>
                         ) : (
                             col.items.map((it, idx) => {
-                                const item = toItem(it);
+                                const href = itemHref(it.slug);
                                 return (
-                                    <Link to={item.href} key={`${col.titulo}-${idx}`} className="mega-item">
-                                        <span>{item.label}</span>
-                                        {item.badge && (
-                                            <span className={`mega-badge mega-badge--${item.badge.toLowerCase().replace(/[^a-z0-9]/g, "")}`}>
-                                                {item.badge}
-                                            </span>
-                                        )}
+                                    <Link 
+                                        to={href} 
+                                        key={`${col.titulo}-${idx}`} 
+                                        className={`mega-item ${it.isSub ? 'mega-item--sub' : ''} ${it.isSubSub ? 'mega-item--subsub' : ''}`}
+                                    >
+                                        <span>{it.label}</span>
                                     </Link>
                                 );
                             })
