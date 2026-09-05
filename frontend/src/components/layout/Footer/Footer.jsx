@@ -161,26 +161,6 @@ function Footer() {
                     </a>
 
 
-                    <a href="/ofertas">
-
-                        <Tag />
-
-                        <span>
-                            Ofertas
-                        </span>
-
-                    </a>
-
-
-                    <a href="/new">
-
-                        <Star />
-
-                        <span>
-                            Novedades
-                        </span>
-
-                    </a>
 
 
                 </div>

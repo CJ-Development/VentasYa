@@ -8,7 +8,6 @@ import MainLayout from "../layouts/MainLayout";
 import Home from "../pages/Home/Home";
 import Login from "../pages/Login/Login";
 import Register from "../pages/Register/Register";
-import New from "../pages/New/New";
 
 // ============================================================
 // CLIENTE
@@ -16,7 +15,6 @@ import New from "../pages/New/New";
 
 import ClientProducts from "../pages/Products/Products";
 import ProductDetailPage from "../pages/Products/ProductDetailPage/ProductDetailPage";
-import ClientOffers from "../pages/Offers/Offers";
 
 import Profile from "../pages/Profile/Profile";
 import Favorites from "../pages/Favorites/Favorites";
@@ -101,24 +99,6 @@ function AppRouter() {
                 />
 
 
-                {/* ==================================================
-                    OFERTAS
-                ================================================== */}
-
-                <Route
-                    path="/offers"
-                    element={<ClientOffers />}
-                />
-
-
-                {/* ==================================================
-                    NOVEDADES
-                ================================================== */}
-
-                <Route
-                    path="/new"
-                    element={<New />}
-                />
 
 
                 {/* ==================================================
