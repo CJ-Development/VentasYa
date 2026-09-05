@@ -17,6 +17,38 @@
 }
 
 /* =========================================================
+   ICONOS DE CATEGORÍAS
+========================================================= */
+
+.nav-category-icon {
+    display: inline-flex;
+    align-items: center;
+    vertical-align: middle;
+    margin-right: 6px;
+    color: var(--color-primary);
+}
+
+.mega-column-icon {
+    display: inline-flex;
+    align-items: center;
+    vertical-align: middle;
+    margin-right: 8px;
+    color: var(--color-primary);
+}
+
+.mega-item-icon {
+    display: inline-flex;
+    align-items: center;
+    vertical-align: middle;
+    margin-right: 8px;
+    color: #6B7280;
+}
+
+.mega-item:hover .mega-item-icon {
+    color: var(--color-primary);
+}
+
+/* =========================================================
    PARTE SUPERIOR
 ========================================================= */
 
