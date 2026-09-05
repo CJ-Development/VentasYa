@@ -3,7 +3,7 @@ import "./Login.css";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useState, useEffect } from "react";
 
-import ModaImage from "../../assets/images/Moda.png";
+import FamiliaImage from "../../assets/images/Familia.png";
 
 import {
     Mail,
@@ -298,8 +298,8 @@ function Login() {
                 <section className="login-image">
 
                     <img
-                        src={ModaImage}
-                        alt="Moda Baúl Mágico Shop"
+                        src={FamiliaImage}
+                        alt="Familia Baúl Mágico Shop"
                     />
 
                     <div className="image-content">

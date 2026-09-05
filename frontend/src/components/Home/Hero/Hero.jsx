@@ -15,54 +15,14 @@ import {
     ArrowRight
 } from "lucide-react";
 
-import Moda from "../../../assets/images/Moda.png";
-import Mascotas from "../../../assets/images/Mascotas.png";
 import Familia from "../../../assets/images/Familia.png";
+import JuguetesTecnologia from "../../../assets/images/Juguetes y Tecnologia.png";
+import Accesorios from "../../../assets/images/Accesorios.png";
 
 
 function Hero() {
 
     const categories = [
-        {
-            id: "moda",
-            title: (
-                <>
-                    Moda que
-                    <br />
-                    te representa
-                </>
-            ),
-            description:
-                "Descubre las últimas tendencias en ropa y accesorios.",
-            image: Moda,
-            button: "Ver moda",
-            link: "/new",
-            className: "hero-card--fashion",
-            iconOne: Shirt,
-            iconOneText: "Ropa para todos",
-            iconTwo: Tag,
-            iconTwoText: "Marcas top"
-        },
-        {
-            id: "mascotas",
-            title: (
-                <>
-                    Todo para
-                    <br />
-                    tu mascota
-                </>
-            ),
-            description:
-                "Encuentra todo lo que tu mejor amigo necesita en un solo lugar.",
-            image: Mascotas,
-            button: "Ver mascotas",
-            link: "/categoria/mascotas",
-            className: "hero-card--pets",
-            iconOne: PawPrint,
-            iconOneText: "Mejores marcas",
-            iconTwo: Heart,
-            iconTwoText: "Cuidado y bienestar"
-        },
         {
             id: "familia",
             title: (
@@ -82,6 +42,46 @@ function Hero() {
             iconOneText: "Hogar y cocina",
             iconTwo: Baby,
             iconTwoText: "Bebés y niños"
+        },
+        {
+            id: "juguetes-tecnologia",
+            title: (
+                <>
+                    Juguetería y
+                    <br />
+                    Tecnología
+                </>
+            ),
+            description:
+                "Juguetes divertidos y la última tecnología para todos.",
+            image: JuguetesTecnologia,
+            button: "Ver juguetes",
+            link: "/new",
+            className: "hero-card--fashion",
+            iconOne: Gift,
+            iconOneText: "Juguetes",
+            iconTwo: CreditCard,
+            iconTwoText: "Tecnología"
+        },
+        {
+            id: "accesorios",
+            title: (
+                <>
+                    Accesorios
+                    <br />
+                    para ti
+                </>
+            ),
+            description:
+                "Complementa tu estilo con nuestros accesorios.",
+            image: Accesorios,
+            button: "Ver accesorios",
+            link: "/categoria/mascotas",
+            className: "hero-card--pets",
+            iconOne: BadgePercent,
+            iconOneText: "Ofertas",
+            iconTwo: Heart,
+            iconTwoText: "Tendencias"
         }
     ];
 
