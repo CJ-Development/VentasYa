@@ -12,7 +12,8 @@ import {
     Gift,
     CreditCard,
     BadgePercent,
-    ArrowRight
+    ArrowRight,
+    Users
 } from "lucide-react";
 
 import Familia from "../../../assets/images/Familia.png";
@@ -33,15 +34,15 @@ function Hero() {
                 </>
             ),
             description:
-                "Productos para el hogar, bebés y mucho más.",
+                "Ropa, calzado y productos para todos, ¡incluidas tus mascotas!",
             image: Familia,
             button: "Ver familia",
             link: "/categoria/tecnologia",
             className: "hero-card--family",
-            iconOne: Home,
-            iconOneText: "Hogar y cocina",
-            iconTwo: Baby,
-            iconTwoText: "Bebés y niños"
+            iconOne: Users,
+            iconOneText: "Hombre, mujer y niños",
+            iconTwo: PawPrint,
+            iconTwoText: "Mascotas"
         },
         {
             id: "juguetes-tecnologia",
