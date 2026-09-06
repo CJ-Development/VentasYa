@@ -15,7 +15,7 @@ import {
 
 import "./Footer.css";
 
-import logo from "../../../assets/images/LogoB.png";
+import logo from "../../../assets/images/Logo.png";
 
 
 function Footer() {

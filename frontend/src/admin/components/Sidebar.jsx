@@ -21,7 +21,7 @@ import { NavLink } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../hooks/useAuth";
 
-import Logo from "../../assets/images/LogoB.png";
+import Logo from "../../assets/images/Logo.png";
 
 
 const STORAGE_KEY = "admin-sidebar-collapsed";
