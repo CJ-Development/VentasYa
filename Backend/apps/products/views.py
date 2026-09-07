@@ -41,7 +41,8 @@ class ProductoView(APIView):
         categoria_id = self._parse_int(request.query_params.get("categoria"))
         ordering = request.query_params.get("ordering") or None
         estado = request.query_params.get("estado") or None
-        productos = ProductoService.listar(solo_nuevos=solo_nuevos, categoria_id=categoria_id, estado=estado, ordering=ordering)
+        tendencia = self._parse_bool(request.query_params.get("tendencia"))
+        productos = ProductoService.listar(solo_nuevos=solo_nuevos, categoria_id=categoria_id, estado=estado, ordering=ordering, tendencia=tendencia)
         return Response(ProductoSerializer(productos, many=True).data)
 
     @staticmethod

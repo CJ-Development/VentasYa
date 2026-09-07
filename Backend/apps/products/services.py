@@ -15,10 +15,33 @@ from .serializers import VarianteSerializer
 
 class ProductoService:
     @staticmethod
-    def listar(*, solo_nuevos=False, categoria_id=None, estado=None, ordering=None):
+    def listar(*, solo_nuevos=False, categoria_id=None, estado=None, ordering=None, tendencia=False):
+        from django.db.models import Sum, F
+        from apps.orders.models import DetalleCompra
+
         qs = ProductoService._base_queryset()
         # Filtrar productos que tengan al menos una variante con stock > 0
         qs = qs.filter(variante__stock__gt=0).distinct()
+        
+        if tendencia:
+            # Calcular cantidad vendida por producto
+            ventas_por_producto = (
+                DetalleCompra.objects
+                .values('variante__producto_id')
+                .annotate(total_vendido=Sum('cantidad'))
+                .order_by('-total_vendido')
+            )
+            
+            # Obtener IDs de productos ordenados por ventas
+            producto_ids_ordenados = [v['variante__producto_id'] for v in ventas_por_producto]
+            
+            # Ordenar queryset por cantidad vendida (usando Case/When)
+            from django.db.models import Case, When
+            when_clauses = [When(pk=pid, then=pos) for pos, pid in enumerate(producto_ids_ordenados)]
+            qs = qs.annotate(
+                ventas_orden=Case(*when_clauses, default=len(producto_ids_ordenados))
+            ).order_by('ventas_orden', 'id_producto')
+        
         if solo_nuevos:
             qs = qs.filter(created_at__isnull=False).order_by("-created_at", "id_producto")
         elif ordering:
