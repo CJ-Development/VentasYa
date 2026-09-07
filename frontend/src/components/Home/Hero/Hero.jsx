@@ -16,6 +16,8 @@ import {
     Users
 } from "lucide-react";
 
+import { Link } from "react-router-dom";
+
 import Familia from "../../../assets/images/Familia.png";
 import JuguetesTecnologia from "../../../assets/images/Juguetes y Tecnologia.png";
 import Accesorios from "../../../assets/images/Accesorios.png";
@@ -37,7 +39,7 @@ function Hero() {
                 "Ropa, calzado y productos para todos, ¡incluidas tus mascotas!",
             image: Familia,
             button: "Ver familia",
-            link: "/categoria/tecnologia",
+            link: "/products?highlight=family",
             className: "hero-card--family",
             iconOne: Users,
             iconOneText: "Hombre, mujer y niños",
@@ -57,7 +59,7 @@ function Hero() {
                 "Juguetes divertidos y la última tecnología para todos.",
             image: JuguetesTecnologia,
             button: "Ver juguetes",
-            link: "/new",
+            link: "/products?highlight=toys",
             className: "hero-card--fashion",
             iconOne: Gift,
             iconOneText: "Juguetes",
@@ -77,7 +79,7 @@ function Hero() {
                 "Complementa tu estilo con nuestros accesorios.",
             image: Accesorios,
             button: "Ver accesorios",
-            link: "/categoria/mascotas",
+            link: "/products?highlight=accessories",
             className: "hero-card--pets",
             iconOne: BadgePercent,
             iconOneText: "Ofertas",
@@ -169,12 +171,12 @@ function Hero() {
 
                                     </div>
 
-                                    <a
-                                        href={category.link}
+                                    <Link
+                                        to={category.link}
                                         className="hero-card-button"
                                     >
                                         {category.button}
-                                    </a>
+                                    </Link>
 
                                 </div>
 

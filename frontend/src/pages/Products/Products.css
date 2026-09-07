@@ -48,7 +48,37 @@
     top: 20px;
 
     box-shadow: var(--shadow-sm);
-    border: 1px solid var(--color-border-light);
+}
+
+.sidebar-section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+}
+
+.sidebar-section-header h3 {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 600;
+}
+
+.sidebar-toggle-categories {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 4px;
+    background: transparent;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    color: var(--color-text-secondary);
+    transition: all 0.2s ease;
+}
+
+.sidebar-toggle-categories:hover {
+    background: var(--color-bg-hover);
+    color: var(--color-text-primary);
 }
 
 .sidebar-section {

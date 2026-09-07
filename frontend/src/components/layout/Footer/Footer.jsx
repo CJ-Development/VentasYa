@@ -277,12 +277,12 @@ function Footer() {
                     <span className="footer-title-line"></span>
 
 
-                    <a href="tel:+573001234567">
+                    <a href="tel:+573181174546">
 
                         <Phone />
 
                         <span>
-                            +57 XXX XXX XXXX
+                            +57 318 1174546
                         </span>
 
                     </a>

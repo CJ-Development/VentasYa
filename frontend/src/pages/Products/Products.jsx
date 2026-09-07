@@ -72,6 +72,9 @@ function Products() {
     const [filtrosAbiertos, setFiltrosAbiertos] =
         useState(false);
 
+    const [categoriasExpandidas, setCategoriasExpandidas] =
+        useState(true);
+
 
     /* =========================================================
        FILTROS
@@ -94,6 +97,12 @@ function Products() {
 
     const [orden, setOrden] =
         useState("relevancia");
+
+    const [tendencia, setTendencia] =
+        useState(false);
+
+    const highlightParam =
+        searchParams.get("highlight") || "";
 
 
     /* =========================================================
@@ -118,7 +127,8 @@ function Products() {
                 ] = await Promise.all([
 
                     getProducts({
-                        signal: controller.signal
+                        signal: controller.signal,
+                        tendencia: tendencia
                     }),
 
                     getCategories({
@@ -197,7 +207,7 @@ function Products() {
             controller.abort();
         };
 
-    }, []);
+    }, [tendencia]);
 
 
     /* =========================================================
@@ -241,6 +251,39 @@ function Products() {
 
     }, [
         slug,
+        categorias,
+        loading
+    ]);
+
+
+    /* =========================================================
+       RESOLVER HIGHLIGHT DESDE HERO
+    ========================================================= */
+
+    useEffect(() => {
+
+        if (loading || !highlightParam) return;
+
+        const categoriasMap = {
+            "family": ["Hombre", "Mujeres", "Niños", "Mascotas"],
+            "toys": ["Tecnología", "Juguetes"],
+            "accessories": ["Accesorios"]
+        };
+
+        const categoriasAHiglight = categoriasMap[highlightParam];
+
+        if (!categoriasAHiglight) return;
+
+        const categoriasIds = categorias
+            .filter(cat => categoriasAHiglight.includes(cat.nombre))
+            .map(cat => String(cat.id_categoria));
+
+        if (categoriasIds.length > 0) {
+            setCategoria(categoriasIds[0]);
+        }
+
+    }, [
+        highlightParam,
         categorias,
         loading
     ]);
@@ -699,127 +742,161 @@ function Products() {
 
             <div className="sidebar-section">
 
-                <h3>
-                    Categorías
-                </h3>
+                <div className="sidebar-section-header">
+                    <h3>
+                        Categorías
+                    </h3>
+
+                    <button
+                        type="button"
+                        className="sidebar-toggle-categories"
+                        onClick={() =>
+                            setCategoriasExpandidas(
+                                !categoriasExpandidas
+                            )
+                        }
+                        aria-label={
+                            categoriasExpandidas
+                                ? "Ocultar categorías"
+                                : "Mostrar categorías"
+                        }
+                    >
+                        {categoriasExpandidas ? (
+                            <ChevronDown size={16} />
+                        ) : (
+                            <ChevronDown
+                                size={16}
+                                style={{
+                                    transform: "rotate(-90deg)"
+                                }}
+                            />
+                        )}
+                    </button>
+                </div>
 
 
-                <button
-                    type="button"
-                    className={
-                        !categoria
-                            ? "category-item category-item--parent active"
-                            : "category-item category-item--parent"
-                    }
-                    onClick={() => {
-                        setCategoria("");
-                    }}
-                >
-                    Todos
-                </button>
+                {categoriasExpandidas && (
+                    <>
+
+                        <button
+                            type="button"
+                            className={
+                                !categoria
+                                    ? "category-item category-item--parent active"
+                                    : "category-item category-item--parent"
+                            }
+                            onClick={() => {
+                                setCategoria("");
+                            }}
+                        >
+                            Todos
+                        </button>
 
 
-                {categoriasPadres.map(
-                    (padre) => {
+                        {categoriasPadres.map(
+                            (padre) => {
 
-                        const subcats =
-                            (padre.subcategorias ||
-                                []).filter(
-                                    (s) =>
-                                        s.estado !==
-                                        "archivado"
-                                );
-
-                        const isPadreActive =
-                            String(categoria) ===
-                            String(padre.id_categoria);
-
-                        return (
-
-                            <div
-                                key={padre.id_categoria}
-                                className="category-group"
-                            >
-
-                                <button
-                                    type="button"
-                                    className={
-                                        isPadreActive
-                                            ? "category-item category-item--parent active"
-                                            : "category-item category-item--parent"
-                                    }
-                                    onClick={() => {
-
-                                        setCategoria(
-                                            String(
-                                                padre.id_categoria
-                                            )
+                                const subcats =
+                                    (padre.subcategorias ||
+                                        []).filter(
+                                            (s) =>
+                                                s.estado !==
+                                                "archivado"
                                         );
 
-                                    }}
-                                >
+                                const isPadreActive =
+                                    String(categoria) ===
+                                    String(padre.id_categoria);
 
-                                    {padre.nombre}
+                                return (
 
-                                </button>
+                                    <div
+                                        key={padre.id_categoria}
+                                        className="category-group"
+                                    >
 
+                                        <button
+                                            type="button"
+                                            className={
+                                                isPadreActive
+                                                    ? "category-item category-item--parent active"
+                                                    : "category-item category-item--parent"
+                                            }
+                                            onClick={() => {
 
-                                {subcats.length > 0 && (
-
-                                    <div className="category-sublist">
-
-                                        {subcats.map(
-                                            (sub) => {
-
-                                                const isSubActive =
+                                                setCategoria(
                                                     String(
-                                                        categoria
-                                                    ) ===
-                                                    String(
-                                                        sub.id_categoria
-                                                    );
-
-                                                return (
-
-                                                    <button
-                                                        key={
-                                                            sub.id_categoria
-                                                        }
-                                                        type="button"
-                                                        className={
-                                                            isSubActive
-                                                                ? "category-item category-item--sub active"
-                                                                : "category-item category-item--sub"
-                                                        }
-                                                        onClick={() => {
-
-                                                            setCategoria(
-                                                                String(
-                                                                    sub.id_categoria
-                                                                )
-                                                            );
-
-                                                        }}
-                                                    >
-
-                                                        {sub.nombre}
-
-                                                    </button>
-
+                                                        padre.id_categoria
+                                                    )
                                                 );
 
-                                            }
+                                            }}
+                                        >
+
+                                            {padre.nombre}
+
+                                        </button>
+
+
+                                        {subcats.length > 0 && (
+
+                                            <div className="category-sublist">
+
+                                                {subcats.map(
+                                                    (sub) => {
+
+                                                        const isSubActive =
+                                                            String(
+                                                                categoria
+                                                            ) ===
+                                                            String(
+                                                                sub.id_categoria
+                                                            );
+
+                                                        return (
+
+                                                            <button
+                                                                key={
+                                                                    sub.id_categoria
+                                                                }
+                                                                type="button"
+                                                                className={
+                                                                    isSubActive
+                                                                        ? "category-item category-item--sub active"
+                                                                        : "category-item category-item--sub"
+                                                                }
+                                                                onClick={() => {
+
+                                                                    setCategoria(
+                                                                        String(
+                                                                            sub.id_categoria
+                                                                        )
+                                                                    );
+
+                                                                }}
+                                                            >
+
+                                                                {sub.nombre}
+
+                                                            </button>
+
+                                                        );
+
+                                                    }
+                                                )}
+
+                                            </div>
+
                                         )}
 
                                     </div>
 
-                                )}
+                                );
 
-                            </div>
+                            }
+                        )}
 
-                        );
-
-                    }
+                    </>
                 )}
 
             </div>
@@ -1165,15 +1242,23 @@ function Products() {
 
                                     <select
                                         value={orden}
-                                        onChange={(e) =>
-                                            setOrden(
-                                                e.target.value
-                                            )
-                                        }
+                                        onChange={(e) => {
+                                            const valor = e.target.value;
+                                            setOrden(valor);
+                                            if (valor === "tendencia") {
+                                                setTendencia(true);
+                                            } else {
+                                                setTendencia(false);
+                                            }
+                                        }}
                                     >
 
                                         <option value="relevancia">
-                                            Más vendidos
+                                            Relevancia
+                                        </option>
+
+                                        <option value="tendencia">
+                                            Tendencia
                                         </option>
 
                                         <option value="precio-asc">
