@@ -15,12 +15,8 @@ import Nosotros from "../pages/Nosotros/Nosotros";
 import ClientProducts from "../pages/Products/Products";
 import ProductDetailPage from "../pages/Products/ProductDetailPage/ProductDetailPage";
 
-import Profile from "../pages/Profile/Profile";
-import Favorites from "../pages/Favorites/Favorites";
-import Settings from "../pages/Settings/Settings";
 import Cart from "../pages/Cart/Cart";
 import Checkout from "../pages/Checkout/Checkout";
-import ClientOrders from "../pages/Orders/Orders";
 
 // ============================================================
 // ADMIN
@@ -112,16 +108,6 @@ function AppRouter() {
                 ================================================== */}
 
                 <Route
-                    path="/profile"
-                    element={<Profile />}
-                />
-
-                <Route
-                    path="/favorites"
-                    element={<Favorites />}
-                />
-
-                <Route
                     path="/cart"
                     element={<Cart />}
                 />
@@ -129,16 +115,6 @@ function AppRouter() {
                 <Route
                     path="/checkout"
                     element={<Checkout />}
-                />
-
-                <Route
-                    path="/orders"
-                    element={<ClientOrders />}
-                />
-
-                <Route
-                    path="/settings"
-                    element={<Settings />}
                 />
 
             </Route>
