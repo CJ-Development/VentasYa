@@ -3,8 +3,6 @@ import "./Navbar.css";
 import Logo from "./Logo";
 import SearchBar from "./SearchBar";
 import NavLinks from "./NavLinks";
-import UserMenu from "./UserMenu";
-import FavoritesButton from "./FavoritesButton";
 import CartButton from "./CartButton";
 
 import CartDrawer from "../../cart/CartDrawer/CartDrawer";
@@ -20,8 +18,6 @@ function Navbar() {
                 <SearchBar />
 
                 <div className="navbar-actions">
-                    <UserMenu />
-                    <FavoritesButton />
                     <CartButton />
                 </div>
 

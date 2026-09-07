@@ -14,7 +14,7 @@ function AdminRoute({ children }) {
 
     if (!usuario) {
 
-        return <Navigate to="/login" replace />;
+        return <Navigate to="/admin/login" replace />;
 
     }
 

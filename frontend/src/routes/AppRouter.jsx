@@ -6,8 +6,6 @@ import MainLayout from "../layouts/MainLayout";
 // ============================================================
 
 import Home from "../pages/Home/Home";
-import Login from "../pages/Login/Login";
-import Register from "../pages/Register/Register";
 import Nosotros from "../pages/Nosotros/Nosotros";
 
 // ============================================================
@@ -31,6 +29,7 @@ import ClientOrders from "../pages/Orders/Orders";
 import AdminLayout from "../admin/layout/AdminLayout";
 import Dashboard from "../admin/pages/Dashboard";
 import AdminRoute from "./AdminRoute";
+import AdminLogin from "../admin/pages/Login/Login";
 
 import AdminProducts from "../admin/pages/Products/Products";
 import Categories from "../admin/pages/Categories/Categories";
@@ -109,21 +108,6 @@ function AppRouter() {
 
 
                 {/* ==================================================
-                    AUTENTICACIÓN
-                ================================================== */}
-
-                <Route
-                    path="/login"
-                    element={<Login />}
-                />
-
-                <Route
-                    path="/register"
-                    element={<Register />}
-                />
-
-
-                {/* ==================================================
                     USUARIO
                 ================================================== */}
 
@@ -163,6 +147,8 @@ function AppRouter() {
             {/* ==================================================
                 PANEL ADMINISTRADOR
             ================================================== */}
+
+            <Route path="/admin/login" element={<AdminLogin />} />
 
             <Route
                 path="/admin"

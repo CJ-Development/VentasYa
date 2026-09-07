@@ -1,15 +1,13 @@
-import { useEffect, useState, useRef } from "react";
-import { useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { useNavigate, Link } from "react-router-dom";
 import {
     Loader2,
     MapPin,
     Phone,
-    Check,
+    ShieldCheck,
     AlertCircle,
     ShoppingBag,
     ArrowRight,
-    Plus,
-    X,
 } from "lucide-react";
 
 import { useAuth } from "../../hooks/useAuth";
@@ -32,106 +30,32 @@ const formatearPesos = (valor) => {
 
 function Checkout() {
     const { usuario } = useAuth();
-    const { items, total, loading: cartLoading, recargar } = useCart();
+    const { items, total, loading: cartLoading } = useCart();
     const navigate = useNavigate();
 
-    const [direcciones, setDirecciones] = useState([]);
-    const [direccionSeleccionada, setDireccionSeleccionada] = useState(null);
-    const [mostrarFormularioDireccion, setMostrarFormularioDireccion] = useState(false);
-    const [nuevaDireccion, setNuevaDireccion] = useState({
-        direccion: "",
-        ciudad: "",
-        departamento: "",
-        codigo_postal: "",
-    });
-
+    const [nombre, setNombre] = useState("");
     const [telefono, setTelefono] = useState("");
+    const [direccion, setDireccion] = useState("");
+    const [ciudad, setCiudad] = useState("");
+    const [departamento, setDepartamento] = useState("");
+
     const [terminosAceptados, setTerminosAceptados] = useState(false);
     const [datosAceptados, setDatosAceptados] = useState(false);
 
-    const [loadingDirecciones, setLoadingDirecciones] = useState(true);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState(null);
-    const [carritoSincronizado, setCarritoSincronizado] = useState(false);
 
-    // Refs para controlar la recarga del carrito
-    const carritoRecargadoRef = useRef(false);
-    const recargaEnCursoRef = useRef(false);
-
-    // Cargar direcciones del usuario
+    // Cargar datos del usuario si está autenticado
     useEffect(() => {
-        if (!usuario) return;
-
-        const cargarDirecciones = async () => {
-            try {
-                setLoadingDirecciones(true);
-                const response = await api.get(`/users/direcciones/?usuario_id=${usuario.id_usuario}`);
-                setDirecciones(response.data);
-                
-                // Seleccionar la dirección predeterminada si existe
-                const predeterminada = response.data.find(d => d.predeterminada);
-                if (predeterminada) {
-                    setDireccionSeleccionada(predeterminada.id_direccion);
-                }
-            } catch (err) {
-                console.error("Error al cargar direcciones:", err);
-                setError("Error al cargar las direcciones");
-            } finally {
-                setLoadingDirecciones(false);
+        if (usuario) {
+            if (usuario.nombres) {
+                setNombre(usuario.nombres);
             }
-        };
-
-        cargarDirecciones();
-    }, [usuario]);
-
-    // Cargar teléfono del usuario
-    useEffect(() => {
-        if (usuario?.telefono) {
-            setTelefono(usuario.telefono);
+            if (usuario.telefono) {
+                setTelefono(usuario.telefono);
+            }
         }
     }, [usuario]);
-
-    // Recargar carrito al entrar a Checkout para asegurar datos actualizados
-    useEffect(() => {
-        const uid = usuario?.id_usuario;
-        if (!uid) return;
-
-        // Reiniciar control si cambia el usuario
-        if (carritoRecargadoRef.current && !recargaEnCursoRef.current) {
-            carritoRecargadoRef.current = false;
-            setCarritoSincronizado(false);
-        }
-
-        // Evitar múltiples recargas simultáneas
-        if (recargaEnCursoRef.current) return;
-
-        // Solo recargar una vez por sesión de Checkout por usuario
-        if (carritoRecargadoRef.current) return;
-
-        const recargarCarrito = async () => {
-            recargaEnCursoRef.current = true;
-            try {
-                await recargar();
-                carritoRecargadoRef.current = true;
-                setCarritoSincronizado(true);
-            } catch (err) {
-                console.error("Error al recargar carrito en Checkout:", err);
-                setError("Error al cargar el carrito. Por favor, recarga la página.");
-                setCarritoSincronizado(false);
-            } finally {
-                recargaEnCursoRef.current = false;
-            }
-        };
-
-        recargarCarrito();
-    }, [usuario?.id_usuario, recargar]);
-
-    // Redirigir si no está autenticado
-    useEffect(() => {
-        if (!usuario && !cartLoading) {
-            navigate("/login?from=/checkout");
-        }
-    }, [usuario, cartLoading, navigate]);
 
     // Redirigir si el carrito está vacío
     useEffect(() => {
@@ -140,45 +64,32 @@ function Checkout() {
         }
     }, [items, cartLoading, navigate]);
 
-    const handleCrearDireccion = async (e) => {
-        e.preventDefault();
-        
-        try {
-            setIsSubmitting(true);
-            const response = await api.post("/users/direcciones/", {
-                usuario: usuario.id_usuario,
-                ...nuevaDireccion,
-                predeterminada: direcciones.length === 0,
-            });
-
-            setDirecciones([...direcciones, response.data]);
-            setDireccionSeleccionada(response.data.id_direccion);
-            setMostrarFormularioDireccion(false);
-            setNuevaDireccion({
-                direccion: "",
-                ciudad: "",
-                departamento: "",
-                codigo_postal: "",
-            });
-        } catch (err) {
-            console.error("Error al crear dirección:", err);
-            setError("Error al crear la dirección");
-        } finally {
-            setIsSubmitting(false);
-        }
-    };
-
     const handleSubmit = async (e) => {
         e.preventDefault();
 
         // Validaciones
-        if (!direccionSeleccionada) {
-            setError("Debes seleccionar una dirección de envío");
+        if (!nombre || nombre.trim().length < 2) {
+            setError("Debes ingresar tu nombre completo");
             return;
         }
 
         if (!telefono || telefono.trim().length < 7) {
             setError("Debes ingresar un teléfono válido");
+            return;
+        }
+
+        if (!direccion || direccion.trim().length < 5) {
+            setError("Debes ingresar tu dirección");
+            return;
+        }
+
+        if (!ciudad || ciudad.trim().length < 2) {
+            setError("Debes ingresar tu ciudad");
+            return;
+        }
+
+        if (!departamento || departamento.trim().length < 2) {
+            setError("Debes ingresar tu departamento");
             return;
         }
 
@@ -197,9 +108,12 @@ function Checkout() {
             setError(null);
 
             const response = await createOrderFromCart({
-                usuario_id: usuario.id_usuario,
-                direccion_id: direccionSeleccionada,
+                usuario_id: usuario?.id_usuario || null,
+                nombre_cliente: nombre,
                 telefono_contacto: telefono,
+                direccion: direccion,
+                ciudad: ciudad,
+                departamento: departamento,
                 terminos_aceptados: terminosAceptados,
                 datos_aceptados: datosAceptados,
             });
@@ -212,8 +126,8 @@ function Checkout() {
             // Abrir WhatsApp
             window.open(whatsappUrl, "_blank");
 
-            // Redirigir a pedidos
-            navigate("/orders");
+            // Redirigir a home
+            navigate("/");
         } catch (err) {
             console.error("Error al crear pedido:", err);
             setError(err.response?.data?.detail || "Error al crear el pedido. Intenta nuevamente.");
@@ -231,9 +145,6 @@ function Checkout() {
         mensaje += `📍 *Dirección de envío:*\n`;
         mensaje += `${direccion_envio.direccion}\n`;
         mensaje += `${direccion_envio.ciudad}, ${direccion_envio.departamento}\n`;
-        if (direccion_envio.codigo_postal) {
-            mensaje += `${direccion_envio.codigo_postal}\n`;
-        }
         mensaje += "\n📦 *Productos:*\n\n";
 
         productos.forEach((p) => {
@@ -250,7 +161,7 @@ function Checkout() {
         return mensaje;
     };
 
-    if (!usuario || cartLoading) {
+    if (cartLoading) {
         return (
             <main className="checkout-page">
                 <div className="checkout-container">
@@ -320,241 +231,140 @@ function Checkout() {
                 <div className="checkout-layout">
                     {/* Columna izquierda: Formulario */}
                     <section className="checkout-form-section">
-                        {/* Dirección */}
+                        {/* Datos de envío */}
                         <div className="checkout-card">
                             <div className="checkout-card-header">
                                 <MapPin size={18} />
-                                <h2>Dirección de envío</h2>
+                                <h2>Datos de envío</h2>
                             </div>
 
-                            {loadingDirecciones ? (
-                                <div className="checkout-loading-small">
-                                    <Loader2 size={20} className="spin" />
-                                    <span>Cargando direcciones...</span>
+                            <form className="checkout-form" onSubmit={handleSubmit}>
+                                <div className="checkout-form-group">
+                                    <label htmlFor="nombre">Nombre completo *</label>
+                                    <input
+                                        type="text"
+                                        id="nombre"
+                                        required
+                                        value={nombre}
+                                        onChange={(e) => setNombre(e.target.value)}
+                                        placeholder="Tu nombre completo"
+                                    />
                                 </div>
-                            ) : direcciones.length === 0 ? (
-                                <div className="checkout-no-address">
-                                    <p>No tienes direcciones guardadas.</p>
-                                    <button
-                                        type="button"
-                                        className="checkout-secondary-button"
-                                        onClick={() => setMostrarFormularioDireccion(true)}
-                                    >
-                                        <Plus size={16} />
-                                        Agregar nueva dirección
-                                    </button>
+
+                                <div className="checkout-form-group">
+                                    <label htmlFor="telefono">Teléfono *</label>
+                                    <input
+                                        type="tel"
+                                        id="telefono"
+                                        required
+                                        value={telefono}
+                                        onChange={(e) => setTelefono(e.target.value)}
+                                        placeholder="+57 318 1174546"
+                                    />
                                 </div>
-                            ) : (
-                                <>
-                                    <div className="checkout-address-list">
-                                        {direcciones.map((dir) => (
-                                            <label
-                                                key={dir.id_direccion}
-                                                className={`checkout-address-item ${
-                                                    direccionSeleccionada === dir.id_direccion
-                                                        ? "checkout-address-item--selected"
-                                                        : ""
-                                                }`}
-                                            >
-                                                <input
-                                                    type="radio"
-                                                    name="direccion"
-                                                    value={dir.id_direccion}
-                                                    checked={direccionSeleccionada === dir.id_direccion}
-                                                    onChange={(e) =>
-                                                        setDireccionSeleccionada(
-                                                            Number(e.target.value)
-                                                        )
-                                                    }
-                                                />
-                                                <div className="checkout-address-content">
-                                                    <div className="checkout-address-main">
-                                                        <span className="checkout-address-text">
-                                                            {dir.direccion}
-                                                        </span>
-                                                        {dir.predeterminada && (
-                                                            <span className="checkout-address-badge">
-                                                                Predeterminada
-                                                            </span>
-                                                        )}
-                                                    </div>
-                                                    <div className="checkout-address-secondary">
-                                                        {dir.ciudad}, {dir.departamento}
-                                                    </div>
-                                                </div>
-                                                <div className="checkout-address-radio">
-                                                    <Check size={16} />
-                                                </div>
-                                            </label>
-                                        ))}
-                                    </div>
 
-                                    <button
-                                        type="button"
-                                        className="checkout-text-button"
-                                        onClick={() => setMostrarFormularioDireccion(true)}
-                                    >
-                                        <Plus size={14} />
-                                        Agregar nueva dirección
-                                    </button>
-                                </>
-                            )}
+                                <div className="checkout-form-group">
+                                    <label htmlFor="direccion">Dirección *</label>
+                                    <input
+                                        type="text"
+                                        id="direccion"
+                                        required
+                                        value={direccion}
+                                        onChange={(e) => setDireccion(e.target.value)}
+                                        placeholder="Calle 123 #45-67"
+                                    />
+                                </div>
 
-                            {mostrarFormularioDireccion && (
-                                <form
-                                    className="checkout-new-address-form"
-                                    onSubmit={handleCrearDireccion}
-                                >
+                                <div className="checkout-form-row">
                                     <div className="checkout-form-group">
-                                        <label htmlFor="direccion">Dirección *</label>
+                                        <label htmlFor="ciudad">Ciudad *</label>
                                         <input
                                             type="text"
-                                            id="direccion"
+                                            id="ciudad"
                                             required
-                                            value={nuevaDireccion.direccion}
-                                            onChange={(e) =>
-                                                setNuevaDireccion({
-                                                    ...nuevaDireccion,
-                                                    direccion: e.target.value,
-                                                })
-                                            }
-                                            placeholder="Calle 123 #45-67"
+                                            value={ciudad}
+                                            onChange={(e) => setCiudad(e.target.value)}
+                                            placeholder="Bogotá"
                                         />
-                                    </div>
-
-                                    <div className="checkout-form-row">
-                                        <div className="checkout-form-group">
-                                            <label htmlFor="ciudad">Ciudad *</label>
-                                            <input
-                                                type="text"
-                                                id="ciudad"
-                                                required
-                                                value={nuevaDireccion.ciudad}
-                                                onChange={(e) =>
-                                                    setNuevaDireccion({
-                                                        ...nuevaDireccion,
-                                                        ciudad: e.target.value,
-                                                    })
-                                                }
-                                                placeholder="Bogotá"
-                                            />
-                                        </div>
-
-                                        <div className="checkout-form-group">
-                                            <label htmlFor="departamento">Departamento *</label>
-                                            <input
-                                                type="text"
-                                                id="departamento"
-                                                required
-                                                value={nuevaDireccion.departamento}
-                                                onChange={(e) =>
-                                                    setNuevaDireccion({
-                                                        ...nuevaDireccion,
-                                                        departamento: e.target.value,
-                                                    })
-                                                }
-                                                placeholder="Cundinamarca"
-                                            />
-                                        </div>
                                     </div>
 
                                     <div className="checkout-form-group">
-                                        <label htmlFor="codigo_postal">Código postal</label>
+                                        <label htmlFor="departamento">Departamento *</label>
                                         <input
                                             type="text"
-                                            id="codigo_postal"
-                                            value={nuevaDireccion.codigo_postal}
-                                            onChange={(e) =>
-                                                setNuevaDireccion({
-                                                    ...nuevaDireccion,
-                                                    codigo_postal: e.target.value,
-                                                })
-                                            }
-                                            placeholder="110111"
+                                            id="departamento"
+                                            required
+                                            value={departamento}
+                                            onChange={(e) => setDepartamento(e.target.value)}
+                                            placeholder="Cundinamarca"
                                         />
                                     </div>
-
-                                    <div className="checkout-form-actions">
-                                        <button
-                                            type="button"
-                                            className="checkout-secondary-button"
-                                            onClick={() => setMostrarFormularioDireccion(false)}
-                                        >
-                                            Cancelar
-                                        </button>
-                                        <button
-                                            type="submit"
-                                            className="checkout-primary-button"
-                                            disabled={isSubmitting}
-                                        >
-                                            {isSubmitting ? (
-                                                <>
-                                                    <Loader2 size={16} className="spin" />
-                                                    Guardando...
-                                                </>
-                                            ) : (
-                                                "Guardar dirección"
-                                            )}
-                                        </button>
-                                    </div>
-                                </form>
-                            )}
+                                </div>
+                            </form>
                         </div>
 
-                        {/* Teléfono */}
+                        {/* Contacto */}
                         <div className="checkout-card">
                             <div className="checkout-card-header">
                                 <Phone size={18} />
-                                <h2>Teléfono de contacto</h2>
+                                <h2>Contacto</h2>
                             </div>
 
-                            <div className="checkout-form-group">
-                                <label htmlFor="telefono">Teléfono *</label>
-                                <input
-                                    type="tel"
-                                    id="telefono"
-                                    required
-                                    value={telefono}
-                                    onChange={(e) => setTelefono(e.target.value)}
-                                    placeholder="3001234567"
-                                />
-                                <small>Número para contactarte sobre tu pedido</small>
-                            </div>
+                            <p className="checkout-info-text">
+                                Tu pedido será confirmado por WhatsApp al número que ingreses.
+                            </p>
                         </div>
 
-                        {/* Aceptaciones legales */}
+                        {/* Términos */}
                         <div className="checkout-card">
                             <div className="checkout-card-header">
-                                <Check size={18} />
+                                <ShieldCheck size={18} />
                                 <h2>Términos y condiciones</h2>
                             </div>
 
-                            <div className="checkout-checkbox-group">
-                                <label className="checkout-checkbox">
+                            <div className="checkout-terms">
+                                <label className="checkout-checkbox-label">
                                     <input
                                         type="checkbox"
                                         checked={terminosAceptados}
-                                        onChange={(e) =>
-                                            setTerminosAceptados(e.target.checked)
-                                        }
+                                        onChange={(e) => setTerminosAceptados(e.target.checked)}
                                     />
                                     <span>
-                                        Acepto los términos y condiciones de Baúl Mágico Shop *
+                                        He leído y acepto los <Link to="/terminos">términos y condiciones</Link>
                                     </span>
                                 </label>
 
-                                <label className="checkout-checkbox">
+                                <label className="checkout-checkbox-label">
                                     <input
                                         type="checkbox"
                                         checked={datosAceptados}
                                         onChange={(e) => setDatosAceptados(e.target.checked)}
                                     />
                                     <span>
-                                        Autorizo el tratamiento de mis datos personales (Habeas Data) *
+                                        Autorizo el tratamiento de mis datos personales según la <Link to="/politica-privacidad">política de privacidad</Link>
                                     </span>
                                 </label>
                             </div>
                         </div>
+
+                        <button
+                            type="submit"
+                            className="checkout-submit-button"
+                            onClick={handleSubmit}
+                            disabled={isSubmitting}
+                        >
+                            {isSubmitting ? (
+                                <>
+                                    <Loader2 size={18} className="spin" />
+                                    Procesando...
+                                </>
+                            ) : (
+                                <>
+                                    Confirmar pedido por WhatsApp
+                                    <ArrowRight size={18} />
+                                </>
+                            )}
+                        </button>
                     </section>
 
                     {/* Columna derecha: Resumen */}
@@ -618,33 +428,6 @@ function Checkout() {
                                 </div>
                                 <strong>{formatearPesos(total)}</strong>
                             </div>
-
-                            <button
-                                type="button"
-                                className="checkout-submit-button"
-                                onClick={handleSubmit}
-                                disabled={
-                                    !carritoSincronizado ||
-                                    isSubmitting ||
-                                    cartLoading ||
-                                    !direccionSeleccionada ||
-                                    !telefono ||
-                                    !terminosAceptados ||
-                                    !datosAceptados
-                                }
-                            >
-                                {isSubmitting ? (
-                                    <>
-                                        <Loader2 size={18} className="spin" />
-                                        Procesando...
-                                    </>
-                                ) : (
-                                    <>
-                                        Confirmar pedido y enviar por WhatsApp
-                                        <ArrowRight size={17} />
-                                    </>
-                                )}
-                            </button>
 
                             <p className="checkout-summary-note">
                                 Al confirmar, se abrirá WhatsApp con los detalles de tu pedido.
