@@ -771,6 +771,168 @@ function Products() {
 
             <div className="sidebar-section">
 
+                <div className="sidebar-title-row">
+
+                    <h3>
+                        Filtros
+                    </h3>
+
+
+                    {hayFiltrosActivos && (
+
+                        <button
+                            type="button"
+                            className="sidebar-clear"
+                            onClick={
+                                limpiarFiltros
+                            }
+                        >
+                            Limpiar
+                        </button>
+
+                    )}
+
+                </div>
+
+
+                <label className="discount-filter">
+
+                    <input
+                        type="checkbox"
+                        checked={
+                            tendencia
+                        }
+                        onChange={(e) =>
+                            setTendencia(
+                                e.target.checked
+                            )
+                        }
+                    />
+
+                    <span>
+                        Tendencia
+                    </span>
+
+                </label>
+
+
+                <div className="filter-block">
+
+                    <span className="filter-label">
+                        Precio
+                    </span>
+
+
+                    <div className="price-label">
+                        <span>
+                            $
+                            {precioMin
+                                ? Number(
+                                    precioMin
+                                ).toLocaleString(
+                                    "es-CO"
+                                )
+                                : "0"}
+                        </span>
+
+                        <span>
+                            $
+                            {precioMax
+                                ? Number(
+                                    precioMax
+                                ).toLocaleString(
+                                    "es-CO"
+                                )
+                                : "1.000.000"}
+                        </span>
+                    </div>
+
+
+                    <div className="price-inputs">
+
+                        <input
+                            type="number"
+                            min="0"
+                            placeholder="Mínimo"
+                            value={
+                                precioMin
+                            }
+                            onChange={(e) =>
+                                setPrecioMin(
+                                    e.target.value
+                                )
+                            }
+                        />
+
+                        <input
+                            type="number"
+                            min="0"
+                            placeholder="Máximo"
+                            value={
+                                precioMax
+                            }
+                            onChange={(e) =>
+                                setPrecioMax(
+                                    e.target.value
+                                )
+                            }
+                        />
+
+                    </div>
+
+                </div>
+
+
+                <div className="filter-block">
+
+                    <span className="filter-label">
+                        Buscar
+                    </span>
+
+
+                    <input
+                        className="sidebar-input"
+                        type="text"
+                        placeholder="¿Qué buscas?"
+                        value={busqueda}
+                        onChange={(e) =>
+                            setBusqueda(
+                                e.target.value
+                            )
+                        }
+                    />
+
+                </div>
+
+
+                <label className="discount-filter">
+
+                    <input
+                        type="checkbox"
+                        checked={
+                            soloConDescuento
+                        }
+                        onChange={(e) =>
+                            setSoloConDescuento(
+                                e.target.checked
+                            )
+                        }
+                    />
+
+                    <span>
+                        Solo con descuento
+                    </span>
+
+                </label>
+
+            </div>
+
+
+            <div className="sidebar-divider" />
+
+
+            <div className="sidebar-section">
+
                 <div className="sidebar-section-header">
                     <h3>
                         Categorías
@@ -1038,168 +1200,6 @@ function Products() {
 
                     </>
                 )}
-
-            </div>
-
-
-            <div className="sidebar-divider" />
-
-
-            <div className="sidebar-section">
-
-                <div className="sidebar-title-row">
-
-                    <h3>
-                        Filtros
-                    </h3>
-
-
-                    {hayFiltrosActivos && (
-
-                        <button
-                            type="button"
-                            className="sidebar-clear"
-                            onClick={
-                                limpiarFiltros
-                            }
-                        >
-                            Limpiar
-                        </button>
-
-                    )}
-
-                </div>
-
-
-                <label className="discount-filter">
-
-                    <input
-                        type="checkbox"
-                        checked={
-                            tendencia
-                        }
-                        onChange={(e) =>
-                            setTendencia(
-                                e.target.checked
-                            )
-                        }
-                    />
-
-                    <span>
-                        Tendencia
-                    </span>
-
-                </label>
-
-
-                <div className="filter-block">
-
-                    <span className="filter-label">
-                        Precio
-                    </span>
-
-
-                    <div className="price-label">
-                        <span>
-                            $
-                            {precioMin
-                                ? Number(
-                                    precioMin
-                                ).toLocaleString(
-                                    "es-CO"
-                                )
-                                : "0"}
-                        </span>
-
-                        <span>
-                            $
-                            {precioMax
-                                ? Number(
-                                    precioMax
-                                ).toLocaleString(
-                                    "es-CO"
-                                )
-                                : "1.000.000"}
-                        </span>
-                    </div>
-
-
-                    <div className="price-inputs">
-
-                        <input
-                            type="number"
-                            min="0"
-                            placeholder="Mínimo"
-                            value={
-                                precioMin
-                            }
-                            onChange={(e) =>
-                                setPrecioMin(
-                                    e.target.value
-                                )
-                            }
-                        />
-
-                        <input
-                            type="number"
-                            min="0"
-                            placeholder="Máximo"
-                            value={
-                                precioMax
-                            }
-                            onChange={(e) =>
-                                setPrecioMax(
-                                    e.target.value
-                                )
-                            }
-                        />
-
-                    </div>
-
-                </div>
-
-
-                <div className="filter-block">
-
-                    <span className="filter-label">
-                        Buscar
-                    </span>
-
-
-                    <input
-                        className="sidebar-input"
-                        type="text"
-                        placeholder="¿Qué buscas?"
-                        value={busqueda}
-                        onChange={(e) =>
-                            setBusqueda(
-                                e.target.value
-                            )
-                        }
-                    />
-
-                </div>
-
-
-                <label className="discount-filter">
-
-                    <input
-                        type="checkbox"
-                        checked={
-                            soloConDescuento
-                        }
-                        onChange={(e) =>
-                            setSoloConDescuento(
-                                e.target.checked
-                            )
-                        }
-                    />
-
-                    <span>
-                        Solo con descuento
-                    </span>
-
-                </label>
 
             </div>
 
