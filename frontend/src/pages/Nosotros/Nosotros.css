@@ -1,0 +1,160 @@
+/* ============================================================
+   NOSOTROS PAGE
+   Sistema: tokens.css (paleta oficial VentasYa)
+============================================================ */
+
+.nosotros-page {
+    width: 100%;
+    min-height: 100vh;
+
+    background: var(--color-bg);
+
+    padding: 40px 28px 60px;
+}
+
+.nosotros-container {
+    width: 100%;
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+
+/* ============================================================
+   HERO SECTION
+============================================================ */
+
+.nosotros-hero {
+    text-align: center;
+    padding: 60px 20px;
+    margin-bottom: 40px;
+
+    background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
+    border-radius: var(--radius-lg);
+
+    color: white;
+}
+
+.nosotros-hero h1 {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin: 0 0 12px;
+}
+
+.nosotros-hero p {
+    font-size: 1.1rem;
+    margin: 0;
+    opacity: 0.95;
+}
+
+
+/* ============================================================
+   SECTIONS
+============================================================ */
+
+.nosotros-section {
+    background: white;
+    border-radius: var(--radius-lg);
+    padding: 40px;
+    margin-bottom: 32px;
+
+    box-shadow: var(--shadow-sm);
+}
+
+.nosotros-section h2 {
+    font-size: 1.75rem;
+    font-weight: 700;
+    margin: 0 0 24px;
+    padding-bottom: 16px;
+
+    color: var(--color-text);
+    border-bottom: 2px solid var(--color-border-light);
+}
+
+.nosotros-content {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.nosotros-content p {
+    font-size: 1rem;
+    line-height: 1.8;
+    color: var(--color-text-secondary);
+    margin: 0;
+}
+
+.nosotros-highlight {
+    font-weight: 600;
+    color: var(--color-primary);
+    font-size: 1.05rem;
+    text-align: center;
+    padding: 20px;
+    background: var(--color-bg-hover);
+    border-radius: var(--radius-md);
+    border-left: 4px solid var(--color-primary);
+}
+
+
+/* ============================================================
+   MISSION SECTION
+============================================================ */
+
+.nosotros-mission {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+}
+
+
+/* ============================================================
+   RESPONSIVE
+============================================================ */
+
+@media (max-width: 768px) {
+
+    .nosotros-page {
+        padding: 28px 16px 48px;
+    }
+
+    .nosotros-hero {
+        padding: 40px 16px;
+        margin-bottom: 28px;
+    }
+
+    .nosotros-hero h1 {
+        font-size: 2rem;
+    }
+
+    .nosotros-hero p {
+        font-size: 1rem;
+    }
+
+    .nosotros-section {
+        padding: 28px 20px;
+        margin-bottom: 24px;
+    }
+
+    .nosotros-section h2 {
+        font-size: 1.5rem;
+    }
+
+    .nosotros-content p {
+        font-size: 0.95rem;
+    }
+
+}
+
+
+@media (max-width: 480px) {
+
+    .nosotros-hero h1 {
+        font-size: 1.75rem;
+    }
+
+    .nosotros-section h2 {
+        font-size: 1.35rem;
+    }
+
+    .nosotros-content p {
+        font-size: 0.9rem;
+    }
+
+}

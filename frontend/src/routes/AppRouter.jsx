@@ -8,6 +8,7 @@ import MainLayout from "../layouts/MainLayout";
 import Home from "../pages/Home/Home";
 import Login from "../pages/Login/Login";
 import Register from "../pages/Register/Register";
+import Nosotros from "../pages/Nosotros/Nosotros";
 
 // ============================================================
 // CLIENTE
@@ -55,6 +56,12 @@ function AppRouter() {
                 <Route
                     path="/"
                     element={<Home />}
+                />
+
+
+                <Route
+                    path="/nosotros"
+                    element={<Nosotros />}
                 />
 
 

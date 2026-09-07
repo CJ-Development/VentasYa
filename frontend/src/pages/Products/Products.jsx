@@ -75,6 +75,9 @@ function Products() {
     const [categoriasExpandidas, setCategoriasExpandidas] =
         useState(true);
 
+    const [categoriasAcordeon, setCategoriasAcordeon] =
+        useState({});
+
 
     /* =========================================================
        FILTROS
@@ -319,6 +322,32 @@ function Products() {
         );
 
     }, [soloOfertas]);
+
+
+    // Sincronizar filtros con URL en tiempo real
+    useEffect(() => {
+
+        const params = new URLSearchParams();
+
+        if (busqueda.trim()) {
+            params.set("q", busqueda.trim());
+        }
+
+        if (categoria) {
+            params.set("categoria", categoria);
+        }
+
+        if (soloConDescuento) {
+            params.set("oferta", "1");
+        }
+
+        if (tendencia) {
+            params.set("tendencia", "1");
+        }
+
+        setSearchParams(params);
+
+    }, [busqueda, categoria, soloConDescuento, tendencia]);
 
 
     /* =========================================================
@@ -776,6 +805,7 @@ function Products() {
 
 
                 {categoriasExpandidas && (
+
                     <>
 
                         <button
@@ -808,6 +838,11 @@ function Products() {
                                     String(categoria) ===
                                     String(padre.id_categoria);
 
+                                const isExpanded =
+                                    categoriasAcordeon[padre.id_categoria] || false;
+
+                                const hasSubcats = subcats.length > 0;
+
                                 return (
 
                                     <div
@@ -823,22 +858,39 @@ function Products() {
                                                     : "category-item category-item--parent"
                                             }
                                             onClick={() => {
-
+                                                if (hasSubcats) {
+                                                    setCategoriasAcordeon(prev => ({
+                                                        ...prev,
+                                                        [padre.id_categoria]: !isExpanded
+                                                    }));
+                                                }
                                                 setCategoria(
                                                     String(
                                                         padre.id_categoria
                                                     )
                                                 );
-
                                             }}
                                         >
 
-                                            {padre.nombre}
+                                            <span className="category-item-text">
+                                                {padre.nombre}
+                                            </span>
+
+                                            {hasSubcats && (
+                                                <ChevronDown
+                                                    size={14}
+                                                    className={
+                                                        isExpanded
+                                                            ? "category-chevron category-chevron--expanded"
+                                                            : "category-chevron"
+                                                    }
+                                                />
+                                            )}
 
                                         </button>
 
 
-                                        {subcats.length > 0 && (
+                                        {hasSubcats && isExpanded && (
 
                                             <div className="category-sublist">
 
@@ -853,32 +905,120 @@ function Products() {
                                                                 sub.id_categoria
                                                             );
 
+                                                        const subSubcats =
+                                                            (sub.subcategorias ||
+                                                                []).filter(
+                                                                    (ss) =>
+                                                                        ss.estado !==
+                                                                        "archivado"
+                                                                );
+
+                                                        const hasSubSubcats = subSubcats.length > 0;
+
+                                                        const isSubExpanded =
+                                                            categoriasAcordeon[sub.id_categoria] || false;
+
                                                         return (
 
-                                                            <button
-                                                                key={
-                                                                    sub.id_categoria
-                                                                }
-                                                                type="button"
-                                                                className={
-                                                                    isSubActive
-                                                                        ? "category-item category-item--sub active"
-                                                                        : "category-item category-item--sub"
-                                                                }
-                                                                onClick={() => {
-
-                                                                    setCategoria(
-                                                                        String(
-                                                                            sub.id_categoria
-                                                                        )
-                                                                    );
-
-                                                                }}
+                                                            <div
+                                                                key={sub.id_categoria}
+                                                                className="category-subgroup"
                                                             >
 
-                                                                {sub.nombre}
+                                                                <button
+                                                                    key={
+                                                                        sub.id_categoria
+                                                                    }
+                                                                    type="button"
+                                                                    className={
+                                                                        isSubActive
+                                                                            ? "category-item category-item--sub active"
+                                                                            : "category-item category-item--sub"
+                                                                    }
+                                                                    onClick={() => {
+                                                                        if (hasSubSubcats) {
+                                                                            setCategoriasAcordeon(prev => ({
+                                                                                ...prev,
+                                                                                [sub.id_categoria]: !isSubExpanded
+                                                                            }));
+                                                                        }
+                                                                        setCategoria(
+                                                                            String(
+                                                                                sub.id_categoria
+                                                                            )
+                                                                        );
+                                                                    }}
+                                                                >
 
-                                                            </button>
+                                                                    <span className="category-item-text">
+                                                                        {sub.nombre}
+                                                                    </span>
+
+                                                                    {hasSubSubcats && (
+                                                                        <ChevronDown
+                                                                            size={12}
+                                                                            className={
+                                                                                isSubExpanded
+                                                                                    ? "category-chevron category-chevron--expanded"
+                                                                                    : "category-chevron"
+                                                                            }
+                                                                        />
+                                                                    )}
+
+                                                                </button>
+
+                                                                {hasSubSubcats && isSubExpanded && (
+
+                                                                    <div className="category-sublist category-sublist--nested">
+
+                                                                        {subSubcats.map(
+                                                                            (subSub) => {
+
+                                                                                const isSubSubActive =
+                                                                                    String(
+                                                                                        categoria
+                                                                                    ) ===
+                                                                                    String(
+                                                                                        subSub.id_categoria
+                                                                                    );
+
+                                                                                return (
+
+                                                                                    <button
+                                                                                        key={
+                                                                                            subSub.id_categoria
+                                                                                        }
+                                                                                        type="button"
+                                                                                        className={
+                                                                                            isSubSubActive
+                                                                                                ? "category-item category-item--subsub active"
+                                                                                                : "category-item category-item--subsub"
+                                                                                        }
+                                                                                        onClick={() => {
+
+                                                                                            setCategoria(
+                                                                                                String(
+                                                                                                    subSub.id_categoria
+                                                                                                )
+                                                                                            );
+
+                                                                                        }}
+                                                                                    >
+
+                                                                                        {subSub.nombre}
+
+                                                                                    </button>
+
+                                                                                );
+
+                                                                            }
+                                                                        )}
+
+                                                                    </div>
+
+                                                                )}
+
+                                                            </div>
 
                                                         );
 
@@ -929,6 +1069,27 @@ function Products() {
                     )}
 
                 </div>
+
+
+                <label className="discount-filter">
+
+                    <input
+                        type="checkbox"
+                        checked={
+                            tendencia
+                        }
+                        onChange={(e) =>
+                            setTendencia(
+                                e.target.checked
+                            )
+                        }
+                    />
+
+                    <span>
+                        Tendencia
+                    </span>
+
+                </label>
 
 
                 <div className="filter-block">
@@ -1039,17 +1200,6 @@ function Products() {
                     </span>
 
                 </label>
-
-
-                <button
-                    type="button"
-                    className="apply-filters-button"
-                    onClick={
-                        aplicarFiltros
-                    }
-                >
-                    Aplicar filtros
-                </button>
 
             </div>
 
