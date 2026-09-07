@@ -77,16 +77,16 @@ function AuthProvider({ children }) {
         clearLocalAuth: logout,
         usuario,
         onExpire: () => {
-            // Forzamos navegación a /login al expirar.
+            // Forzamos navegación a /admin/login al expirar (solo para admin).
             // Usamos location en lugar de useNavigate para
             // evitar añadir otro import + re-render.
             if (
                 typeof window !== "undefined" &&
                 !window.location.pathname.startsWith(
-                    "/login"
+                    "/admin/login"
                 )
             ) {
-                window.location.href = "/login?expired=1";
+                window.location.href = "/admin/login?expired=1";
             }
         },
     });

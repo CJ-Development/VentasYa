@@ -11,7 +11,6 @@ import Breadcrumb from "../../components/Breadcrumb/Breadcrumb";
 
 import { getCategories, getProducts } from "../../services/adminService";
 import { getOffers } from "../../services/clientService";
-import { slugify } from "../../utils/slugify";
 
 import "./Products.css";
 
@@ -232,7 +231,7 @@ function Products() {
         const match =
             categorias.find(
                 (c) =>
-                    slugify(c.nombre) === slug
+                    c.slug === slug
             );
 
 
@@ -1262,7 +1261,7 @@ function Products() {
 
                         items.push({
                             label: padre.nombre,
-                            to: `/categoria/${slugify(padre.nombre)}`
+                            to: `/categoria/${padre.slug}`
                         });
 
                     }
