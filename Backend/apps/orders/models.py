@@ -41,13 +41,23 @@ class Compra(models.Model):
     usuario = models.ForeignKey(
         "users.Usuario",
         on_delete=models.PROTECT,
-        db_column="id_usuario"
+        db_column="id_usuario",
+        null=True,
+        blank=True
+    )
+
+    nombre_cliente = models.CharField(
+        max_length=150,
+        blank=True,
+        null=True
     )
 
     direccion = models.ForeignKey(
         "users.Direccion",
         on_delete=models.PROTECT,
-        db_column="id_direccion"
+        db_column="id_direccion",
+        null=True,
+        blank=True
     )
 
     metodo_pago = models.ForeignKey(

@@ -35,33 +35,21 @@ function TerminosCondiciones() {
           </section>
 
           <section className="legal-section">
-            <h2>3. Registro y Cuenta de Usuario</h2>
+            <h2>3. Proceso de Compra</h2>
             <p>
-              Para realizar compras en Baúl Mágico Shop, debe crear una cuenta. Usted es responsable de:
+              Para realizar compras en Baúl Mágico Shop, usted:
             </p>
             <ul>
-              <li>Mantener la confidencialidad de su contraseña</li>
-              <li>Proporcionar información veraz y actual</li>
-              <li>Notificarnos cualquier uso no autorizado de su cuenta</li>
+              <li>Revisa la información del producto antes de comprar</li>
+              <li>Proporciona su nombre y número de contacto</li>
+              <li>Acepta los términos y condiciones</li>
+              <li>Autoriza el tratamiento de sus datos personales</li>
               <li>Tener al menos 18 años de edad o capacidad legal para contratar</li>
             </ul>
           </section>
 
           <section className="legal-section">
-            <h2>4. Proceso de Compra</h2>
-            <p>
-              Al realizar una compra en Baúl Mágico Shop, usted:
-            </p>
-            <ul>
-              <li>Revisa la información del producto antes de comprar</li>
-              <li>Selecciona el método de pago disponible</li>
-              <li>Proporciona información de envío precisa</li>
-              <li>Acepta los términos del vendedor específico si aplica</li>
-            </ul>
-          </section>
-
-          <section className="legal-section">
-            <h2>5. Precios y Pagos</h2>
+            <h2>4. Precios y Pagos</h2>
             <p>
               Todos los precios mostrados en Baúl Mágico Shop están establecidos por los vendedores 
               y pueden cambiar sin previo aviso. Nosotros no somos responsables por los precios 
@@ -74,7 +62,7 @@ function TerminosCondiciones() {
           </section>
 
           <section className="legal-section">
-            <h2>6. Envíos y Entregas</h2>
+            <h2>5. Envíos y Entregas</h2>
             <p>
               Los tiempos y costos de envío son responsabilidad del vendedor. Baúl Mágico Shop no 
               garantiza tiempos de entrega exactos ni se hace responsable por retrasos en 

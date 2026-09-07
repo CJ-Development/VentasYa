@@ -30,11 +30,10 @@ function PoliticaDatos() {
               Recopilamos los siguientes datos personales para facilitar sus compras:
             </p>
             <ul>
-              <li><strong>Datos de identificación:</strong> Nombre completo, email, teléfono</li>
+              <li><strong>Datos de identificación:</strong> Nombre completo, teléfono</li>
               <li><strong>Datos de ubicación:</strong> Dirección de envío, ciudad, departamento</li>
               <li><strong>Datos de pago:</strong> Información necesaria para procesar pagos</li>
-              <li><strong>Datos de cuenta:</strong> Usuario y contraseña para autenticación</li>
-              <li><strong>Datos de navegación:</strong> Historial de compras, productos favoritos</li>
+              <li><strong>Datos de navegación:</strong> Historial de compras</li>
             </ul>
           </section>
 

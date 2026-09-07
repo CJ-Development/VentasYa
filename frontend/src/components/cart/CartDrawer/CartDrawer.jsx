@@ -261,7 +261,7 @@ function CartDrawer() {
                             className="cart-drawer-checkout"
                             onClick={handleCheckout}
                         >
-                            {usuario ? "Finalizar compra" : "Iniciar sesión para pagar"}
+                            Finalizar compra
                         </button>
 
                         <button

@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import {
     Loader2,
-    MapPin,
     Phone,
     ShieldCheck,
     AlertCircle,
@@ -35,9 +34,6 @@ function Checkout() {
 
     const [nombre, setNombre] = useState("");
     const [telefono, setTelefono] = useState("");
-    const [direccion, setDireccion] = useState("");
-    const [ciudad, setCiudad] = useState("");
-    const [departamento, setDepartamento] = useState("");
 
     const [terminosAceptados, setTerminosAceptados] = useState(false);
     const [datosAceptados, setDatosAceptados] = useState(false);
@@ -78,21 +74,6 @@ function Checkout() {
             return;
         }
 
-        if (!direccion || direccion.trim().length < 5) {
-            setError("Debes ingresar tu dirección");
-            return;
-        }
-
-        if (!ciudad || ciudad.trim().length < 2) {
-            setError("Debes ingresar tu ciudad");
-            return;
-        }
-
-        if (!departamento || departamento.trim().length < 2) {
-            setError("Debes ingresar tu departamento");
-            return;
-        }
-
         if (!terminosAceptados) {
             setError("Debes aceptar los términos y condiciones");
             return;
@@ -111,11 +92,12 @@ function Checkout() {
                 usuario_id: usuario?.id_usuario || null,
                 nombre_cliente: nombre,
                 telefono_contacto: telefono,
-                direccion: direccion,
-                ciudad: ciudad,
-                departamento: departamento,
                 terminos_aceptados: terminosAceptados,
                 datos_aceptados: datosAceptados,
+                items: items.map((item) => ({
+                    variante_id: item.variante_id,
+                    cantidad: item.cantidad,
+                })),
             });
 
             // Generar mensaje de WhatsApp
@@ -137,15 +119,12 @@ function Checkout() {
     };
 
     const generarMensajeWhatsApp = (data) => {
-        const { cliente, direccion_envio, productos, total } = data;
+        const { cliente, productos, total } = data;
 
         let mensaje = "🛒 *Nuevo pedido - Baúl Mágico Shop*\n\n";
         mensaje += `👤 *Cliente:* ${cliente.nombre}\n`;
         mensaje += `📱 *Teléfono:* ${cliente.telefono}\n\n`;
-        mensaje += `📍 *Dirección de envío:*\n`;
-        mensaje += `${direccion_envio.direccion}\n`;
-        mensaje += `${direccion_envio.ciudad}, ${direccion_envio.departamento}\n`;
-        mensaje += "\n📦 *Productos:*\n\n";
+        mensaje += "📦 *Productos:*\n\n";
 
         productos.forEach((p) => {
             mensaje += `${p.cantidad}x ${p.nombre}\n`;
@@ -231,11 +210,11 @@ function Checkout() {
                 <div className="checkout-layout">
                     {/* Columna izquierda: Formulario */}
                     <section className="checkout-form-section">
-                        {/* Datos de envío */}
+                        {/* Datos del cliente */}
                         <div className="checkout-card">
                             <div className="checkout-card-header">
-                                <MapPin size={18} />
-                                <h2>Datos de envío</h2>
+                                <Phone size={18} />
+                                <h2>Datos del cliente</h2>
                             </div>
 
                             <form className="checkout-form" onSubmit={handleSubmit}>
@@ -252,7 +231,7 @@ function Checkout() {
                                 </div>
 
                                 <div className="checkout-form-group">
-                                    <label htmlFor="telefono">Teléfono *</label>
+                                    <label htmlFor="telefono">Número de WhatsApp *</label>
                                     <input
                                         type="tel"
                                         id="telefono"
@@ -261,58 +240,9 @@ function Checkout() {
                                         onChange={(e) => setTelefono(e.target.value)}
                                         placeholder="+57 318 1174546"
                                     />
-                                </div>
-
-                                <div className="checkout-form-group">
-                                    <label htmlFor="direccion">Dirección *</label>
-                                    <input
-                                        type="text"
-                                        id="direccion"
-                                        required
-                                        value={direccion}
-                                        onChange={(e) => setDireccion(e.target.value)}
-                                        placeholder="Calle 123 #45-67"
-                                    />
-                                </div>
-
-                                <div className="checkout-form-row">
-                                    <div className="checkout-form-group">
-                                        <label htmlFor="ciudad">Ciudad *</label>
-                                        <input
-                                            type="text"
-                                            id="ciudad"
-                                            required
-                                            value={ciudad}
-                                            onChange={(e) => setCiudad(e.target.value)}
-                                            placeholder="Bogotá"
-                                        />
-                                    </div>
-
-                                    <div className="checkout-form-group">
-                                        <label htmlFor="departamento">Departamento *</label>
-                                        <input
-                                            type="text"
-                                            id="departamento"
-                                            required
-                                            value={departamento}
-                                            onChange={(e) => setDepartamento(e.target.value)}
-                                            placeholder="Cundinamarca"
-                                        />
-                                    </div>
+                                    <small>Tu pedido será confirmado por WhatsApp a este número</small>
                                 </div>
                             </form>
-                        </div>
-
-                        {/* Contacto */}
-                        <div className="checkout-card">
-                            <div className="checkout-card-header">
-                                <Phone size={18} />
-                                <h2>Contacto</h2>
-                            </div>
-
-                            <p className="checkout-info-text">
-                                Tu pedido será confirmado por WhatsApp al número que ingreses.
-                            </p>
                         </div>
 
                         {/* Términos */}

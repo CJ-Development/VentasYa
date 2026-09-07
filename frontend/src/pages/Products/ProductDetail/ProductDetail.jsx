@@ -533,8 +533,6 @@ function ProductDetail({ productId }) {
 
         if (!usuario) {
 
-            navigate("/login?from=/");
-
             return;
 
         }

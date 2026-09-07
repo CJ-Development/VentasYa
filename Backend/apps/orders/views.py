@@ -107,104 +107,114 @@ class CheckoutView(APIView):
 
     def post(self, request):
         usuario_id = request.data.get("usuario_id")
+        nombre_cliente = request.data.get("nombre_cliente")
+        telefono_contacto = request.data.get("telefono_contacto")
         direccion_id = request.data.get("direccion_id")
-        telefono_contacto = request.data.get("telefono_contacto") or None
         terminos_aceptados = request.data.get("terminos_aceptados", False)
         datos_aceptados = request.data.get("datos_aceptados", False)
+        items_data = request.data.get("items", [])
 
-        if not (usuario_id and direccion_id):
+        # Validaciones
+        if not nombre_cliente:
             return Response(
-                {
-                    "detail": (
-                        "usuario_id y direccion_id son obligatorios."
-                    )
-                },
+                {"detail": "nombre_cliente es obligatorio."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        if not telefono_contacto:
+            return Response(
+                {"detail": "telefono_contacto es obligatorio."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        if not items_data:
+            return Response(
+                {"detail": "El carrito está vacío."},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
         try:
-            usuario = get_object_or_404(Usuario, id_usuario=usuario_id)
-            direccion = get_object_or_404(
-                Direccion, id_direccion=direccion_id, usuario=usuario
-            )
-            
+            usuario = None
+            direccion = None
+
+            # Si hay usuario_id, obtener usuario y dirección
+            if usuario_id:
+                usuario = get_object_or_404(Usuario, id_usuario=usuario_id)
+                if direccion_id:
+                    direccion = get_object_or_404(
+                        Direccion, id_direccion=direccion_id, usuario=usuario
+                    )
+
             # Obtener o crear el método de pago WhatsApp internamente
             metodo_pago, _ = MetodoPago.objects.get_or_create(
                 tipo="WhatsApp",
                 defaults={"detalle": "Envía tu pedido directamente por WhatsApp"}
             )
 
-            try:
-                carrito = Carrito.objects.get(usuario=usuario)
-            except Carrito.DoesNotExist:
-                return Response(
-                    {"detail": "Tu carrito está vacío."},
-                    status=status.HTTP_400_BAD_REQUEST,
-                )
-
-            items = list(
-                carrito.items
-                .select_related("variante__producto")
-                .all()
-            )
-
-            if not items:
-                return Response(
-                    {"detail": "Tu carrito está vacío."},
-                    status=status.HTTP_400_BAD_REQUEST,
-                )
-
             with transaction.atomic():
-                # Bloquear las variantes para validar y deducir stock.
-                for it in items:
+                # Validar items y calcular total
+                items_validados = []
+                total = 0
+
+                for item in items_data:
+                    variante_id = item.get("variante_id")
+                    cantidad = item.get("cantidad", 1)
+
+                    if not variante_id:
+                        return Response(
+                            {"detail": "Cada item debe tener variante_id."},
+                            status=status.HTTP_400_BAD_REQUEST,
+                        )
+
                     variante = (
                         Variante.objects
                         .select_for_update()
-                        .get(id_variante=it.variante.id_variante)
+                        .get(id_variante=variante_id)
                     )
 
-                    if it.cantidad > variante.stock:
+                    if cantidad > variante.stock:
                         return Response(
                             {
                                 "detail": (
                                     f"Stock insuficiente para "
                                     f"{variante.producto.nombre}. "
                                     f"Disponible: {variante.stock}, "
-                                    f"solicitado: {it.cantidad}."
+                                    f"solicitado: {cantidad}."
                                 )
                             },
                             status=status.HTTP_400_BAD_REQUEST,
                         )
 
-                total = sum(
-                    (
-                        it.variante.producto.precio * it.cantidad
-                        for it in items
-                    ),
-                    start=0,
-                )
+                    subtotal = variante.producto.precio * cantidad
+                    total += subtotal
+
+                    items_validados.append({
+                        "variante": variante,
+                        "cantidad": cantidad,
+                        "precio_unitario": variante.producto.precio,
+                        "subtotal": subtotal,
+                    })
 
                 # 1) Crear Compra.
                 compra = Compra.objects.create(
                     usuario=usuario,
+                    nombre_cliente=nombre_cliente,
                     direccion=direccion,
                     metodo_pago=metodo_pago,
                     total=total,
                     estado_compra="pendiente",
-                    telefono_contacto=telefono_contacto or usuario.telefono,
+                    telefono_contacto=telefono_contacto,
                 )
 
                 # 2) Crear DetalleCompra.
-                detalles_compra = []
-                for it in items:
-                    detalle = DetalleCompra.objects.create(
+                for item in items_validados:
+                    DetalleCompra.objects.create(
                         compra=compra,
-                        variante=it.variante,
-                        cantidad=it.cantidad,
-                        precio_unitario=it.variante.producto.precio,
-                        subtotal=it.variante.producto.precio * it.cantidad,
+                        variante=item["variante"],
+                        cantidad=item["cantidad"],
+                        precio_unitario=item["precio_unitario"],
+                        subtotal=item["subtotal"],
                     )
-                    detalles_compra.append(detalle)
 
                 # 3) Crear Pago pendiente.
                 fecha_aceptacion = (
@@ -223,31 +233,32 @@ class CheckoutView(APIView):
                 )
 
                 # 4) Descontar stock definitivamente.
-                for it in items:
-                    variante = (
-                        Variante.objects
-                        .select_for_update()
-                        .get(id_variante=it.variante.id_variante)
-                    )
-                    variante.stock -= it.cantidad
+                for item in items_validados:
+                    variante = item["variante"]
+                    variante.stock -= item["cantidad"]
                     variante.save(update_fields=["stock"])
 
-                # 5) Vaciar carrito.
-                carrito.items.all().delete()
+                # 5) Vaciar carrito si hay usuario autenticado.
+                if usuario:
+                    try:
+                        carrito = Carrito.objects.get(usuario=usuario)
+                        carrito.items.all().delete()
+                    except Carrito.DoesNotExist:
+                        pass
 
                 # 6) Construir datos detallados para WhatsApp DENTRO de la transacción.
                 productos_whatsapp = []
-                for it in items:
-                    v = it.variante
+                for item in items_validados:
+                    v = item["variante"]
                     p = v.producto
                     productos_whatsapp.append({
                         "nombre": p.nombre,
                         "sku": v.sku or "",
                         "color": v.color.nombre if v.color else "",
                         "talla": v.talla.nombre if v.talla else "",
-                        "cantidad": it.cantidad,
-                        "precio_unitario": float(p.precio),
-                        "subtotal": float(p.precio * it.cantidad),
+                        "cantidad": item["cantidad"],
+                        "precio_unitario": float(item["precio_unitario"]),
+                        "subtotal": float(item["subtotal"]),
                     })
 
                 whatsapp_number = getattr(settings, "WHATSAPP_NUMBER", None)
@@ -263,41 +274,45 @@ class CheckoutView(APIView):
                     )
 
                 # 7) Construir y devolver la respuesta DENTRO de la transacción.
-                return Response(
-                    {
-                        "ok": True,
-                        "compra_id": compra.id_compra,
-                        "pago_id": pago.id_pago,
-                        "estado": "pendiente",
-                        "total": float(total),
-                        "whatsapp_number": whatsapp_number,
-                        "metodo_pago": {
-                            "id": metodo_pago.id_metodo_pago,
-                            "tipo": metodo_pago.tipo,
-                            "detalle": metodo_pago.detalle or "",
-                        },
-                        "aceptaciones_legales": {
-                            "terminos_aceptados": pago.terminos_aceptados,
-                            "datos_aceptados": pago.datos_aceptados,
-                            "fecha_aceptacion": (
-                                pago.fecha_aceptacion.isoformat()
-                                if pago.fecha_aceptacion else None
-                            ),
-                        },
-                        "cliente": {
-                            "nombre": usuario.nombres,
-                            "email": usuario.email or "",
-                            "telefono": telefono_contacto or usuario.telefono or "",
-                        },
-                        "direccion_envio": {
-                            "direccion": direccion.direccion,
-                            "ciudad": direccion.ciudad,
-                            "departamento": direccion.departamento,
-                            "codigo_postal": direccion.codigo_postal or "",
-                        },
-                        "productos": productos_whatsapp,
-                        "compra": CompraSerializer(compra).data,
+                response_data = {
+                    "ok": True,
+                    "compra_id": compra.id_compra,
+                    "pago_id": pago.id_pago,
+                    "estado": "pendiente",
+                    "total": float(total),
+                    "whatsapp_number": whatsapp_number,
+                    "metodo_pago": {
+                        "id": metodo_pago.id_metodo_pago,
+                        "tipo": metodo_pago.tipo,
+                        "detalle": metodo_pago.detalle or "",
                     },
+                    "aceptaciones_legales": {
+                        "terminos_aceptados": pago.terminos_aceptados,
+                        "datos_aceptados": pago.datos_aceptados,
+                        "fecha_aceptacion": (
+                            pago.fecha_aceptacion.isoformat()
+                            if pago.fecha_aceptacion else None
+                        ),
+                    },
+                    "cliente": {
+                        "nombre": nombre_cliente,
+                        "telefono": telefono_contacto,
+                    },
+                    "productos": productos_whatsapp,
+                    "compra": CompraSerializer(compra).data,
+                }
+
+                # Agregar dirección si existe
+                if direccion:
+                    response_data["direccion_envio"] = {
+                        "direccion": direccion.direccion,
+                        "ciudad": direccion.ciudad,
+                        "departamento": direccion.departamento,
+                        "codigo_postal": direccion.codigo_postal or "",
+                    }
+
+                return Response(
+                    response_data,
                     status=status.HTTP_201_CREATED,
                 )
 

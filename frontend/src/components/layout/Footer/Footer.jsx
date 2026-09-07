@@ -10,6 +10,7 @@ import {
     RotateCcw,
     Phone,
     Mail,
+    Lock,
 } from "lucide-react";
 
 import { Link } from "react-router-dom";
@@ -212,6 +213,17 @@ function Footer() {
                         </span>
 
                     </a>
+
+
+                    <Link to="/admin/login">
+
+                        <Lock />
+
+                        <span>
+                            Acceso administrativo
+                        </span>
+
+                    </Link>
 
                 </div>
 

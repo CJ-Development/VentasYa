@@ -103,13 +103,10 @@ function ProductCard({ product, onSelect }) {
         e.stopPropagation();
 
         /*
-        Si no está autenticado,
-        enviamos al login.
+        Favoritos deshabilitado para invitados
         */
 
         if (!usuario) {
-
-            navigate("/login?from=/");
 
             return;
 
