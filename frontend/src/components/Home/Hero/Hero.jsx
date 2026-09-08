@@ -1,20 +1,20 @@
 import "./Hero.css";
 
 import {
-    Shirt,
+    TShirt,
     Tag,
     PawPrint,
     Heart,
-    Home,
+    House,
     Baby,
     Truck,
     ShieldCheck,
     Gift,
     CreditCard,
-    BadgePercent,
+    Percent,
     ArrowRight,
     Users
-} from "lucide-react";
+} from "@phosphor-icons/react";
 
 import { Link } from "react-router-dom";
 import { useEffect, useState } from "react";

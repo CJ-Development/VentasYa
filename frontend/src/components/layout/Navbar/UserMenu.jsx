@@ -2,13 +2,13 @@ import {
     User,
     Heart,
     Package,
-    LogOut,
-    Settings,
+    SignOut,
+    Gear,
     LayoutDashboard,
     Users,
-    Boxes,
-    Store
-} from "lucide-react";
+    PackagePlus,
+    Storefront
+} from "@phosphor-icons/react";
 
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../../hooks/useAuth";
@@ -49,29 +49,29 @@ function UserMenu() {
                     type="button"
                     className="icon-button user-login"
                 >
-                    <User size={18} />
+                    <User size={18} weight="bold" />
                     <span>{usuario.nombres}</span>
                 </button>
 
                 <div className="user-dropdown">
 
                     <Link to="/admin">
-                        <LayoutDashboard size={18} />
+                        <LayoutDashboard size={18} weight="bold" />
                         <span>Panel administrador</span>
                     </Link>
 
                     <Link to="/admin/products">
-                        <Boxes size={18} />
+                        <PackagePlus size={18} weight="bold" />
                         <span>Gestionar productos</span>
                     </Link>
 
                     <Link to="/admin/users">
-                        <Users size={18} />
+                        <Users size={18} weight="bold" />
                         <span>Gestionar usuarios</span>
                     </Link>
 
                     <Link to="/">
-                        <Store size={18} />
+                        <Storefront size={18} weight="bold" />
                         <span>Volver a la tienda</span>
                     </Link>
 
@@ -79,7 +79,7 @@ function UserMenu() {
                         type="button"
                         onClick={handleLogout}
                     >
-                        <LogOut size={18} />
+                        <SignOut size={18} weight="bold" />
                         <span>Cerrar sesión</span>
                     </button>
 
@@ -107,22 +107,22 @@ function UserMenu() {
             <div className="user-dropdown">
 
                 <Link to="/profile">
-                    <User size={18} />
+                    <User size={18} weight="bold" />
                     <span>Mi perfil</span>
                 </Link>
 
                 <Link to="/orders">
-                    <Package size={18} />
+                    <Package size={18} weight="bold" />
                     <span>Mis pedidos</span>
                 </Link>
 
                 <Link to="/favorites">
-                    <Heart size={18} />
+                    <Heart size={18} weight="bold" />
                     <span>Favoritos</span>
                 </Link>
 
                 <Link to="/settings">
-                    <Settings size={18} />
+                    <Gear size={18} weight="bold" />
                     <span>Configuración</span>
                 </Link>
 
@@ -130,7 +130,7 @@ function UserMenu() {
                     type="button"
                     onClick={handleLogout}
                 >
-                    <LogOut size={18} />
+                    <SignOut size={18} weight="bold" />
                     <span>Cerrar sesión</span>
                 </button>
 

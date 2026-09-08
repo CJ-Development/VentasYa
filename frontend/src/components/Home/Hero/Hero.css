@@ -35,7 +35,8 @@
 
     display: grid;
 
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: 1.5fr 1fr;
+    grid-template-rows: auto auto;
 
     gap: 18px;
 }
@@ -61,6 +62,24 @@
     transition:
         transform var(--transition),
         box-shadow var(--transition);
+}
+
+/* Bento Grid: primera card ocupa 2 columnas y 2 filas */
+.hero-card:first-child {
+    grid-column: 1 / -1;
+    grid-row: 1 / 2;
+    min-height: 280px;
+}
+
+/* Segunda y tercera card en la segunda fila */
+.hero-card:nth-child(2) {
+    grid-column: 1 / 2;
+    grid-row: 2 / 3;
+}
+
+.hero-card:nth-child(3) {
+    grid-column: 2 / 3;
+    grid-row: 2 / 3;
 }
 
 .hero-card:hover {
@@ -239,7 +258,7 @@
 }
 
 .hero-card:hover .hero-feature-icon {
-    transform: scale(1.08);
+    transform: scale(1.12) translateY(-2px);
 }
 
 .hero-card--pets .hero-feature-icon {
@@ -301,21 +320,21 @@
 }
 
 .hero-card-button:hover {
-    transform: translateY(-2px);
+    transform: translateY(-3px);
 
     background: var(--color-primary-dark);
 
-    box-shadow: var(--shadow-primary);
+    box-shadow: 0 8px 20px rgba(14, 165, 181, .25);
 }
 
 .hero-card--pets .hero-card-button:hover {
     background: var(--color-orange-dark);
-    box-shadow: var(--shadow-orange);
+    box-shadow: 0 8px 20px rgba(255, 122, 0, .25);
 }
 
 .hero-card--family .hero-card-button:hover {
     background: #0C5F58;
-    box-shadow: 0 6px 14px rgba(15, 118, 110, .25);
+    box-shadow: 0 8px 20px rgba(15, 118, 110, .25);
 }
 
 .hero-card-button:focus-visible {

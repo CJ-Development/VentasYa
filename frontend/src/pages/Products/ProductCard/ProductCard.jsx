@@ -2,7 +2,7 @@ import "./ProductCard.css";
 import NoImage from "../../../assets/images/no-image.png";
 import { mediaUrl } from "../../../utils/mediaUrl";
 
-import { Heart, ShoppingCart, Loader2 } from "lucide-react";
+import { Heart, ShoppingCart, Spinner } from "@phosphor-icons/react";
 
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
@@ -301,8 +301,7 @@ function ProductCard({ product, onSelect }) {
 
                     <Heart
                         size={20}
-
-                        strokeWidth={2}
+                        weight={fav ? "fill" : "regular"}
                     />
 
                 </button>
@@ -400,9 +399,9 @@ function ProductCard({ product, onSelect }) {
                 >
 
                     {isAdding ? (
-                        <Loader2 size={19} className="spin" />
+                        <Spinner size={19} className="spin" />
                     ) : (
-                        <ShoppingCart size={19} />
+                        <ShoppingCart size={19} weight="bold" />
                     )}
 
                     <span>

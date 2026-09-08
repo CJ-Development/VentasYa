@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { Search, Loader2, X, Package } from "lucide-react";
+import { MagnifyingGlass, Spinner, X, Package } from "@phosphor-icons/react";
 
 import { getProducts } from "../../../services/adminService";
 import { mediaUrl } from "../../../utils/mediaUrl";
@@ -233,7 +233,7 @@ function SearchBar() {
                     onClick={handleClear}
                     aria-label="Limpiar búsqueda"
                 >
-                    <X size={15} />
+                    <X size={15} weight="bold" />
                 </button>
             )}
 
@@ -242,7 +242,7 @@ function SearchBar() {
                     className="search-loading"
                     aria-label="Buscando"
                 >
-                    <Loader2 size={16} />
+                    <Spinner size={16} />
                 </span>
             )}
 
@@ -251,7 +251,7 @@ function SearchBar() {
                 className="search-button"
                 aria-label="Buscar"
             >
-                <Search className="search-icon" />
+                <MagnifyingGlass className="search-icon" weight="bold" />
             </button>
 
             {open && sugerencias.length > 0 && (
@@ -260,7 +260,7 @@ function SearchBar() {
                     role="listbox"
                 >
                     <div className="search-suggestions-header">
-                        <Package size={13} />
+                        <Package size={13} weight="bold" />
                         <span>
                             {sugerencias.length}{" "}
                             {sugerencias.length === 1

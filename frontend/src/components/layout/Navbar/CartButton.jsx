@@ -1,4 +1,4 @@
-import { ShoppingCart } from "lucide-react";
+import { ShoppingCart } from "@phosphor-icons/react";
 
 import { useCart } from "../../../hooks/useCart";
 
@@ -13,7 +13,7 @@ function CartButton() {
             title="Ver carrito"
             aria-label="Ver carrito"
         >
-            <ShoppingCart />
+            <ShoppingCart weight="bold" />
 
             <span className="cart-badge">
                 {count > 99 ? "99+" : count}
