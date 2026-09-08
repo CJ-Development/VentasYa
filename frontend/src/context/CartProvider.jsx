@@ -48,7 +48,7 @@ function CartProvider({ children }) {
 
     const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
-    const lastUserIdRef = useRef(null);
+    const lastUserIdRef = useRef(undefined);
 
     /* =====================================================
        CARGA INICIAL + REACCION AL USUARIO
@@ -109,7 +109,7 @@ function CartProvider({ children }) {
 
         const uid = usuario?.id_usuario || null;
 
-        // Solo recargar si cambia el id de usuario (login/logout)
+        // Cargar siempre al montar o cuando cambia el usuario
         if (lastUserIdRef.current !== uid) {
 
             lastUserIdRef.current = uid;
@@ -126,49 +126,23 @@ function CartProvider({ children }) {
 
     const addItem = useCallback(async (payload) => {
 
-        console.log("[CartProvider] addItem llamado con payload:", payload);
         const uid = usuario?.id_usuario;
-        console.log("[CartProvider] usuario?.id_usuario:", uid);
 
         if (!uid) {
-
-            console.log("[CartProvider] Sin usuario, usando localStorage");
-            // Sin usuario: localStorage
             const next = addLocalItem(payload);
-            console.log("[CartProvider] addLocalItem retornó:", next);
-
             setItems(next);
-
             setIsDrawerOpen(true);
-
-            console.log("[CartProvider] Retornando ok: true, source: local");
             return { ok: true, source: "local" };
-
         }
 
-        console.log("[CartProvider] Con usuario, usando backend");
         try {
-
-            console.log("[CartProvider] Llamando a addToCart con uid:", uid, "variante_id:", payload.variante_id);
             await addToCart(uid, payload.variante_id, payload.cantidad || 1);
-            console.log("[CartProvider] addToCart completado");
-
-            // Refrescar desde backend para tener la info completa
-            console.log("[CartProvider] Llamando a cargar(uid)");
             await cargar(uid);
-            console.log("[CartProvider] cargar completado");
-
             setIsDrawerOpen(true);
-
-            console.log("[CartProvider] Retornando ok: true, source: backend");
             return { ok: true, source: "backend" };
-
         } catch (err) {
-
-            console.error("[CartProvider] Error en addItem:", err);
-
+            console.error("CartProvider.addItem:", err);
             return { ok: false, error: err };
-
         }
 
     }, [usuario?.id_usuario, cargar]);

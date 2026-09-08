@@ -167,17 +167,11 @@ function ProductCard({ product, onSelect }) {
         setIsAdding(true);
 
         try {
-            /*
-            Buscamos una variante que tenga stock.
-            */
-
             const variante = product.variantes?.find(
                 (v) => v.stock > 0
             );
 
             if (!variante) {
-
-                console.log("[ProductCard] No hay variante con stock");
                 alert(
                     "Este producto no tiene stock disponible."
                 );
@@ -188,69 +182,34 @@ function ProductCard({ product, onSelect }) {
 
             }
 
-            /*
-            ============================================================
-            IMAGEN
-            ============================================================
-            */
-
             const imagen = getProductImage();
 
-            /*
-            ============================================================
-            Payload para el carrito.
-            ============================================================
-            */
-
             const payload = {
-
                 variante_id: variante.id_variante,
-
                 sku: variante.sku,
-
                 stock: variante.stock,
-
-
                 producto_id: product.id_producto,
-
                 producto_nombre: product.nombre,
-
                 producto_slug: product.slug,
-
-
                 producto_precio: product.precio,
-
-
-                color:
-                    variante.color?.nombre || "",
-
-                talla:
-                    variante.talla?.nombre || "",
-
-
+                color: variante.color?.nombre || "",
+                talla: variante.talla?.nombre || "",
                 imagen,
-
                 cantidad: 1,
-
             };
 
-            console.log("[ProductCard] Llamando a addItem con payload:", payload);
             const result = await addItem(payload);
-            console.log("[ProductCard] addItem retornó:", result);
 
             if (!result?.ok) {
-
-                console.log("[ProductCard] addItem devolvió !ok");
                 alert(
                     "No se pudo agregar al carrito. Intenta de nuevo."
                 );
 
             }
         } catch (error) {
-            console.error("[ProductCard] Error en handleAddToCart:", error);
+            console.error("Error al agregar al carrito:", error);
             alert("Error al agregar al carrito. Intenta de nuevo.");
         } finally {
-            console.log("[ProductCard] finally: Seteando isAdding = false");
             setIsAdding(false);
         }
 
