@@ -26,8 +26,15 @@ function AdminLogin() {
             setLoading(true);
             setError(null);
 
-            await login(email, password);
-            navigate("/admin");
+            const userData = await login(email, password);
+
+            // Verificar si el usuario es admin antes de navegar
+            if (userData && (userData.is_staff === true || userData.is_superuser === true || userData.tipo_usuario === "admin")) {
+                navigate("/admin");
+            } else {
+                setError("No tienes permisos de administrador.");
+                logout();
+            }
         } catch (err) {
             console.error("Error al iniciar sesión:", err);
             setError(err.response?.data?.detail || "Error al iniciar sesión. Verifica tus credenciales.");

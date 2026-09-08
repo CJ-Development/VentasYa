@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link, useParams, useSearchParams } from "react-router-dom";
+import { Link, useParams, useSearchParams, useNavigate } from "react-router-dom";
 import {
     SlidersHorizontal,
     X,
@@ -31,6 +31,7 @@ const prettifySlug = (s) => {
 
 function Products() {
 
+    const navigate = useNavigate();
     const params = useParams();
 
     const [searchParams, setSearchParams] =
@@ -282,6 +283,22 @@ function Products() {
 
         if (categoriasIds.length > 0) {
             setCategoria(categoriasIds[0]);
+        } else {
+            // Si no se encuentran categorías por nombre, intentar por slug
+            const slugMap = {
+                "family": ["hombre", "mujeres", "ninos", "mascotas"],
+                "toys": ["tecnologia", "juguetes"],
+                "accessories": ["accesorios"]
+            };
+            const slugsToMatch = slugMap[highlightParam];
+            if (slugsToMatch) {
+                const matchedBySlug = categorias
+                    .filter(cat => slugsToMatch.includes(cat.slug?.toLowerCase()))
+                    .map(cat => String(cat.id_categoria));
+                if (matchedBySlug.length > 0) {
+                    setCategoria(matchedBySlug[0]);
+                }
+            }
         }
 
     }, [
@@ -1025,11 +1042,16 @@ function Products() {
                                                         [padre.id_categoria]: !isExpanded
                                                     }));
                                                 }
-                                                setCategoria(
-                                                    String(
-                                                        padre.id_categoria
-                                                    )
-                                                );
+                                                // Navegar por slug en lugar de solo setCategoria
+                                                if (padre.slug) {
+                                                    navigate(`/categoria/${padre.slug}`);
+                                                } else {
+                                                    setCategoria(
+                                                        String(
+                                                            padre.id_categoria
+                                                        )
+                                                    );
+                                                }
                                             }}
                                         >
 
@@ -1103,11 +1125,16 @@ function Products() {
                                                                                 [sub.id_categoria]: !isSubExpanded
                                                                             }));
                                                                         }
-                                                                        setCategoria(
-                                                                            String(
-                                                                                sub.id_categoria
-                                                                            )
-                                                                        );
+                                                                        // Navegar por slug en lugar de solo setCategoria
+                                                                        if (sub.slug) {
+                                                                            navigate(`/categoria/${sub.slug}`);
+                                                                        } else {
+                                                                            setCategoria(
+                                                                                String(
+                                                                                    sub.id_categoria
+                                                                                )
+                                                                            );
+                                                                        }
                                                                     }}
                                                                 >
 
@@ -1156,13 +1183,16 @@ function Products() {
                                                                                                 : "category-item category-item--subsub"
                                                                                         }
                                                                                         onClick={() => {
-
-                                                                                            setCategoria(
-                                                                                                String(
-                                                                                                    subSub.id_categoria
-                                                                                                )
-                                                                                            );
-
+                                                                                            // Navegar por slug en lugar de solo setCategoria
+                                                                                            if (subSub.slug) {
+                                                                                                navigate(`/categoria/${subSub.slug}`);
+                                                                                            } else {
+                                                                                                setCategoria(
+                                                                                                    String(
+                                                                                                        subSub.id_categoria
+                                                                                                    )
+                                                                                                );
+                                                                                            }
                                                                                         }}
                                                                                     >
 

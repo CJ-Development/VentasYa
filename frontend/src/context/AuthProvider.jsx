@@ -1,6 +1,6 @@
 import { createContext, useEffect, useState } from "react";
 
-import { getCsrfToken } from "../services/api";
+import { getCsrfToken, login as apiLogin } from "../services/api";
 
 import { useInactivityLogout } from "../hooks/useInactivityLogout";
 
@@ -25,14 +25,24 @@ function AuthProvider({ children }) {
     -----------------------------------------------------
     */
 
-    const login = (data) => {
+    const login = async (email, password) => {
 
-        localStorage.setItem(
-            "usuario",
-            JSON.stringify(data)
-        );
+        try {
+            const response = await apiLogin({ email, password });
+            const userData = response.data;
 
-        setUsuario(data);
+            localStorage.setItem(
+                "usuario",
+                JSON.stringify(userData)
+            );
+
+            setUsuario(userData);
+
+            return userData;
+        } catch (error) {
+            console.error("Error en login:", error);
+            throw error;
+        }
 
     };
 

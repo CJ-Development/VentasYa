@@ -144,7 +144,7 @@ function CartDrawer() {
                             <p>Tu carrito está vacío</p>
 
                             {!usuario && (
-                                <small>Inicia sesión para conservar tus productos.</small>
+                                <small>Tus productos se guardan en este dispositivo.</small>
                             )}
 
                             <button

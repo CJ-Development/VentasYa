@@ -17,13 +17,36 @@ import {
 } from "lucide-react";
 
 import { Link } from "react-router-dom";
+import { useEffect, useState } from "react";
 
 import Familia from "../../../assets/images/Familia.png";
 import JuguetesTecnologia from "../../../assets/images/Juguetes y Tecnologia.png";
 import Accesorios from "../../../assets/images/Accesorios.png";
 
+import { getCategories } from "../../../services/adminService";
+
 
 function Hero() {
+
+    const [categorias, setCategorias] = useState([]);
+
+    useEffect(() => {
+        const cargarCategorias = async () => {
+            try {
+                const { data } = await getCategories();
+                setCategorias(data || []);
+            } catch (error) {
+                console.error("Error cargando categorías en Hero:", error);
+            }
+        };
+        cargarCategorias();
+    }, []);
+
+    // Mapeo de nombres de categorías del Hero a nombres reales del backend
+    const categoriaSlugPorNombre = (nombre) => {
+        const cat = categorias.find(c => c.nombre === nombre);
+        return cat ? cat.slug : null;
+    };
 
     const categories = [
         {
@@ -39,7 +62,15 @@ function Hero() {
                 "Ropa, calzado y productos para todos, ¡incluidas tus mascotas!",
             image: Familia,
             button: "Ver familia",
-            link: "/products?highlight=family",
+            // Usar la primera categoría disponible de familia o fallback a highlight
+            link: (() => {
+                const slugs = ["Hombre", "Mujeres", "Niños", "Mascotas"]
+                    .map(nombre => categoriaSlugPorNombre(nombre))
+                    .filter(Boolean);
+                return slugs.length > 0
+                    ? `/categoria/${slugs[0]}`
+                    : "/products?highlight=family";
+            })(),
             className: "hero-card--family",
             iconOne: Users,
             iconOneText: "Hombre, mujer y niños",
@@ -59,7 +90,14 @@ function Hero() {
                 "Juguetes divertidos y la última tecnología para todos.",
             image: JuguetesTecnologia,
             button: "Ver juguetes",
-            link: "/products?highlight=toys",
+            link: (() => {
+                const slugs = ["Tecnología", "Juguetes"]
+                    .map(nombre => categoriaSlugPorNombre(nombre))
+                    .filter(Boolean);
+                return slugs.length > 0
+                    ? `/categoria/${slugs[0]}`
+                    : "/products?highlight=toys";
+            })(),
             className: "hero-card--fashion",
             iconOne: Gift,
             iconOneText: "Juguetes",
@@ -79,7 +117,12 @@ function Hero() {
                 "Complementa tu estilo con nuestros accesorios.",
             image: Accesorios,
             button: "Ver accesorios",
-            link: "/products?highlight=accessories",
+            link: (() => {
+                const slug = categoriaSlugPorNombre("Accesorios");
+                return slug
+                    ? `/categoria/${slug}`
+                    : "/products?highlight=accessories";
+            })(),
             className: "hero-card--pets",
             iconOne: BadgePercent,
             iconOneText: "Ofertas",

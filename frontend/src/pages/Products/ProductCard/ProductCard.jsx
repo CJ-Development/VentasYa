@@ -2,9 +2,10 @@ import "./ProductCard.css";
 import NoImage from "../../../assets/images/no-image.png";
 import { mediaUrl } from "../../../utils/mediaUrl";
 
-import { Heart, ShoppingCart } from "lucide-react";
+import { Heart, ShoppingCart, Loader2 } from "lucide-react";
 
 import { useNavigate } from "react-router-dom";
+import { useState } from "react";
 import { useFavorites } from "../../../hooks/useFavorites";
 import { useAuth } from "../../../hooks/useAuth";
 import { useCart } from "../../../hooks/useCart";
@@ -17,6 +18,8 @@ function ProductCard({ product, onSelect }) {
     const { usuario } = useAuth();
     const { isFavorite, toggle } = useFavorites();
     const { addItem } = useCart();
+
+    const [isAdding, setIsAdding] = useState(false);
 
 
     /*
@@ -157,106 +160,114 @@ function ProductCard({ product, onSelect }) {
 
         e.stopPropagation();
 
-        if (!product) {
+        if (!product || isAdding) {
             return;
         }
 
+        setIsAdding(true);
 
-        /*
-        Buscamos primero una variante
-        que tenga stock.
-        */
+        try {
+            /*
+            Buscamos primero una variante
+            que tenga stock.
+            */
 
-        const variante =
-            product.variantes?.find(
-                (item) => Number(item.stock) > 0
-            ) ||
-            product.variantes?.[0] ||
-            null;
-
-
-        /*
-        Si el producto no tiene variantes,
-        no podemos agregarlo.
-        */
-
-        if (!variante) {
-
-            alert(
-                "Este producto aún no tiene variantes disponibles para la compra."
-            );
-
-            return;
-
-        }
+            const variante =
+                product.variantes?.find(
+                    (item) => Number(item.stock) > 0
+                ) ||
+                product.variantes?.[0] ||
+                null;
 
 
-        /*
-        Obtenemos la imagen de la variante.
-        Guardamos una URL absoluta en el carrito
-        para que cargue desde cualquier vista.
-        */
+            /*
+            Si el producto no tiene variantes,
+            no podemos agregarlo.
+            */
 
-        const imagen =
-            mediaUrl(
-                (variante.imagenes || []).find(
-                    (imagen) => imagen.principal === true
-                )?.imagen,
-                null
-            ) ||
-            mediaUrl(
-                (variante.imagenes || [])[0]?.imagen,
-                null
-            ) ||
-            imageUrl;
+            if (!variante) {
+
+                alert(
+                    "Este producto aún no tiene variantes disponibles para la compra."
+                );
+
+                return;
+
+            }
 
 
-        /*
-        Payload para el carrito.
-        */
+            /*
+            Obtenemos la imagen de la variante.
+            Guardamos una URL absoluta en el carrito
+            para que cargue desde cualquier vista.
+            */
 
-        const payload = {
-
-            variante_id: variante.id_variante,
-
-            sku: variante.sku,
-
-            stock: variante.stock,
-
-
-            producto_id: product.id_producto,
-
-            producto_nombre: product.nombre,
-
-            producto_slug: product.slug,
-
-
-            producto_precio: product.precio,
+            const imagen =
+                mediaUrl(
+                    (variante.imagenes || []).find(
+                        (imagen) => imagen.principal === true
+                    )?.imagen,
+                    null
+                ) ||
+                mediaUrl(
+                    (variante.imagenes || [])[0]?.imagen,
+                    null
+                ) ||
+                imageUrl;
 
 
-            color:
-                variante.color?.nombre || "",
+            /*
+            Payload para el carrito.
+            */
 
-            talla:
-                variante.talla?.nombre || "",
+            const payload = {
 
+                variante_id: variante.id_variante,
 
-            imagen,
+                sku: variante.sku,
 
-            cantidad: 1,
-
-        };
-
-
-        const result = await addItem(payload);
+                stock: variante.stock,
 
 
-        if (!result?.ok) {
+                producto_id: product.id_producto,
 
-            alert(
-                "No se pudo agregar al carrito. Intenta de nuevo."
-            );
+                producto_nombre: product.nombre,
 
+                producto_slug: product.slug,
+
+
+                producto_precio: product.precio,
+
+
+                color:
+                    variante.color?.nombre || "",
+
+                talla:
+                    variante.talla?.nombre || "",
+
+
+                imagen,
+
+                cantidad: 1,
+
+            };
+
+
+            const result = await addItem(payload);
+
+
+            if (!result?.ok) {
+
+                alert(
+                    "No se pudo agregar al carrito. Intenta de nuevo."
+                );
+
+            }
+        } catch (error) {
+            console.error("Error al agregar al carrito:", error);
+            alert("Error al agregar al carrito. Intenta de nuevo.");
+        } finally {
+            setIsAdding(false);
         }
 
     };
@@ -442,12 +453,17 @@ function ProductCard({ product, onSelect }) {
                     type="button"
                     className="pc-cart-button"
                     onClick={handleAddToCart}
+                    disabled={isAdding}
                 >
 
-                    <ShoppingCart size={19} />
+                    {isAdding ? (
+                        <Loader2 size={19} className="spin" />
+                    ) : (
+                        <ShoppingCart size={19} />
+                    )}
 
                     <span>
-                        Agregar
+                        {isAdding ? "Agregando..." : "Agregar"}
                     </span>
 
                 </button>

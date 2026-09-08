@@ -25,20 +25,10 @@ function UserMenu() {
 
     /* ==========================================
        USUARIO NO AUTENTICADO
-    ========================================== */
-
+       ========================================== */
+    // Clientes compran como invitados, no hay login público
     if (!usuario) {
-        return (
-            <div className="user-menu">
-                <Link
-                    to="/login"
-                    className="icon-button user-login"
-                >
-                    <User size={18} />
-                    <span>Iniciar sesión</span>
-                </Link>
-            </div>
-        );
+        return null;
     }
 
     // El backend envía is_superuser / is_staff / tipo_usuario.
