@@ -168,56 +168,38 @@ function ProductCard({ product, onSelect }) {
 
         try {
             /*
-            Buscamos primero una variante
-            que tenga stock.
+            Buscamos una variante que tenga stock.
             */
 
-            const variante =
-                product.variantes?.find(
-                    (item) => Number(item.stock) > 0
-                ) ||
-                product.variantes?.[0] ||
-                null;
-
-
-            /*
-            Si el producto no tiene variantes,
-            no podemos agregarlo.
-            */
+            const variante = product.variantes?.find(
+                (v) => v.stock > 0
+            );
 
             if (!variante) {
 
+                console.log("[ProductCard] No hay variante con stock");
                 alert(
-                    "Este producto aún no tiene variantes disponibles para la compra."
+                    "Este producto no tiene stock disponible."
                 );
+
+                setIsAdding(false);
 
                 return;
 
             }
 
-
             /*
-            Obtenemos la imagen de la variante.
-            Guardamos una URL absoluta en el carrito
-            para que cargue desde cualquier vista.
+            ============================================================
+            IMAGEN
+            ============================================================
             */
 
-            const imagen =
-                mediaUrl(
-                    (variante.imagenes || []).find(
-                        (imagen) => imagen.principal === true
-                    )?.imagen,
-                    null
-                ) ||
-                mediaUrl(
-                    (variante.imagenes || [])[0]?.imagen,
-                    null
-                ) ||
-                imageUrl;
-
+            const imagen = getProductImage();
 
             /*
+            ============================================================
             Payload para el carrito.
+            ============================================================
             */
 
             const payload = {
@@ -252,21 +234,23 @@ function ProductCard({ product, onSelect }) {
 
             };
 
-
+            console.log("[ProductCard] Llamando a addItem con payload:", payload);
             const result = await addItem(payload);
-
+            console.log("[ProductCard] addItem retornó:", result);
 
             if (!result?.ok) {
 
+                console.log("[ProductCard] addItem devolvió !ok");
                 alert(
                     "No se pudo agregar al carrito. Intenta de nuevo."
                 );
 
             }
         } catch (error) {
-            console.error("Error al agregar al carrito:", error);
+            console.error("[ProductCard] Error en handleAddToCart:", error);
             alert("Error al agregar al carrito. Intenta de nuevo.");
         } finally {
+            console.log("[ProductCard] finally: Seteando isAdding = false");
             setIsAdding(false);
         }
 
