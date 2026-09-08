@@ -100,19 +100,34 @@ function Checkout() {
                 })),
             });
 
+            // Validar respuesta del backend
+            if (!response.data || !response.data.whatsapp_number) {
+                setError("No se pudo obtener el número de WhatsApp. Intenta nuevamente.");
+                return;
+            }
+
+            if (!response.data.cliente || !response.data.productos) {
+                setError("La respuesta del servidor no tiene el formato esperado.");
+                return;
+            }
+
             // Generar mensaje de WhatsApp
             const mensaje = generarMensajeWhatsApp(response.data);
             const encodedMessage = encodeURIComponent(mensaje);
             const whatsappUrl = `https://wa.me/${response.data.whatsapp_number}?text=${encodedMessage}`;
 
+            console.log("Abriendo WhatsApp:", whatsappUrl);
+
             // Abrir WhatsApp
             window.open(whatsappUrl, "_blank");
 
-            // Redirigir a home
-            navigate("/");
+            // Redirigir a home después de un breve delay
+            setTimeout(() => {
+                navigate("/");
+            }, 500);
         } catch (err) {
             console.error("Error al crear pedido:", err);
-            setError(err.response?.data?.detail || "Error al crear el pedido. Intenta nuevamente.");
+            setError(err.response?.data?.detail || err.message || "Error al crear el pedido. Intenta nuevamente.");
         } finally {
             setIsSubmitting(false);
         }

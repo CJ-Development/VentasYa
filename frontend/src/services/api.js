@@ -48,7 +48,6 @@ const api = axios.create({
  LEER COOKIE
 =====================================================
 */
-
 function readCookie(name) {
     if (
         typeof document === "undefined" ||
