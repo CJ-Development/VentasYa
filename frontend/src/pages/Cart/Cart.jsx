@@ -492,10 +492,6 @@ function Cart() {
                                             Total
                                         </span>
 
-                                        <small>
-                                            Impuestos incluidos
-                                        </small>
-
                                     </div>
 
                                     <strong>

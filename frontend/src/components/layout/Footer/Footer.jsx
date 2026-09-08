@@ -223,17 +223,6 @@ function Footer() {
                     </a>
 
 
-                    <a href="/envios">
-
-                        <Truck />
-
-                        <span>
-                            Envíos
-                        </span>
-
-                    </a>
-
-
                     <a href="/cambios">
 
                         <RotateCcw />

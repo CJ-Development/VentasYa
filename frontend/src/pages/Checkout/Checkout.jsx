@@ -353,7 +353,7 @@ function Checkout() {
                                                 )}
                                                 <div className="checkout-summary-item-qty">
                                                     <span>Cantidad: {item.cantidad}</span>
-                                                    <span>{formatearPesos(item.producto_precio)} c/u</span>
+                                                    <span>{formatearPesos(item.producto_precio)}</span>
                                                 </div>
                                             </div>
 
@@ -370,7 +370,6 @@ function Checkout() {
                             <div className="checkout-summary-total">
                                 <div>
                                     <span>Total</span>
-                                    <small>Impuestos incluidos</small>
                                 </div>
                                 <strong>{formatearPesos(total)}</strong>
                             </div>
