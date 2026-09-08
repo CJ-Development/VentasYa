@@ -90,6 +90,7 @@ function Checkout() {
 
             const response = await createOrderFromCart({
                 usuario_id: usuario?.id_usuario || null,
+                direccion_id: null,
                 nombre_cliente: nombre,
                 telefono_contacto: telefono,
                 terminos_aceptados: terminosAceptados,
