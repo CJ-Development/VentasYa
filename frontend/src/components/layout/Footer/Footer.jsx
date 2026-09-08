@@ -103,7 +103,9 @@ function Footer() {
                         REDES SOCIALES
                     ================================================= */}
 
-                    <SocialButtons />
+                    <div className="footer-socials-uiverse">
+                        <SocialButtons />
+                    </div>
 
                 </div>
 

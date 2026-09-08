@@ -144,51 +144,15 @@
 
 
 /* ============================================================
-   REDES SOCIALES
+   REDES SOCIALES (Uiverse)
    ============================================================ */
 
-.footer-socials {
-    display: flex;
-    align-items: center;
-
-    gap: 9px;
-
-    margin-top: 21px;
-}
-
-.footer-social {
-    width: 34px;
-    height: 34px;
+.footer-socials-uiverse {
+    margin-top: 24px;
 
     display: flex;
     align-items: center;
-    justify-content: center;
-
-    border: 1px solid #0EA5B5;
-
-    border-radius: 50%;
-
-    color: #0EA5B5;
-
-    text-decoration: none;
-
-    transition:
-        background-color 0.2s ease,
-        color 0.2s ease,
-        transform 0.2s ease;
-}
-
-.footer-social svg {
-    width: 17px;
-    height: 17px;
-}
-
-.footer-social:hover {
-    background: #0EA5B5;
-
-    color: #102A3A;
-
-    transform: translateY(-2px);
+    justify-content: flex-start;
 }
 
 
@@ -480,13 +444,8 @@
         font-size: 12px;
     }
 
-    .footer-socials {
-        margin-top: 18px;
-    }
-
-    .footer-social {
-        width: 32px;
-        height: 32px;
+    .footer-socials-uiverse {
+        margin-top: 20px;
     }
 
     .footer-column {

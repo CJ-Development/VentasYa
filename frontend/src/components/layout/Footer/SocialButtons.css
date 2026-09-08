@@ -1,64 +1,164 @@
-/* From Uiverse.io by javierBarroso */
-
 .social-buttons-parent {
-  width: 100%;
-  height: 100%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 10px;
+    width: max-content;
+    height: auto;
+
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+
+    gap: 10px;
+
+    perspective: 500px;
 }
 
 .social-buttons-child {
-  width: 50px;
-  height: 50px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  transform-style: preserve-3d;
-  transition: all 0.3s cubic-bezier(0.68, 0.85, 0.265, 1.85);
-  border-radius: 5px;
-  box-shadow:
-    inset 1px 1px 2px #fff,
-    0 0 5px #444;
+    width: 50px;
+    height: 50px;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    position: relative;
+
+    flex-shrink: 0;
+
+    transform-style: preserve-3d;
+
+    border-radius: 5px;
+
+    box-shadow:
+        inset 1px 1px 2px rgba(255, 255, 255, 0.85),
+        0 0 5px rgba(0, 0, 0, 0.18);
+
+    background: rgba(255, 255, 255, 0.04);
+
+    transition:
+        transform 0.3s cubic-bezier(0.68, 0.85, 0.265, 1.85),
+        box-shadow 0.3s ease,
+        background-color 0.3s ease;
 }
 
 .social-buttons-child:hover {
-  background-color: white;
-  background-position:
-    -100px 100px,
-    -100px 100px;
-  transform: perspective(180px) rotateX(60deg) translateY(2px);
+    background-color: #ffffff;
+
+    transform:
+        perspective(180px)
+        rotateX(60deg)
+        translateY(2px);
 }
 
 .social-buttons-child-1:hover {
-  box-shadow: 0px 10px 10px #1e90ff;
+    box-shadow:
+        0 10px 10px rgba(30, 144, 255, 0.75);
 }
 
 .social-buttons-child-2:hover {
-  box-shadow: 0px 10px 10px #ff00ff;
+    box-shadow:
+        0 10px 10px rgba(255, 0, 255, 0.75);
 }
 
 .social-buttons-child-3:hover {
-  box-shadow: 0px 10px 10px #000;
+    box-shadow:
+        0 10px 10px rgba(0, 0, 0, 0.75);
 }
 
 .social-buttons-child-4:hover {
-  box-shadow: 0px 10px 10px #4267b2;
+    box-shadow:
+        0 10px 10px rgba(66, 103, 178, 0.75);
 }
 
 .social-buttons-button {
-  cursor: pointer;
-  width: 100%;
-  height: 100%;
-  border: none;
-  background-color: transparent;
-  font-size: 20px;
-  transition-duration: 0.5s;
-  transition-timing-function: cubic-bezier(0.68, -0.85, 0.265, 1.55);
+    width: 100%;
+    height: 100%;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    padding: 0;
+
+    border: none;
+
+    background: transparent;
+
+    cursor: pointer;
+
+    color: #0EA5B5;
+
+    font-size: 20px;
+
+    transition:
+        transform 0.5s cubic-bezier(0.68, -0.85, 0.265, 1.55),
+        color 0.2s ease;
+}
+
+.social-buttons-button svg {
+    width: 20px;
+    height: 20px;
+
+    display: block;
+
+    fill: currentColor;
+}
+
+.social-buttons-child-1 .social-buttons-button {
+    color: #1e90ff;
+}
+
+.social-buttons-child-2 .social-buttons-button {
+    color: #ff00ff;
+}
+
+.social-buttons-child-3 .social-buttons-button {
+    color: #000000;
+}
+
+.social-buttons-child-4 .social-buttons-button {
+    color: #4267b2;
 }
 
 .social-buttons-child:hover > .social-buttons-button {
-  transform: translate3d(0px, 20px, 30px) perspective(80px) rotateX(-60deg)
-    translateY(2px) translateZ(10px);
+    transform:
+        translate3d(0, 20px, 30px)
+        perspective(80px)
+        rotateX(-60deg)
+        translateY(2px)
+        translateZ(10px);
+}
+
+/* =========================
+   TABLET
+   ========================= */
+
+@media (max-width: 850px) {
+    .social-buttons-child {
+        width: 46px;
+        height: 46px;
+    }
+
+    .social-buttons-button svg {
+        width: 18px;
+        height: 18px;
+    }
+}
+
+/* =========================
+   CELULAR
+   ========================= */
+
+@media (max-width: 600px) {
+    .social-buttons-parent {
+        gap: 8px;
+    }
+
+    .social-buttons-child {
+        width: 42px;
+        height: 42px;
+    }
+
+    .social-buttons-button svg {
+        width: 17px;
+        height: 17px;
+    }
 }
