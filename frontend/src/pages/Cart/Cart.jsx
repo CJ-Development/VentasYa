@@ -435,92 +435,6 @@ function Cart() {
 
                                 </ul>
 
-                                {/* =================================================
-                                    ENVÍO GRATIS
-                                ================================================== */}
-
-                                <div
-                                    className={`cart-shipping-progress ${
-                                        tieneEnvioGratis
-                                            ? "cart-shipping-progress--success"
-                                            : ""
-                                    }`}
-                                >
-
-                                    <div className="cart-shipping-icon">
-
-                                        {tieneEnvioGratis ? (
-                                            <CheckCircle2 size={22} />
-                                        ) : (
-                                            <Truck size={22} />
-                                        )}
-
-                                    </div>
-
-                                    <div className="cart-shipping-info">
-
-                                        {tieneEnvioGratis ? (
-                                            <>
-                                                <strong>
-                                                    ¡Envío gratis desbloqueado! 🎉
-                                                </strong>
-
-                                                <span>
-                                                    Tu pedido ya cumple con
-                                                    el monto mínimo para envío
-                                                    gratis.
-                                                </span>
-                                            </>
-                                        ) : (
-                                            <>
-                                                <strong>
-                                                    ¡Envío gratis!
-                                                </strong>
-
-                                                <span>
-                                                    Te faltan{" "}
-                                                    <b>
-                                                        {formatearPesos(
-                                                            faltanteEnvioGratis
-                                                        )}
-                                                    </b>{" "}
-                                                    para obtener envío gratis.
-                                                </span>
-                                            </>
-                                        )}
-
-                                        <div className="cart-shipping-progress-row">
-
-                                            <div className="cart-shipping-bar">
-
-                                                <span
-                                                    style={{
-                                                        width: `${progresoEnvio}%`,
-                                                    }}
-                                                />
-
-                                            </div>
-
-                                        </div>
-
-                                        <div className="cart-shipping-values">
-
-                                            <span>
-                                                $0
-                                            </span>
-
-                                            <span>
-                                                {formatearPesos(
-                                                    envioGratisDesde
-                                                )}
-                                            </span>
-
-                                        </div>
-
-                                    </div>
-
-                                </div>
-
                             </div>
 
                         </section>
@@ -568,30 +482,6 @@ function Cart() {
 
                                 </div>
 
-                                <div className="cart-summary-row">
-
-                                    <span>
-                                        Envío
-                                    </span>
-
-                                    <strong
-                                        className={
-                                            tieneEnvioGratis
-                                                ? "shipping-free"
-                                                : "shipping-pending"
-                                        }
-                                    >
-                                        {tieneEnvioGratis
-                                            ? "Gratis"
-                                            : "Por calcular"}
-                                    </strong>
-
-                                </div>
-
-                                {/* Solo mostramos descuento cuando exista.
-                                    Actualmente no hay lógica de descuento,
-                                    por eso no mostramos "-$0". */}
-
                                 <div className="cart-summary-divider" />
 
                                 <div className="cart-summary-total">
@@ -637,38 +527,6 @@ function Cart() {
                                     <span>
                                         Pago seguro y protegido
                                     </span>
-
-                                </div>
-
-                            </div>
-
-                            {/* =================================================
-                                CUPÓN
-                            ================================================== */}
-
-                            <div className="cart-coupon">
-
-                                <div className="cart-coupon-title">
-
-                                    <Tag size={17} />
-
-                                    <strong>
-                                        ¿Tienes un código de descuento?
-                                    </strong>
-
-                                </div>
-
-                                <div className="cart-coupon-form">
-
-                                    <input
-                                        type="text"
-                                        placeholder="Ingresa tu código"
-                                        aria-label="Código de descuento"
-                                    />
-
-                                    <button type="button">
-                                        Aplicar
-                                    </button>
 
                                 </div>
 
