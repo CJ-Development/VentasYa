@@ -164,7 +164,7 @@ function Footer() {
 
 
 
-                    <a href="/politica-privacidad">
+                    <a href="/Legal/Politica_de_Privacidad_Baul_Magico.pdf" target="_blank" rel="noopener noreferrer">
 
                         <ShieldCheck />
 
@@ -175,7 +175,7 @@ function Footer() {
                     </a>
 
 
-                    <a href="/terminos">
+                    <a href="/Legal/Autorizacion_Tratamiento_Datos_Baul_Magico.pdf" target="_blank" rel="noopener noreferrer">
 
                         <FileText />
 

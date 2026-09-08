@@ -8,7 +8,7 @@
 
     background: var(--color-bg);
 
-    padding: 28px 20px 34px;
+    padding: 40px 20px 48px;
 
     overflow: hidden;
 }
@@ -66,7 +66,15 @@
 .hero-card:hover {
     transform: translateY(-4px);
 
-    box-shadow: var(--shadow-lg);
+    box-shadow: 0 12px 32px rgba(14, 165, 181, .15);
+}
+
+.hero-card--pets:hover {
+    box-shadow: 0 12px 32px rgba(255, 122, 0, .15);
+}
+
+.hero-card--family:hover {
+    box-shadow: 0 12px 32px rgba(15, 118, 110, .15);
 }
 
 .hero-card:focus-within {
@@ -134,13 +142,15 @@
 
     color: var(--color-text);
 
-    font-size: clamp(22px, 2vw, 27px);
+    font-size: clamp(24px, 2.2vw, 30px);
 
-    line-height: 1.08;
+    line-height: 1.05;
 
     font-weight: 800;
 
-    letter-spacing: -.7px;
+    letter-spacing: -0.03em;
+
+    font-family: 'Outfit', 'Geist', 'Cabinet Grotesk', var(--font-sans);
 }
 
 .hero-card--fashion h1 {
@@ -427,9 +437,9 @@
 
     min-height: 90px;
 
-    margin-top: 24px;
+    margin-top: 32px;
 
-    padding: 16px 28px;
+    padding: 20px 32px;
 
     background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
 
@@ -438,8 +448,8 @@
     border-radius: 16px;
 
     box-shadow: 
-        0 1px 3px rgba(0, 0, 0, 0.05),
-        0 4px 12px rgba(0, 0, 0, 0.03);
+        0 2px 8px rgba(14, 165, 181, .06),
+        0 8px 24px rgba(14, 165, 181, .04);
 
     display: grid;
 
@@ -456,8 +466,8 @@
 
 .hero-benefits:hover {
     box-shadow: 
-        0 2px 8px rgba(0, 0, 0, 0.08),
-        0 8px 24px rgba(0, 0, 0, 0.06);
+        0 4px 16px rgba(14, 165, 181, .10),
+        0 12px 32px rgba(14, 165, 181, .08);
     
     transform: translateY(-2px);
 }
@@ -520,8 +530,8 @@
     height: 44px;
 
     box-shadow: 
-        0 2px 8px rgba(0, 0, 0, 0.08),
-        inset 0 1px 0 rgba(255, 255, 255, 0.4);
+        0 2px 8px rgba(14, 165, 181, .12),
+        inset 0 1px 0 rgba(255, 255, 255, 0.6);
 
     transition: 
         transform var(--transition),
@@ -532,8 +542,8 @@
     transform: scale(1.12) rotate(-6deg);
     
     box-shadow: 
-        0 4px 12px rgba(0, 0, 0, 0.12),
-        inset 0 1px 0 rgba(255, 255, 255, 0.5);
+        0 4px 16px rgba(14, 165, 181, .18),
+        inset 0 1px 0 rgba(255, 255, 255, 0.7);
 }
 
 .hero-icon-coral {
