@@ -127,7 +127,7 @@ function Hero() {
                     : "/products?highlight=accessories";
             })(),
             className: "hero-card--pets",
-            iconOne: BadgePercent,
+            iconOne: Percent,
             iconOneText: "Ofertas",
             iconTwo: Heart,
             iconTwoText: "Tendencias"
