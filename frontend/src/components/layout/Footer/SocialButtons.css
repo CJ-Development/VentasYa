@@ -105,27 +105,18 @@
 .social-buttons-label {
     position: absolute;
 
-    top: -28px;
+    top: -24px;
 
     left: 50%;
 
     transform: translateX(-50%);
 
-    background: #ffffff;
+    color: #ffffff;
 
-    color: #031927;
-
-    font-size: 11px;
-    font-weight: 700;
-
-    padding: 4px 8px;
-
-    border-radius: 4px;
+    font-size: 10px;
+    font-weight: 600;
 
     white-space: nowrap;
-
-    box-shadow:
-        0 2px 8px rgba(0, 0, 0, 0.15);
 
     opacity: 0;
 
@@ -133,42 +124,17 @@
 
     transition:
         opacity 0.2s ease,
-        visibility 0.2s ease,
-        top 0.2s ease;
+        visibility 0.2s ease;
 
     pointer-events: none;
 
     z-index: 10;
 }
 
-.social-buttons-label::after {
-    content: "";
-
-    position: absolute;
-
-    bottom: -4px;
-
-    left: 50%;
-
-    transform: translateX(-50%);
-
-    width: 0;
-
-    height: 0;
-
-    border-left: 4px solid transparent;
-
-    border-right: 4px solid transparent;
-
-    border-top: 4px solid #ffffff;
-}
-
 .social-buttons-child:hover .social-buttons-label {
     opacity: 1;
 
     visibility: visible;
-
-    top: -32px;
 }
 
 .social-buttons-child-1 .social-buttons-button {
