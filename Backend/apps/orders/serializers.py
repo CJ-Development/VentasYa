@@ -32,7 +32,8 @@ class CompraSerializer(serializers.ModelSerializer):
 
     usuario_info=UsuarioSerializer(
         source="usuario",
-        read_only=True
+        read_only=True,
+        allow_null=True
     )
 
     class Meta:
