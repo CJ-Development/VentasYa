@@ -23,6 +23,8 @@ import { useCart } from "../../../hooks/useCart";
 
 import { useAuth } from "../../../hooks/useAuth";
 
+import ProductCard from "../ProductCard/ProductCard";
+
 import {
     getMyFavorites,
     addFavorite,
@@ -321,34 +323,256 @@ function ProductDetail({ productId }) {
 
 
     /* =====================================================
-       RATING PSEUDO-REAL (estable por producto)
-       Se calcula a partir del id del producto hasta que
-       el backend exponga calificacion_promedio / num_resenas.
+       RATING REAL DESDE API
     ===================================================== */
 
-    const rating = useMemo(() => {
+    const [rating, setRating] = useState({ promedio: 0, total: 0, distribucion: {5: 0, 4: 0, 3: 0, 2: 0, 1: 0} });
+    const [ratingLoading, setRatingLoading] = useState(false);
+    const [resenas, setResenas] = useState([]);
+    const [resenasLoading, setResenasLoading] = useState(false);
+    const [puedeResenar, setPuedeResenar] = useState({ puede: false, mensaje: "", id_compra: null });
+    const [puedeResenarLoading, setPuedeResenarLoading] = useState(false);
+    const [nuevaResena, setNuevaResena] = useState({ calificacion: 5, comentario: "" });
+    const [enviandoResena, setEnviandoResena] = useState(false);
+    const [recomendaciones, setRecomendaciones] = useState([]);
+    const [recomendacionesLoading, setRecomendacionesLoading] = useState(false);
 
-        if (!producto?.id_producto) {
-            return { promedio: 0, total: 0 };
-        }
+    useEffect(() => {
 
-        const seed = String(producto.id_producto)
-            .split("")
-            .reduce(
-                (acc, ch) => acc + ch.charCodeAt(0),
-                0
-            );
+        if (!producto?.id_producto) return;
 
-        // 3.8 .. 5.0 con 1 decimal estable
-        const promedio =
-            Math.round((3.8 + (seed % 12) / 10) * 10) / 10;
+        const cargarRating = async () => {
 
-        // 12 .. 312 reseñas
-        const total = 12 + (seed * 7) % 300;
+            setRatingLoading(true);
 
-        return { promedio, total };
+            try {
+
+                const response = await fetch(
+                    `${import.meta.env.VITE_API_URL}/api/reviews/producto/${producto.id_producto}/rating/`
+                );
+
+                if (response.ok) {
+
+                    const data = await response.json();
+
+                    setRating(data);
+
+                }
+
+            } catch (err) {
+
+                console.error("Error cargando rating:", err);
+
+            } finally {
+
+                setRatingLoading(false);
+
+            }
+
+        };
+
+        const cargarResenas = async () => {
+
+            setResenasLoading(true);
+
+            try {
+
+                const response = await fetch(
+                    `${import.meta.env.VITE_API_URL}/api/reviews/producto/${producto.id_producto}/`
+                );
+
+                if (response.ok) {
+
+                    const data = await response.json();
+
+                    setResenas(data);
+
+                }
+
+            } catch (err) {
+
+                console.error("Error cargando reseñas:", err);
+
+            } finally {
+
+                setResenasLoading(false);
+
+            }
+
+        };
+
+        cargarRating();
+        cargarResenas();
+
+        const verificarPermiso = async () => {
+
+            setPuedeResenarLoading(true);
+
+            try {
+
+                const params = new URLSearchParams();
+
+                // Si hay usuario autenticado, enviar id_usuario
+                // Si es invitado, no enviamos nada (el backend verificará por sesión/cookies)
+
+                const response = await fetch(
+                    `${import.meta.env.VITE_API_URL}/api/reviews/producto/${producto.id_producto}/puede-resenar/?${params}`
+                );
+
+                if (response.ok) {
+
+                    const data = await response.json();
+
+                    setPuedeResenar(data);
+
+                }
+
+            } catch (err) {
+
+                console.error("Error verificando permiso de reseña:", err);
+
+            } finally {
+
+                setPuedeResenarLoading(false);
+
+            }
+
+        };
+
+        verificarPermiso();
+
+        const cargarRecomendaciones = async () => {
+
+            setRecomendacionesLoading(true);
+
+            try {
+
+                const response = await fetch(
+                    `${import.meta.env.VITE_API_URL}/api/products/${producto.id_producto}/recomendaciones/`
+                );
+
+                if (response.ok) {
+
+                    const data = await response.json();
+
+                    setRecomendaciones(data);
+
+                }
+
+            } catch (err) {
+
+                console.error("Error cargando recomendaciones:", err);
+
+            } finally {
+
+                setRecomendacionesLoading(false);
+
+            }
+
+        };
+
+        cargarRecomendaciones();
 
     }, [producto?.id_producto]);
+
+
+    const handleEnviarResena = async () => {
+
+        if (!nuevaResena.comentario.trim()) {
+
+            alert("Por favor escribe un comentario para tu reseña.");
+
+            return;
+
+        }
+
+        setEnviandoResena(true);
+
+        try {
+
+            const payload = {
+                producto: producto.id_producto,
+                calificacion: nuevaResena.calificacion,
+                comentario: nuevaResena.comentario,
+                compra: puedeResenar.id_compra,
+            };
+
+            const response = await fetch(
+                `${import.meta.env.VITE_API_URL}/api/reviews/producto/${producto.id_producto}/`,
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify(payload),
+                }
+            );
+
+            if (response.ok) {
+
+                // Recargar reseñas y rating
+                const cargarResenas = async () => {
+
+                    const res = await fetch(
+                        `${import.meta.env.VITE_API_URL}/api/reviews/producto/${producto.id_producto}/`
+                    );
+
+                    if (res.ok) {
+
+                        const data = await res.json();
+
+                        setResenas(data);
+
+                    }
+
+                };
+
+                const cargarRating = async () => {
+
+                    const res = await fetch(
+                        `${import.meta.env.VITE_API_URL}/api/reviews/producto/${producto.id_producto}/rating/`
+                    );
+
+                    if (res.ok) {
+
+                        const data = await res.json();
+
+                        setRating(data);
+
+                    }
+
+                };
+
+                await cargarResenas();
+                await cargarRating();
+
+                // Resetear formulario y verificar permiso nuevamente
+                setNuevaResena({ calificacion: 5, comentario: "" });
+                setPuedeResenar({ puede: false, mensaje: "Ya has enviado tu reseña", id_compra: null });
+
+                alert("¡Reseña enviada con éxito!");
+
+            } else {
+
+                const error = await response.json();
+
+                alert(error.detail || "Error al enviar la reseña");
+
+            }
+
+        } catch (err) {
+
+            console.error("Error enviando reseña:", err);
+
+            alert("Error al enviar la reseña");
+
+        } finally {
+
+            setEnviandoResena(false);
+
+        }
+
+    };
 
 
     const ratingEstrellas = useMemo(() => {
@@ -1042,19 +1266,74 @@ function ProductDetail({ productId }) {
 
                                 <span>
 
-                                    <strong>
-                                        {rating.promedio.toFixed(
-                                            1
-                                        )}
-                                    </strong>
+                                    {rating.total > 0 ? (
+                                        <>
+                                            <strong>
+                                                {rating.promedio.toFixed(
+                                                    1
+                                                )}
+                                            </strong>
 
-                                    {" "}
+                                            {" "}
 
-                                    ({rating.total} reseñas)
+                                            ({rating.total} reseñas)
+                                        </>
+                                    ) : (
+                                        <span className="no-reviews">
+                                            Aún no hay reseñas
+                                        </span>
+                                    )}
 
                                 </span>
 
                             </div>
+
+
+                            {/* DISTRIBUCIÓN DE ESTRELLAS */}
+
+                            {rating.total > 0 && (
+
+                                <div className="rating-distribution">
+
+                                    {[5, 4, 3, 2, 1].map((estrellas) => {
+
+                                        const cantidad = rating.distribucion[estrellas] || 0;
+                                        const porcentaje = rating.total > 0 
+                                            ? (cantidad / rating.total) * 100 
+                                            : 0;
+
+                                        return (
+                                            <div key={estrellas} className="rating-bar-row">
+
+                                                <span className="rating-bar-label">
+                                                    {estrellas} ★
+                                                </span>
+
+                                                <div className="rating-bar-track">
+
+                                                    <div
+                                                        className="rating-bar-fill"
+                                                        style={{ width: `${porcentaje}%` }}
+                                                    />
+
+                                                </div>
+
+                                                <span className="rating-bar-count">
+                                                    {cantidad}
+                                                </span>
+
+                                                <span className="rating-bar-percent">
+                                                    {porcentaje.toFixed(0)}%
+                                                </span>
+
+                                            </div>
+                                        );
+
+                                    })}
+
+                                </div>
+
+                            )}
 
 
                             {/* STOCK */}
@@ -1336,6 +1615,189 @@ function ProductDetail({ productId }) {
                                     </div>
 
                                 </div>
+
+
+                                {/* =================================
+                                    RESEÑAS
+                                ================================= */}
+
+                                <div className="product-reviews-section">
+
+                                    <h3>
+                                        Opiniones de nuestros clientes
+                                    </h3>
+
+
+                                    {/* FORMULARIO DE RESEÑA (solo si puede reseñar) */}
+
+                                    {!puedeResenarLoading && puedeResenar.puede && (
+
+                                        <div className="review-form-container">
+
+                                            <h4>
+                                                Deja tu opinión
+                                            </h4>
+
+                                            <p className="review-form-message">
+                                                {puedeResenar.mensaje}
+                                            </p>
+
+
+                                            <div className="rating-selector">
+
+                                                <span>Calificación:</span>
+
+                                                {[1, 2, 3, 4, 5].map((estrellas) => (
+
+                                                    <button
+                                                        key={estrellas}
+                                                        type="button"
+                                                        className={`rating-star-btn ${nuevaResena.calificacion === estrellas ? 'active' : ''}`}
+                                                        onClick={() => setNuevaResena({ ...nuevaResena, calificacion: estrellas })}
+                                                    >
+
+                                                        <Star
+                                                            size={20}
+                                                            fill={nuevaResena.calificacion >= estrellas ? "currentColor" : "none"}
+                                                        />
+
+                                                    </button>
+
+                                                ))}
+
+                                            </div>
+
+
+                                            <textarea
+                                                className="review-textarea"
+                                                placeholder="Escribe tu opinión sobre este producto..."
+                                                value={nuevaResena.comentario}
+                                                onChange={(e) => setNuevaResena({ ...nuevaResena, comentario: e.target.value })}
+                                                rows={4}
+                                            />
+
+
+                                            <button
+                                                className="review-submit-btn"
+                                                onClick={handleEnviarResena}
+                                                disabled={enviandoResena}
+                                            >
+
+                                                {enviandoResena ? "Enviando..." : "Enviar reseña"}
+
+                                            </button>
+
+                                        </div>
+
+                                    )}
+
+
+                                    {resenas.length > 0 ? (
+
+                                        <div className="reviews-list">
+
+                                            {resenas.map((resena) => (
+
+                                                <div key={resena.id_resena} className="review-card">
+
+                                                    <div className="review-header">
+
+                                                        <div className="review-author">
+
+                                                            <strong>
+                                                                {resena.nombre_cliente_display}
+                                                            </strong>
+
+                                                            {resena.compra_verificada && (
+                                                                <span className="verified-badge">
+                                                                    ✓ Compra verificada
+                                                                </span>
+                                                            )}
+
+                                                        </div>
+
+                                                        <span className="review-date">
+                                                            {resena.fecha_formateada}
+                                                        </span>
+
+                                                    </div>
+
+
+                                                    <div className="review-stars">
+
+                                                        {Array.from({ length: resena.calificacion }).map((_, i) => (
+
+                                                            <Star
+                                                                key={i}
+                                                                size={14}
+                                                                fill="currentColor"
+                                                            />
+
+                                                        ))}
+
+                                                        {Array.from({ length: 5 - resena.calificacion }).map((_, i) => (
+
+                                                            <Star
+                                                                key={`e-${i}`}
+                                                                size={14}
+                                                                color="#d1d5db"
+                                                            />
+
+                                                        ))}
+
+                                                    </div>
+
+
+                                                    <p className="review-comment">
+                                                        {resena.comentario}
+                                                    </p>
+
+                                                </div>
+
+                                            ))}
+
+                                        </div>
+
+                                    ) : (
+
+                                        <p className="no-reviews-message">
+                                            Este producto aún no tiene reseñas. ¡Sé el primero en opinar!
+                                        </p>
+
+                                    )}
+
+                                </div>
+
+
+                                {/* =================================
+                                    RECOMENDACIONES
+                                ================================= */}
+
+                                {recomendaciones.length > 0 && (
+
+                                    <div className="product-recommendations-section">
+
+                                        <h3>
+                                            Te podría interesar
+                                        </h3>
+
+
+                                        <div className="recommendations-grid">
+
+                                            {recomendaciones.map((prod) => (
+
+                                                <ProductCard
+                                                    key={prod.id_producto}
+                                                    product={prod}
+                                                />
+
+                                            ))}
+
+                                        </div>
+
+                                    </div>
+
+                                )}
 
 
                                 {/* =================================

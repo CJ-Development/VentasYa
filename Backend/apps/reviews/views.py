@@ -4,7 +4,7 @@ from rest_framework import status
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import ensure_csrf_cookie
 
-from .serializers import ResenaSerializer
+from .serializers import ResenaSerializer, ResenaCrearSerializer
 from .services import ResenaService
 
 
@@ -26,7 +26,7 @@ class ResenaView(APIView):
 
     def post(self, request):
 
-        serializer = ResenaSerializer(
+        serializer = ResenaCrearSerializer(
             data=request.data
         )
 
@@ -34,14 +34,46 @@ class ResenaView(APIView):
             raise_exception=True
         )
 
-        resena = ResenaService.crear(
-            serializer.validated_data
-        )
+        try:
+            resena = ResenaService.crear(
+                serializer.validated_data
+            )
+        except ValueError as e:
+            return Response(
+                {"detail": str(e)},
+                status=status.HTTP_400_BAD_REQUEST
+            )
 
         return Response(
             ResenaSerializer(resena).data,
             status=status.HTTP_201_CREATED
         )
+
+
+@method_decorator(ensure_csrf_cookie, name="dispatch")
+class RatingView(APIView):
+    """Endpoint para obtener rating de un producto"""
+
+    def get(self, request, id_producto):
+        rating = ResenaService.obtener_rating(id_producto)
+        return Response(rating)
+
+
+@method_decorator(ensure_csrf_cookie, name="dispatch")
+class PuedeResenarView(APIView):
+    """Endpoint para verificar si un usuario puede reseñar un producto"""
+
+    def get(self, request, id_producto):
+        id_usuario = request.query_params.get('id_usuario')
+        id_compra = request.query_params.get('id_compra')
+        
+        resultado = ResenaService.verificar_puede_resenar(
+            id_producto,
+            id_usuario=id_usuario,
+            id_compra=id_compra
+        )
+        
+        return Response(resultado)
 
 
 @method_decorator(ensure_csrf_cookie, name="dispatch")

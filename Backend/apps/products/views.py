@@ -297,6 +297,26 @@ class ImagenesPorVarianteView(APIView):
 
 
 @method_decorator(ensure_csrf_cookie, name="dispatch")
+class ProductoRecomendacionesView(APIView):
+    """GET público: recomendaciones de productos relacionados."""
+    permission_classes = [AllowAny]
+
+    def get(self, request, id_producto):
+        limite = self._parse_int(request.query_params.get("limite")) or 4
+        recomendaciones = ProductoService.obtener_recomendaciones(id_producto, limite)
+        return Response(ProductoSerializer(recomendaciones, many=True).data)
+
+    @staticmethod
+    def _parse_int(value):
+        if value is None or value == "":
+            return None
+        try:
+            return int(value)
+        except (TypeError, ValueError):
+            return None
+
+
+@method_decorator(ensure_csrf_cookie, name="dispatch")
 class ImagenDetalleView(APIView):
     """PUT/DELETE staff."""
     get_permissions = _permisos_admin_en_mutacion

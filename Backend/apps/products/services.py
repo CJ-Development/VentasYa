@@ -53,6 +53,72 @@ class ProductoService:
         return qs
 
     @staticmethod
+    def obtener_recomendaciones(id_producto, limite=4):
+        """
+        Obtiene productos recomendados basados en:
+        1. Misma categoría (prioridad)
+        2. Productos con stock
+        3. Estado activo
+        4. Excluye el producto actual
+        """
+        try:
+            producto_actual = Producto.objects.get(id_producto=id_producto)
+        except Producto.DoesNotExist:
+            return []
+        
+        categoria_id = producto_actual.categoria_id
+        
+        # Productos de la misma categoría con stock
+        recomendaciones = (
+            Producto.objects
+            .filter(
+                categoria_id=categoria_id,
+                estado="activo",
+                variante__stock__gt=0
+            )
+            .exclude(id_producto=id_producto)
+            .distinct()
+            .select_related("categoria")
+            .prefetch_related(
+                Prefetch(
+                    "variante_set",
+                    queryset=Variante.objects.select_related("color", "talla").prefetch_related(
+                        Prefetch("imagenproducto_set", queryset=ImagenProducto.objects.order_by("orden", "id_imagen"))
+                    ),
+                )
+            )[:limite]
+        )
+        
+        # Si no hay suficientes productos de la misma categoría,
+        # completar con productos activos de otras categorías
+        if recomendaciones.count() < limite:
+            cantidad_faltante = limite - recomendaciones.count()
+            ids_existentes = [p.id_producto for p in recomendaciones] + [id_producto]
+            
+            productos_fallback = (
+                Producto.objects
+                .filter(
+                    estado="activo",
+                    variante__stock__gt=0
+                )
+                .exclude(id_producto__in=ids_existentes)
+                .distinct()
+                .select_related("categoria")
+                .prefetch_related(
+                    Prefetch(
+                        "variante_set",
+                        queryset=Variante.objects.select_related("color", "talla").prefetch_related(
+                            Prefetch("imagenproducto_set", queryset=ImagenProducto.objects.order_by("orden", "id_imagen"))
+                        ),
+                    )
+                )[:cantidad_faltante]
+            )
+            
+            recomendaciones = list(recomendaciones) + list(productos_fallback)
+        
+        return recomendaciones[:limite]
+
+    @staticmethod
     def _base_queryset():
         return (
             Producto.objects.select_related("categoria").prefetch_related(
