@@ -232,7 +232,7 @@ function Products() {
         const match =
             categorias.find(
                 (c) =>
-                    c.slug === slug
+                    c.slug === slug || String(c.id_categoria) === slug
             );
 
 

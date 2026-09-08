@@ -19,6 +19,8 @@ import "./Footer.css";
 
 import logo from "../../../assets/images/Logo.png";
 
+import SocialButtons from "./SocialButtons";
+
 
 function Footer() {
 
@@ -101,40 +103,7 @@ function Footer() {
                         REDES SOCIALES
                     ================================================= */}
 
-                    <div className="footer-socials">
-
-                        <a
-                            href="#"
-                            className="footer-social"
-                            aria-label="Facebook"
-                        >
-                        </a>
-
-
-                        <a
-                            href="#"
-                            className="footer-social"
-                            aria-label="Instagram"
-                        >
-                        </a>
-
-
-                        <a
-                            href="#"
-                            className="footer-social"
-                            aria-label="WhatsApp"
-                        >
-                        </a>
-
-
-                        <a
-                            href="#"
-                            className="footer-social"
-                            aria-label="TikTok"
-                        >
-                        </a>
-
-                    </div>
+                    <SocialButtons />
 
                 </div>
 

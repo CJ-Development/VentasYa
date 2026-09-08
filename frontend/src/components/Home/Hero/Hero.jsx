@@ -45,7 +45,10 @@ function Hero() {
     // Mapeo de nombres de categorías del Hero a nombres reales del backend
     const categoriaSlugPorNombre = (nombre) => {
         const cat = categorias.find(c => c.nombre === nombre);
-        return cat ? cat.slug : null;
+        if (cat) {
+            return cat.slug || cat.id_categoria;
+        }
+        return null;
     };
 
     const categories = [

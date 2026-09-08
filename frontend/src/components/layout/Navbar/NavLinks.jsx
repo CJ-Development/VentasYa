@@ -33,7 +33,10 @@ import {
 import api from "../../../services/api";
 import MegaMenu from "../../MegaMenu/MegaMenu";
 
-const itemHref = (slug) => `/categoria/${slug}`;
+const itemHref = (slug, id) => {
+    if (slug) return `/categoria/${slug}`;
+    return `/categoria/${id}`;
+};
 
 const getCategoryIcon = (nombre) => {
     const nombreLower = nombre.toLowerCase();
@@ -120,7 +123,7 @@ function NavLinks() {
                         onMouseLeave={() => setActiveMenu(null)}
                     >
                         <Link
-                            to={itemHref(cat.slug)}
+                            to={itemHref(cat.slug, cat.id_categoria)}
                             className="nav-link"
                         >
                             <Icon size={16} className="nav-category-icon" />
@@ -139,7 +142,7 @@ function NavLinks() {
                                             return (
                                                 <div key={sub.id_categoria}>
                                                     <Link
-                                                        to={itemHref(sub.slug)}
+                                                        to={itemHref(sub.slug, sub.id_categoria)}
                                                         className="mega-item"
                                                     >
                                                         <SubIcon size={14} className="mega-item-icon" />
@@ -152,7 +155,7 @@ function NavLinks() {
                                                                 return (
                                                                     <Link
                                                                         key={subsub.id_categoria}
-                                                                        to={itemHref(subsub.slug)}
+                                                                        to={itemHref(subsub.slug, subsub.id_categoria)}
                                                                         className="mega-item mega-item--sub"
                                                                     >
                                                                         <SubSubIcon size={12} className="mega-item-icon" />
@@ -199,7 +202,7 @@ function NavLinks() {
                                         return (
                                             <div key={cat.id_categoria}>
                                                 <Link
-                                                    to={itemHref(cat.slug)}
+                                                    to={itemHref(cat.slug, cat.id_categoria)}
                                                     className="mega-item"
                                                 >
                                                     <CatIcon size={14} className="mega-item-icon" />
@@ -213,7 +216,7 @@ function NavLinks() {
                                                             return (
                                                                 <div key={sub.id_categoria}>
                                                                     <Link
-                                                                        to={itemHref(sub.slug)}
+                                                                        to={itemHref(sub.slug, sub.id_categoria)}
                                                                         className="mega-item mega-item--sub"
                                                                     >
                                                                         <SubIcon size={12} className="mega-item-icon" />
@@ -226,7 +229,7 @@ function NavLinks() {
                                                                                 return (
                                                                                     <Link
                                                                                         key={subsub.id_categoria}
-                                                                                        to={itemHref(subsub.slug)}
+                                                                                        to={itemHref(subsub.slug, subsub.id_categoria)}
                                                                                         className="mega-item mega-item--sub"
                                                                                     >
                                                                                         <SubSubIcon size={10} className="mega-item-icon" />

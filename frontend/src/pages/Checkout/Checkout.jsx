@@ -276,7 +276,7 @@ function Checkout() {
                                         onChange={(e) => setTerminosAceptados(e.target.checked)}
                                     />
                                     <span>
-                                        He leído y acepto los <Link to="/terminos">términos y condiciones</Link>
+                                        He leído y acepto los <a href="/Legal/Autorizacion_Tratamiento_Datos_Baul_Magico.pdf" target="_blank" rel="noopener noreferrer">términos y condiciones</a>
                                     </span>
                                 </label>
 
@@ -287,7 +287,7 @@ function Checkout() {
                                         onChange={(e) => setDatosAceptados(e.target.checked)}
                                     />
                                     <span>
-                                        Autorizo el tratamiento de mis datos personales según la <Link to="/politica-privacidad">política de privacidad</Link>
+                                        Autorizo el tratamiento de mis datos personales según la <a href="/Legal/Politica_de_Privacidad_Baul_Magico.pdf" target="_blank" rel="noopener noreferrer">política de privacidad</a>
                                     </span>
                                 </label>
                             </div>
