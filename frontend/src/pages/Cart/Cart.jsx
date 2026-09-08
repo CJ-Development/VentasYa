@@ -244,7 +244,7 @@ function Cart() {
                                     </span>
 
                                     <span>
-                                        Subtotal
+                                        Total
                                     </span>
 
                                     <span />
@@ -556,7 +556,7 @@ function Cart() {
                                 <div className="cart-summary-row">
 
                                     <span>
-                                        Subtotal ({items.length}{" "}
+                                        Total ({items.length}{" "}
                                         {items.length === 1
                                             ? "producto"
                                             : "productos"})

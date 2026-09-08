@@ -252,7 +252,7 @@ function CartDrawer() {
                     <footer className="cart-drawer-footer">
 
                         <div className="cart-drawer-total">
-                            <span>Subtotal</span>
+                            <span>Total</span>
                             <strong>{formatearPesos(total)}</strong>
                         </div>
 

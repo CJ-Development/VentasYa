@@ -806,6 +806,84 @@
 }
 
 /* =========================================================
+   BOTÓN FINALIZAR COMPRA
+   ========================================================= */
+
+.cart-checkout-button {
+    width: 100%;
+
+    min-height: 48px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    gap: 8px;
+
+    padding: 0 20px;
+
+    border: none;
+
+    border-radius: 10px;
+
+    background: #0097a7;
+
+    color: #ffffff;
+
+    font-size: 14px;
+    font-weight: 750;
+
+    cursor: pointer;
+
+    transition:
+        background 0.2s ease,
+        transform 0.2s ease,
+        box-shadow 0.2s ease;
+
+    box-shadow:
+        0 6px 18px rgba(0, 151, 167, 0.2);
+}
+
+
+.cart-checkout-button:hover:not(:disabled) {
+    background: #031927;
+
+    transform: translateY(-2px);
+
+    box-shadow:
+        0 10px 24px rgba(3, 25, 39, 0.25);
+}
+
+
+.cart-checkout-button:disabled {
+    opacity: 0.55;
+
+    cursor: not-allowed;
+
+    box-shadow: none;
+
+    transform: none;
+}
+
+
+.cart-checkout-security {
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    gap: 7px;
+
+    margin-top: 12px;
+
+    color: #6e7271;
+
+    font-size: 12px;
+    font-weight: 500;
+
+}
+
+/* =========================================================
    CUPÓN
    ========================================================= */
 
