@@ -2,12 +2,10 @@ import "./ProductCard.css";
 import NoImage from "../../../assets/images/no-image.png";
 import { mediaUrl } from "../../../utils/mediaUrl";
 
-import { Heart, ShoppingCart, Spinner } from "@phosphor-icons/react";
+import { ShoppingCart, Spinner } from "@phosphor-icons/react";
 
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
-import { useFavorites } from "../../../hooks/useFavorites";
-import { useAuth } from "../../../hooks/useAuth";
 import { useCart } from "../../../hooks/useCart";
 
 
@@ -15,8 +13,6 @@ function ProductCard({ product, onSelect }) {
 
     const navigate = useNavigate();
 
-    const { usuario } = useAuth();
-    const { isFavorite, toggle } = useFavorites();
     const { addItem } = useCart();
 
     const [isAdding, setIsAdding] = useState(false);
@@ -90,34 +86,6 @@ function ProductCard({ product, onSelect }) {
 
 
     const imageUrl = getProductImage();
-
-
-    /*
-    ============================================================
-    FAVORITOS
-    ============================================================
-    */
-
-    const fav = isFavorite(product.id_producto);
-
-
-    const handleToggleFavorite = async (e) => {
-
-        e.stopPropagation();
-
-        /*
-        Favoritos deshabilitado para invitados
-        */
-
-        if (!usuario) {
-
-            return;
-
-        }
-
-        await toggle(product.id_producto);
-
-    };
 
 
     /*
@@ -271,40 +239,6 @@ function ProductCard({ product, onSelect }) {
                     alt={product.nombre}
                     onError={handleImageError}
                 />
-
-
-                {/* ==================================================
-                    FAVORITO
-                ================================================== */}
-
-                <button
-                    type="button"
-
-                    className={`pc-favorite ${
-                        fav ? "is-favorite" : ""
-                    }`}
-
-                    onClick={handleToggleFavorite}
-
-                    title={
-                        fav
-                            ? "Quitar de favoritos"
-                            : "Agregar a favoritos"
-                    }
-
-                    aria-label={
-                        fav
-                            ? "Quitar de favoritos"
-                            : "Agregar a favoritos"
-                    }
-                >
-
-                    <Heart
-                        size={20}
-                        weight={fav ? "fill" : "regular"}
-                    />
-
-                </button>
 
 
                 {/* ==================================================

@@ -61,7 +61,7 @@
 
     margin: 0 auto;
 
-    padding: 0 34px 18px;
+    padding: 0 34px 24px;
 
     display: grid;
 
@@ -773,7 +773,7 @@
 
     align-items: stretch;
 
-    border-top: 1px solid var(--color-bg-alt);
+    border-top: 1px solid var(--color-border);
 }
 
 /* =========================================================
