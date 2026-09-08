@@ -127,6 +127,18 @@ class CheckoutView(APIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
+        if not terminos_aceptados:
+            return Response(
+                {"detail": "Debes aceptar los términos y condiciones."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        if not datos_aceptados:
+            return Response(
+                {"detail": "Debes aceptar la política de privacidad."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
         if not items_data:
             return Response(
                 {"detail": "El carrito está vacío."},

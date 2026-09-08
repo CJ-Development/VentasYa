@@ -75,12 +75,12 @@ function Checkout() {
         }
 
         if (!terminosAceptados) {
-            setError("Debes aceptar los términos y condiciones");
+            setError("Debes aceptar los Términos y Condiciones y la Política de Privacidad para continuar.");
             return;
         }
 
         if (!datosAceptados) {
-            setError("Debes autorizar el tratamiento de tus datos");
+            setError("Debes aceptar los Términos y Condiciones y la Política de Privacidad para continuar.");
             return;
         }
 
@@ -128,7 +128,7 @@ function Checkout() {
             }, 500);
         } catch (err) {
             console.error("Error al crear pedido:", err);
-            setError(err.response?.data?.detail || err.message || "Error al crear el pedido. Intenta nuevamente.");
+            setError("No pudimos registrar tu pedido. Por favor inténtalo nuevamente.");
         } finally {
             setIsSubmitting(false);
         }
