@@ -1624,6 +1624,30 @@ function Products() {
 
                         {panelFiltros}
 
+
+                        <div className="filters-modal-footer">
+
+                            <button
+                                type="button"
+                                className="filters-modal-clear"
+                                onClick={limpiarFiltros}
+                            >
+                                Limpiar
+                            </button>
+
+                            <button
+                                type="button"
+                                className="filters-modal-apply"
+                                onClick={() => {
+                                    aplicarFiltros();
+                                    setFiltrosAbiertos(false);
+                                }}
+                            >
+                                Aplicar filtros
+                            </button>
+
+                        </div>
+
                     </div>
 
                 </div>
