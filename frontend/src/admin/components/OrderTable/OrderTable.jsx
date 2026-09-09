@@ -66,6 +66,14 @@ const formatearNumeroPedido = (id) => {
     return `BMS-${String(numero).padStart(5, '0')}`;
 };
 
+const formatearReferencia = (id) => {
+    const numero = Number(id);
+    if (Number.isNaN(numero)) {
+        return id;
+    }
+    return `#${numero}`;
+};
+
 
 const claseEstado = {
 
@@ -439,7 +447,12 @@ function OrderTable({ refreshKey, onAction }) {
 
                                         <td className="order-id">
 
-                                            #{formatearNumeroPedido(pedido.id_compra)}
+                                            <div>
+                                                <div>#{formatearNumeroPedido(pedido.id_compra)}</div>
+                                                <small style={{color: '#6B7280', fontSize: '11px'}}>
+                                                    {formatearReferencia(pedido.id_compra)}
+                                                </small>
+                                            </div>
 
                                         </td>
 

@@ -45,7 +45,7 @@ class CompraView(APIView):
 class CompraDetalleView(APIView):
 
     ESTADOS_VALIDOS = ["pendiente", "pagado", "enviado", "entregado", "cancelado"]
-    CAMPOS_PERMITIDOS = {"estado_compra", "telefono_contacto"}
+    CAMPOS_PERMITIDOS = {"estado_compra", "telefono_contacto", "metodo_pago"}
 
     def get(self, request, id):
         compra = get_object_or_404(Compra, id_compra=id)
