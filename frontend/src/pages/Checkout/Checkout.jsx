@@ -101,6 +101,11 @@ function Checkout() {
                 })),
             });
 
+            // Logs de diagnóstico para producción
+            console.log("[Checkout] response.data:", response.data);
+            console.log("[Checkout] compra_id:", response.data?.compra_id);
+            console.log("[Checkout] referencia:", response.data?.referencia);
+
             // Validar respuesta del backend
             if (!response.data || !response.data.whatsapp_number) {
                 setError("No se pudo obtener el número de WhatsApp. Intenta nuevamente.");
@@ -135,10 +140,17 @@ function Checkout() {
     };
 
     const generarMensajeWhatsApp = (data) => {
-        const { cliente, productos, total, referencia } = data;
+        const { cliente, productos, total, referencia, compra_id } = data;
+
+        // Fallback para referencia si viene undefined del backend
+        const referenciaFinal =
+            referencia ||
+            (compra_id != null ? `#${compra_id}` : "Pendiente");
+
+        console.log("[Checkout] referenciaFinal:", referenciaFinal);
 
         let mensaje = "🛒 *Nuevo pedido - Baúl Mágico Shop*\n\n";
-        mensaje += `🔖 *Referencia:* ${referencia}\n`;
+        mensaje += `🔖 *Referencia:* ${referenciaFinal}\n`;
         mensaje += `👤 *Cliente:* ${cliente.nombre}\n`;
         mensaje += `📱 *Teléfono:* ${cliente.telefono}\n\n`;
         mensaje += "📦 *Productos:*\n\n";
