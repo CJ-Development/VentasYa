@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { Search, ArrowLeft, X, Folder, FolderOpen, ChevronRight } from "lucide-react";
+import { Search, ArrowLeft, X, Folder, FolderOpen, ChevronRight, ChevronDown } from "lucide-react";
 import "./CategorySelector.css";
 
 function CategorySelector({
