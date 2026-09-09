@@ -40,7 +40,12 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='categoria',
             name='slug',
-            field=models.SlugField(blank=True, max_length=255, unique=False),
+            field=models.SlugField(
+                blank=True,
+                max_length=255,
+                unique=False,
+                db_index=False,
+            ),
         ),
         # Paso 2: Generar slugs para datos existentes
         migrations.RunPython(generar_slugs_jerarquicos, migrations.RunPython.noop),
@@ -48,7 +53,12 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='categoria',
             name='slug',
-            field=models.SlugField(blank=True, max_length=255, unique=True),
+            field=models.SlugField(
+                blank=True,
+                max_length=255,
+                unique=True,
+                db_index=False,
+            ),
         ),
         # Paso 4: Eliminar unique=True de nombre
         migrations.AlterField(

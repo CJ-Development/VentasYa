@@ -10,6 +10,8 @@ class CompraService:
             "usuario",
             "direccion",
             "metodo_pago"
+        ).prefetch_related(
+            "detalles__variante__producto"
         ).order_by("-fecha_compra")
 
     @staticmethod

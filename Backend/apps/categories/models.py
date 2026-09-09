@@ -14,7 +14,8 @@ class Categoria(models.Model):
     slug = models.SlugField(
         max_length=255,
         unique=True,
-        blank=True
+        blank=True,
+        db_index=False,
     )
 
     descripcion = models.TextField(
