@@ -7,7 +7,6 @@ import {
 import {
     ArrowLeft,
     Check,
-    ChevronDown,
     Folder,
     FolderOpen
 } from "lucide-react";
@@ -17,6 +16,8 @@ import {
     updateCategory,
     getCategories
 } from "../../../services/adminService";
+
+import CategorySelector from "./CategorySelector";
 
 import "./CategoryForm.css";
 
@@ -219,35 +220,37 @@ function CategoryForm({
 
     /*
     =====================================================
-    HIJAS
+    OBTENER RUTA COMPLETA
     =====================================================
     */
 
-    const obtenerHijas = (id) => {
-
-        return categorias.filter(
-            (item) => {
-
-                const parent =
-                    item.id_categoria_padre ??
-                    item.categoria_padre?.id_categoria ??
-                    item.categoria_padre;
-
-                return (
-                    Number(parent) ===
-                    Number(id)
-                );
-            }
-        );
+    const buildPath = (category) => {
+        const path = [];
+        let current = category;
+        
+        while (current) {
+            path.unshift(current);
+            const parentId = current.id_categoria_padre ?? current.categoria_padre?.id_categoria ?? current.categoria_padre;
+            current = categorias.find(cat => Number(cat.id_categoria) === Number(parentId));
+        }
+        
+        return path;
     };
 
+    /*
+    =====================================================
+    PREVIEW DE ESTRUCTURA
+    =====================================================
+    */
 
-    const previewChildren =
-        categoriaPadre
-            ? obtenerHijas(
-                categoriaPadre.id_categoria
-            )
-            : [];
+    const previewStructure = useMemo(() => {
+        if (!formData.nombre) return null;
+        
+        const parentPath = categoriaPadre ? buildPath(categoriaPadre) : [];
+        const fullPath = [...parentPath, { nombre: formData.nombre, isNew: true }];
+        
+        return fullPath;
+    }, [formData.nombre, categoriaPadre, categorias]);
 
 
     /*
@@ -536,81 +539,13 @@ function CategoryForm({
 
                         <div className="form-group full">
 
-                            <label htmlFor="categoria_padre_id">
-
-                                Categoría padre
-
-                            </label>
-
-
-                            <div className="select-wrapper">
-
-                                <select
-                                    id="categoria_padre_id"
-                                    name="categoria_padre_id"
-                                    value={
-                                        formData.categoria_padre_id
-                                    }
-                                    onChange={
-                                        handleChange
-                                    }
-                                    disabled={
-                                        loadingCategories ||
-                                        submitting
-                                    }
-                                >
-
-                                    <option value="">
-
-                                        Ninguna — categoría principal
-
-                                    </option>
-
-
-                                    {categoriasPrincipales
-
-                                        .filter(
-                                            (item) =>
-                                                !editing ||
-                                                Number(
-                                                    item.id_categoria
-                                                ) !== Number(
-                                                    category.id_categoria
-                                                )
-                                        )
-
-                                        .map((item) => (
-
-                                            <option
-                                                key={
-                                                    item.id_categoria
-                                                }
-                                                value={
-                                                    item.id_categoria
-                                                }
-                                            >
-
-                                                {item.nombre}
-
-                                            </option>
-
-                                        ))
-
-                                    }
-
-                                </select>
-
-
-                                <ChevronDown
-                                    size={17}
-                                />
-
-                            </div>
-
-
-                            <small>
-                                Selecciona una categoría principal para crear una subcategoría.
-                            </small>
+                            <CategorySelector
+                                categories={categorias}
+                                value={formData.categoria_padre_id}
+                                onChange={(value) => setFormData(prev => ({ ...prev, categoria_padre_id: value }))}
+                                excludeId={editing ? category.id_categoria : null}
+                                disabled={loadingCategories || submitting}
+                            />
 
                         </div>
 
@@ -760,80 +695,35 @@ function CategoryForm({
 
                     <div className="preview-navigation">
 
-                        <div className="preview-column">
+                        {previewStructure ? (
+                            <div className="preview-tree">
+                                {previewStructure.map((item, index) => (
+                                    <div key={index} className="preview-tree-node">
+                                        {index > 0 && (
+                                            <div className="preview-tree-line" />
+                                        )}
+                                        <div className={`preview-tree-item ${item.isNew ? 'new' : ''}`}>
+                                            {item.nombre}
+                                            {item.isNew && (
+                                                <small>Nueva</small>
+                                            )}
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        ) : (
+                            <div className="preview-empty">
 
-                            <div className="preview-column-title">
+                                <FolderOpen
+                                    size={18}
+                                />
 
-                                {categoriaPadre?.nombre ||
-                                    (
-                                        formData.nombre ||
-                                        "Nueva categoría"
-                                    )
-                                }
+                                <span>
+                                    Ingresa un nombre para ver la estructura.
+                                </span>
 
                             </div>
-
-
-                            <div className="preview-column-line" />
-
-
-                            {categoriaPadre ? (
-
-                                <>
-
-                                    {previewChildren.map(
-                                        (child) => (
-
-                                            <div
-                                                className="preview-item"
-                                                key={
-                                                    child.id_categoria
-                                                }
-                                            >
-
-                                                {child.nombre}
-
-                                            </div>
-
-                                        )
-                                    )}
-
-
-                                    {formData.nombre && (
-
-                                        <div className="preview-item preview-new">
-
-                                            <span>
-                                                {formData.nombre}
-                                            </span>
-
-                                            <small>
-                                                Nueva
-                                            </small>
-
-                                        </div>
-
-                                    )}
-
-                                </>
-
-                            ) : (
-
-                                <div className="preview-empty">
-
-                                    <FolderOpen
-                                        size={18}
-                                    />
-
-                                    <span>
-                                        Esta categoría será principal.
-                                    </span>
-
-                                </div>
-
-                            )}
-
-                        </div>
+                        )}
 
                     </div>
 

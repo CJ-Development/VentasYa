@@ -583,6 +583,58 @@
 
 
 /* =========================
+   PREVIEW TREE
+========================= */
+
+.preview-tree {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 16px 22px;
+}
+
+.preview-tree-node {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.preview-tree-line {
+    width: 2px;
+    height: 24px;
+    background: #E5E7EB;
+    margin-left: 12px;
+}
+
+.preview-tree-item {
+    padding: 8px 12px;
+    background: #F9FAFB;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 500;
+    color: #172554;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.preview-tree-item.new {
+    background: #EFFBFC;
+    color: #0EA5B5;
+}
+
+.preview-tree-item.new small {
+    background: #0EA5B5;
+    color: #ffffff;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+
+/* =========================
    NOTE
 ========================= */
 
