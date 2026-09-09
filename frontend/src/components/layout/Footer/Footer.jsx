@@ -289,7 +289,7 @@ function Footer() {
                     {/* COPYRIGHT */}
 
                     <p>
-                        © 2026 Baúl Mágico Shop. Todos los derechos reservados.
+                        © 2026 Colombia Baúl Mágico Shop. Todos los derechos reservados.
                     </p>
 
 

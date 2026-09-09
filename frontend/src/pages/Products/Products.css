@@ -35,6 +35,13 @@
    SIDEBAR
 ============================================================ */
 
+.filters-modal-inner .products-sidebar {
+    position: static;
+    box-shadow: none;
+    border-radius: 0;
+    padding: 0;
+}
+
 .products-sidebar {
     width: 100%;
 

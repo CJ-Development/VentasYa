@@ -69,9 +69,10 @@ const getCategoryIcon = (nombre) => {
     return Package; // Icono por defecto
 };
 
-function NavLinks() {
+function NavLinks({ mobileMenuOpen, setMobileMenuOpen }) {
     const [categorias, setCategorias] = useState([]);
     const [activeMenu, setActiveMenu] = useState(null);
+    const [isMobile, setIsMobile] = useState(false);
 
     useEffect(() => {
         api.get("/categories/")
@@ -82,6 +83,28 @@ function NavLinks() {
             })
             .catch((err) => console.error("Error cargando categorías:", err));
     }, []);
+
+    useEffect(() => {
+        const checkMobile = () => {
+            setIsMobile(window.innerWidth <= 900);
+        };
+        checkMobile();
+        window.addEventListener('resize', checkMobile);
+        return () => window.removeEventListener('resize', checkMobile);
+    }, []);
+
+    const handleMenuToggle = (categoryId, e) => {
+        if (isMobile) {
+            e.preventDefault();
+            setActiveMenu(activeMenu === categoryId ? null : categoryId);
+        }
+    };
+
+    const handleLinkClick = () => {
+        if (isMobile && setMobileMenuOpen) {
+            setMobileMenuOpen(false);
+        }
+    };
 
     // Mostrar primeras 6 categorías en navegación principal, resto en "Más"
     const mainCategories = useMemo(() => categorias.slice(0, 6), [categorias]);
@@ -99,6 +122,7 @@ function NavLinks() {
                 <Link
                     to="/"
                     className="nav-link"
+                    onClick={handleLinkClick}
                 >
                     Inicio
                 </Link>
@@ -119,12 +143,14 @@ function NavLinks() {
                     <div
                         key={cat.id_categoria}
                         className="nav-item"
-                        onMouseEnter={() => setActiveMenu(cat.id_categoria)}
-                        onMouseLeave={() => setActiveMenu(null)}
+                        onMouseEnter={() => !isMobile && setActiveMenu(cat.id_categoria)}
+                        onMouseLeave={() => !isMobile && setActiveMenu(null)}
+                        onClick={(e) => handleMenuToggle(cat.id_categoria, e)}
                     >
                         <Link
                             to={itemHref(cat.slug, cat.id_categoria)}
                             className="nav-link"
+                            onClick={handleLinkClick}
                         >
                             <Icon size={16} className="nav-category-icon" />
                             {cat.nombre}
@@ -144,6 +170,7 @@ function NavLinks() {
                                                     <Link
                                                         to={itemHref(sub.slug, sub.id_categoria)}
                                                         className="mega-item"
+                                                        onClick={handleLinkClick}
                                                     >
                                                         <SubIcon size={14} className="mega-item-icon" />
                                                         {sub.nombre}
@@ -157,6 +184,7 @@ function NavLinks() {
                                                                         key={subsub.id_categoria}
                                                                         to={itemHref(subsub.slug, subsub.id_categoria)}
                                                                         className="mega-item mega-item--sub"
+                                                                        onClick={handleLinkClick}
                                                                     >
                                                                         <SubSubIcon size={12} className="mega-item-icon" />
                                                                         {subsub.nombre}
@@ -183,8 +211,9 @@ function NavLinks() {
             {moreCategories.length > 0 && (
                 <div
                     className="nav-item"
-                    onMouseEnter={() => setActiveMenu("more")}
-                    onMouseLeave={() => setActiveMenu(null)}
+                    onMouseEnter={() => !isMobile && setActiveMenu("more")}
+                    onMouseLeave={() => !isMobile && setActiveMenu(null)}
+                    onClick={(e) => handleMenuToggle("more", e)}
                 >
                     <span className="nav-link">
                         Más
