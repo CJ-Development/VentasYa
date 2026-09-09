@@ -153,6 +153,11 @@ function OrderTable({ refreshKey, onAction }) {
     };
 
 
+    useEffect(() => {
+        cargarPedidos();
+    }, [refreshKey]);
+
+
     const guardarEstado = async (pedido) => {
 
         try {
