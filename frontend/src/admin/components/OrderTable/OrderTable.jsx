@@ -692,126 +692,14 @@ function OrderTable({ refreshKey, onAction }) {
 
                         <div className="detail-section">
 
-                            <h3>Cliente</h3>
-
-                            {detalle.usuario_info ? (
-
-                                <p>
-
-                                    <strong>
-                                        {detalle.usuario_info.nombres}{" "}
-                                        {detalle.usuario_info.apellidos}
-                                    </strong>
-
-                                    <br />
-
-                                    {detalle.usuario_info.email}
-
-                                </p>
-
-                            ) : (
-
-                                <p>
-                                    Usuario #{detalle.usuario}
-                                </p>
-
-                            )}
+                            <h3>Cliente: {detalle.usuario_info ? `${detalle.usuario_info.nombres} ${detalle.usuario_info.apellidos}` : `Usuario #${detalle.usuario}`}</h3>
 
                         </div>
 
 
                         <div className="detail-section">
 
-                            <h3>Contacto</h3>
-
-                            {detalle.telefono_contacto ? (
-
-                                <p className="contact-cell">
-
-                                    <Phone size={16} />
-
-                                    <a
-                                        href={`tel:${detalle.telefono_contacto}`}
-                                    >
-                                        {detalle.telefono_contacto}
-                                    </a>
-
-                                </p>
-
-                            ) : (
-
-                                <p className="empty-contact">
-                                    Sin teléfono registrado.
-                                </p>
-
-                            )}
-
-                        </div>
-
-
-                        <div className="detail-section">
-
-                            <h3>Información del pedido</h3>
-
-                            <div className="detail-info-row">
-
-                                <span>Fecha</span>
-
-                                <strong>
-                                    {formatearFecha(
-                                        detalle.fecha_compra
-                                    )}
-                                </strong>
-
-                            </div>
-
-
-                            <div className="detail-info-row">
-
-                                <span>Estado</span>
-
-                                <span
-                                    className={
-                                        claseEstado[
-                                            detalle.estado_compra
-                                        ] ||
-                                        claseEstado.pendiente
-                                    }
-                                >
-
-                                    {detalle.estado_compra}
-
-                                </span>
-
-                            </div>
-
-
-                            <div className="detail-info-row">
-
-                                <span>Total</span>
-
-                                <strong>
-                                    {formatearPesos(
-                                        detalle.total
-                                    )}
-                                </strong>
-
-                            </div>
-
-                        </div>
-
-
-                        <div className="detail-section">
-
-                            <h3>Método de pago</h3>
-
-                            <p>
-                                {
-                                    detalle.metodo_pago_tipo ||
-                                    detalle.metodo_pago ||
-                                    "—"
-                                }
-                            </p>
+                            <h3>Contacto : {detalle.telefono_contacto || "Sin teléfono"}</h3>
 
                         </div>
 

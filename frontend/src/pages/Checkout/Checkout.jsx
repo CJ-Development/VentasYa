@@ -135,9 +135,10 @@ function Checkout() {
     };
 
     const generarMensajeWhatsApp = (data) => {
-        const { cliente, productos, total } = data;
+        const { cliente, productos, total, referencia } = data;
 
         let mensaje = "🛒 *Nuevo pedido - Baúl Mágico Shop*\n\n";
+        mensaje += `🔖 *Referencia:* ${referencia}\n`;
         mensaje += `👤 *Cliente:* ${cliente.nombre}\n`;
         mensaje += `📱 *Teléfono:* ${cliente.telefono}\n\n`;
         mensaje += "📦 *Productos:*\n\n";

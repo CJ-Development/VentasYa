@@ -244,11 +244,19 @@ class CheckoutView(APIView):
                     fecha_aceptacion=fecha_aceptacion,
                 )
 
-                # 4) Descontar stock definitivamente.
+                # 4) Descontar stock definitivamente y archivar si stock llega a 0.
                 for item in items_validados:
                     variante = item["variante"]
                     variante.stock -= item["cantidad"]
                     variante.save(update_fields=["stock"])
+
+                    # Si el stock llega a 0, archivar el producto si todas sus variantes están agotadas
+                    if variante.stock == 0:
+                        producto = variante.producto
+                        variantes_con_stock = producto.variante_set.filter(stock__gt=0).count()
+                        if variantes_con_stock == 0:
+                            producto.estado = "archivado"
+                            producto.save(update_fields=["estado"])
 
                 # 5) Vaciar carrito si hay usuario autenticado.
                 if usuario:
@@ -289,6 +297,7 @@ class CheckoutView(APIView):
                 response_data = {
                     "ok": True,
                     "compra_id": compra.id_compra,
+                    "referencia": f"#{compra.id_compra}",
                     "pago_id": pago.id_pago,
                     "estado": "pendiente",
                     "total": float(total),

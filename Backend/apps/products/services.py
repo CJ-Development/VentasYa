@@ -20,8 +20,8 @@ class ProductoService:
         from apps.orders.models import DetalleCompra
 
         qs = ProductoService._base_queryset()
-        # Filtrar productos que tengan al menos una variante con stock > 0
-        qs = qs.filter(variante__stock__gt=0).distinct()
+        # Filtrar productos activos que tengan al menos una variante con stock > 0
+        qs = qs.filter(estado="activo").filter(variante__stock__gt=0).distinct()
         
         if tendencia:
             # Calcular cantidad vendida por producto

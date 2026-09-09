@@ -18,6 +18,10 @@ class CarritoService:
         if variante.stock <= 0:
             raise ValueError("Esta variante no tiene stock disponible.")
 
+        # Validar que el producto esté activo
+        if variante.producto.estado != "activo":
+            raise ValueError("Este producto no está disponible.")
+
         item, created = ItemCarrito.objects.get_or_create(
             carrito=carrito,
             variante=variante
