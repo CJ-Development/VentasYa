@@ -142,19 +142,47 @@
 
 
 /* =====================================================
-   TÍTULO
+   TÍTULO DE LA TABLA
    ===================================================== */
 
+.order-table-title-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 20px;
+}
+
 .order-table-title {
+    margin: 0;
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: #102a43;
+}
 
-    margin: 0 0 18px;
+.toggle-totals-button {
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    background: #f9fafb;
+    color: #64748b;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
 
-    color: #172554;
+.toggle-totals-button:hover {
+    background: #f3f4f6;
+    border-color: #d1d5db;
+    color: #374151;
+}
 
-    font-size: 14px;
-
-    font-weight: 600;
-
+.toggle-totals-button:focus-visible {
+    outline: 2px solid #0ea5b5;
+    outline-offset: 2px;
 }
 
 
@@ -319,6 +347,52 @@
     color: #475569;
 
     white-space: nowrap;
+
+    cursor: pointer;
+
+    transition: color 0.2s ease;
+
+}
+
+.payment-method:hover {
+
+    color: #0ea5b5;
+
+}
+
+
+/* =====================================================
+   SELECTS INLINE (estado y método de pago)
+   ===================================================== */
+
+.orders-data-table td select {
+
+    padding: 6px 10px;
+
+    border: 1px solid #0ea5b5;
+
+    border-radius: 6px;
+
+    background: #ffffff;
+
+    color: #172554;
+
+    font-size: 12px;
+
+    font-weight: 500;
+
+    cursor: pointer;
+
+    outline: none;
+
+    min-width: 100px;
+
+}
+
+
+.orders-data-table td select:focus {
+
+    box-shadow: 0 0 0 2px rgba(14, 165, 181, 0.15);
 
 }
 

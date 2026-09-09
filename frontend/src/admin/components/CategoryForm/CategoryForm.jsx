@@ -350,7 +350,22 @@ function CategoryForm({
                     : "No fue posible crear la categoría.";
 
 
+            // =================================================
+            // ERROR DE NOMBRE DUPLICADO
+            // =================================================
+
             if (
+                backendData?.detail?.includes?.("duplicate key") ||
+                backendData?.detail?.includes?.("already exists") ||
+                error?.message?.includes?.("duplicate key") ||
+                error?.message?.includes?.("already exists")
+            ) {
+                mensaje = `Ya existe una categoría con el nombre "${formData.nombre.trim()}". Por favor usa un nombre diferente.`;
+            }
+            // =================================================
+            // ERRORES DE VALIDACIÓN DEL BACKEND
+            // =================================================
+            else if (
                 backendData?.categoria_padre_id
             ) {
 

@@ -2,9 +2,8 @@ import { useEffect, useState } from "react";
 
 import {
     Eye,
-    Pencil,
+    EyeOff,
     Phone,
-    Trash2,
     X
 } from "lucide-react";
 
@@ -12,8 +11,7 @@ import "./OrderTable.css";
 
 import {
     getOrders,
-    updateOrderStatus,
-    deleteOrder
+    updateOrderStatus
 } from "../../../services/adminService";
 
 
@@ -60,6 +58,15 @@ const formatearFecha = (iso) => {
 };
 
 
+const formatearNumeroPedido = (id) => {
+    const numero = Number(id);
+    if (Number.isNaN(numero)) {
+        return id;
+    }
+    return `BMS-${String(numero).padStart(5, '0')}`;
+};
+
+
 const claseEstado = {
 
     pendiente: "order-status order-status--pending",
@@ -93,7 +100,22 @@ function OrderTable({ refreshKey, onAction }) {
 
     const [nuevoEstado, setNuevoEstado] = useState("pendiente");
 
-    const [nuevoTelefono, setNuevoTelefono] = useState("");
+    const [showTotals, setShowTotals] = useState(false);
+
+    const [editMetodoPago, setEditMetodoPago] = useState(null);
+
+    const [nuevoMetodoPago, setNuevoMetodoPago] = useState("");
+
+    const METODOS_PAGO = [
+        "nequi",
+        "wompi",
+        "bancolombia",
+        "daviplata",
+        "pse",
+        "tarjeta",
+        "efectivo",
+        "otro"
+    ];
 
 
     const cargarPedidos = async () => {
@@ -127,71 +149,15 @@ function OrderTable({ refreshKey, onAction }) {
     };
 
 
-    useEffect(() => {
-
-        cargarPedidos();
-
-    }, [refreshKey]);
-
-
-    const eliminarPedido = async (id) => {
-
-        const confirmar = window.confirm(
-            "¿Eliminar este pedido?"
-        );
-
-        if (!confirmar) {
-            return;
-        }
-
-        try {
-
-            await deleteOrder(id);
-
-            if (onAction) {
-                onAction();
-            }
-
-        }
-
-        catch (err) {
-
-            console.error(err);
-
-            alert("No fue posible eliminar el pedido.");
-
-        }
-
-    };
-
-
-    const abrirEdicion = (pedido) => {
-
-        setEditEstado(pedido);
-
-        setNuevoEstado(
-            pedido.estado_compra || "pendiente"
-        );
-
-        setNuevoTelefono(
-            pedido.telefono_contacto || ""
-        );
-
-    };
-
-
-    const guardarEstado = async (e) => {
-
-        e.preventDefault();
+    const guardarEstado = async (pedido) => {
 
         try {
 
             await updateOrderStatus(
-                editEstado.id_compra,
+                pedido.id_compra,
                 {
                     estado_compra: nuevoEstado,
-                    telefono_contacto:
-                        nuevoTelefono.trim() || null
+                    telefono_contacto: pedido.telefono_contacto || null
                 }
             );
 
@@ -209,6 +175,38 @@ function OrderTable({ refreshKey, onAction }) {
 
             alert(
                 "No fue posible actualizar el estado."
+            );
+
+        }
+
+    };
+
+
+    const guardarMetodoPago = async (pedido) => {
+
+        try {
+
+            await updateOrderStatus(
+                pedido.id_compra,
+                {
+                    metodo_pago: nuevoMetodoPago
+                }
+            );
+
+            setEditMetodoPago(null);
+
+            if (onAction) {
+                onAction();
+            }
+
+        }
+
+        catch (err) {
+
+            console.error(err);
+
+            alert(
+                "No fue posible actualizar el método de pago."
             );
 
         }
@@ -336,9 +334,20 @@ function OrderTable({ refreshKey, onAction }) {
                 TÍTULO DE LA TABLA
                 ===================================================== */}
 
-            <h2 className="order-table-title">
-                Pedidos registrados
-            </h2>
+            <div className="order-table-title-row">
+                <h2 className="order-table-title">
+                    Pedidos registrados
+                </h2>
+
+                <button
+                    type="button"
+                    className="toggle-totals-button"
+                    onClick={() => setShowTotals(!showTotals)}
+                    title={showTotals ? "Ocultar totales" : "Mostrar totales"}
+                >
+                    {showTotals ? <EyeOff size={16} /> : <Eye size={16} />}
+                </button>
+            </div>
 
 
             {/* =====================================================
@@ -356,8 +365,6 @@ function OrderTable({ refreshKey, onAction }) {
                             <th># Pedido</th>
 
                             <th>Cliente</th>
-
-                            <th>Contacto</th>
 
                             <th>Fecha</th>
 
@@ -381,7 +388,7 @@ function OrderTable({ refreshKey, onAction }) {
                             <tr>
 
                                 <td
-                                    colSpan="8"
+                                    colSpan="7"
                                     className="order-empty-cell"
                                 >
 
@@ -399,7 +406,9 @@ function OrderTable({ refreshKey, onAction }) {
                                 const cliente =
                                     pedido.usuario_info
                                         ? `${pedido.usuario_info.nombres} ${pedido.usuario_info.apellidos}`
-                                        : `Usuario #${pedido.usuario}`;
+                                        : pedido.usuario
+                                            ? `Usuario #${pedido.usuario}`
+                                            : "Cliente sin registrar";
 
                                 const estado =
                                     pedido.estado_compra ||
@@ -419,7 +428,7 @@ function OrderTable({ refreshKey, onAction }) {
 
                                         <td className="order-id">
 
-                                            #{pedido.id_compra}
+                                            #{formatearNumeroPedido(pedido.id_compra)}
 
                                         </td>
 
@@ -433,44 +442,6 @@ function OrderTable({ refreshKey, onAction }) {
                                         </td>
 
 
-                                        {/* Contacto */}
-
-                                        <td>
-
-                                            {telefono ? (
-
-                                                <span className="contact-cell">
-
-                                                    <Phone size={14} />
-
-                                                    <a
-                                                        href={`tel:${telefono}`}
-                                                    >
-                                                        {telefono}
-                                                    </a>
-
-                                                </span>
-
-                                            ) : (
-
-                                                <button
-                                                    type="button"
-                                                    className="add-contact-button"
-                                                    title="Agregar teléfono"
-                                                    onClick={() =>
-                                                        abrirEdicion(pedido)
-                                                    }
-                                                >
-
-                                                    <Phone size={14} />
-
-                                                    Agregar
-
-                                                </button>
-
-                                            )}
-
-                                        </td>
 
 
                                         {/* Fecha */}
@@ -488,9 +459,10 @@ function OrderTable({ refreshKey, onAction }) {
 
                                         <td className="order-total">
 
-                                            {formatearPesos(
-                                                pedido.total
-                                            )}
+                                            {showTotals
+                                                ? formatearPesos(pedido.total)
+                                                : "••••••••"
+                                            }
 
                                         </td>
 
@@ -499,15 +471,59 @@ function OrderTable({ refreshKey, onAction }) {
 
                                         <td>
 
-                                            <span className="payment-method">
+                                            {editMetodoPago === pedido.id_compra ? (
 
-                                                {
-                                                    pedido.metodo_pago_tipo ||
-                                                    pedido.metodo_pago ||
-                                                    "—"
-                                                }
+                                                <select
+                                                    value={nuevoMetodoPago}
+                                                    onChange={(e) =>
+                                                        setNuevoMetodoPago(e.target.value)
+                                                    }
+                                                    onBlur={() => {
+                                                        if (nuevoMetodoPago !== (pedido.metodo_pago_tipo || pedido.metodo_pago)) {
+                                                            guardarMetodoPago(pedido);
+                                                        } else {
+                                                            setEditMetodoPago(null);
+                                                        }
+                                                    }}
+                                                    onKeyDown={(e) => {
+                                                        if (e.key === "Enter") {
+                                                            e.preventDefault();
+                                                            if (nuevoMetodoPago !== (pedido.metodo_pago_tipo || pedido.metodo_pago)) {
+                                                                guardarMetodoPago(pedido);
+                                                            } else {
+                                                                setEditMetodoPago(null);
+                                                            }
+                                                        } else if (e.key === "Escape") {
+                                                            setEditMetodoPago(null);
+                                                        }
+                                                    }}
+                                                    autoFocus
+                                                >
+                                                    {METODOS_PAGO.map((metodo) => (
+                                                        <option key={metodo} value={metodo}>
+                                                            {metodo.charAt(0).toUpperCase() + metodo.slice(1)}
+                                                        </option>
+                                                    ))}
+                                                </select>
 
-                                            </span>
+                                            ) : (
+
+                                                <span
+                                                    className="payment-method"
+                                                    onClick={() => {
+                                                        setEditMetodoPago(pedido.id_compra);
+                                                        setNuevoMetodoPago(pedido.metodo_pago_tipo || pedido.metodo_pago || "");
+                                                    }}
+                                                    style={{ cursor: "pointer" }}
+                                                >
+                                                    {
+                                                        pedido.metodo_pago_tipo ||
+                                                        pedido.metodo_pago ||
+                                                        "—"
+                                                    }
+                                                </span>
+
+                                            )}
 
                                         </td>
 
@@ -516,17 +532,61 @@ function OrderTable({ refreshKey, onAction }) {
 
                                         <td>
 
-                                            <span
-                                                className={
-                                                    claseEstado[estado] ||
-                                                    claseEstado.pendiente
-                                                }
-                                            >
+                                            {editEstado?.id_compra === pedido.id_compra ? (
 
-                                                {estado.charAt(0).toUpperCase() +
-                                                    estado.slice(1)}
+                                                <select
+                                                    value={nuevoEstado}
+                                                    onChange={(e) =>
+                                                        setNuevoEstado(e.target.value)
+                                                    }
+                                                    onBlur={() => {
+                                                        if (nuevoEstado !== pedido.estado_compra) {
+                                                            guardarEstado(pedido);
+                                                        } else {
+                                                            setEditEstado(null);
+                                                        }
+                                                    }}
+                                                    onKeyDown={(e) => {
+                                                        if (e.key === "Enter") {
+                                                            e.preventDefault();
+                                                            if (nuevoEstado !== pedido.estado_compra) {
+                                                                guardarEstado(pedido);
+                                                            } else {
+                                                                setEditEstado(null);
+                                                            }
+                                                        } else if (e.key === "Escape") {
+                                                            setEditEstado(null);
+                                                        }
+                                                    }}
+                                                    autoFocus
+                                                >
+                                                    {ESTADOS.map((est) => (
+                                                        <option key={est} value={est}>
+                                                            {est.charAt(0).toUpperCase() + est.slice(1)}
+                                                        </option>
+                                                    ))}
+                                                </select>
 
-                                            </span>
+                                            ) : (
+
+                                                <span
+                                                    className={
+                                                        claseEstado[estado] ||
+                                                        claseEstado.pendiente
+                                                    }
+                                                    onClick={() => {
+                                                        setEditEstado(pedido);
+                                                        setNuevoEstado(pedido.estado_compra || "pendiente");
+                                                    }}
+                                                    style={{ cursor: "pointer" }}
+                                                >
+
+                                                    {estado.charAt(0).toUpperCase() +
+                                                        estado.slice(1)}
+
+                                                </span>
+
+                                            )}
 
                                         </td>
 
@@ -547,36 +607,6 @@ function OrderTable({ refreshKey, onAction }) {
                                                 >
 
                                                     <Eye size={17} />
-
-                                                </button>
-
-
-                                                <button
-                                                    type="button"
-                                                    className="order-action order-action--edit"
-                                                    title="Cambiar estado"
-                                                    onClick={() =>
-                                                        abrirEdicion(pedido)
-                                                    }
-                                                >
-
-                                                    <Pencil size={17} />
-
-                                                </button>
-
-
-                                                <button
-                                                    type="button"
-                                                    className="order-action order-action--delete"
-                                                    title="Eliminar"
-                                                    onClick={() =>
-                                                        eliminarPedido(
-                                                            pedido.id_compra
-                                                        )
-                                                    }
-                                                >
-
-                                                    <Trash2 size={17} />
 
                                                 </button>
 
@@ -624,7 +654,7 @@ function OrderTable({ refreshKey, onAction }) {
                             <div>
 
                                 <h2>
-                                    Pedido #{detalle.id_compra}
+                                    Pedido #{formatearNumeroPedido(detalle.id_compra)}
                                 </h2>
 
                                 <p>
@@ -762,6 +792,21 @@ function OrderTable({ refreshKey, onAction }) {
 
                         <div className="detail-section">
 
+                            <h3>Método de pago</h3>
+
+                            <p>
+                                {
+                                    detalle.metodo_pago_tipo ||
+                                    detalle.metodo_pago ||
+                                    "—"
+                                }
+                            </p>
+
+                        </div>
+
+
+                        <div className="detail-section">
+
                             <h3>Productos</h3>
 
                             {detalle.detalles &&
@@ -810,144 +855,6 @@ function OrderTable({ refreshKey, onAction }) {
 
             )}
 
-
-            {/* =====================================================
-                MODAL - CAMBIAR ESTADO
-                ===================================================== */}
-
-            {editEstado && (
-
-                <div
-                    className="modal-overlay"
-                    onClick={() =>
-                        setEditEstado(null)
-                    }
-                >
-
-                    <form
-                        className="order-status-modal"
-                        onClick={(e) =>
-                            e.stopPropagation()
-                        }
-                        onSubmit={guardarEstado}
-                    >
-
-                        <div className="modal-header">
-
-                            <div>
-
-                                <h2>
-                                    Cambiar estado
-                                </h2>
-
-                                <p>
-                                    Pedido #{editEstado.id_compra}
-                                </p>
-
-                            </div>
-
-
-                            <button
-                                type="button"
-                                className="close-button"
-                                onClick={() =>
-                                    setEditEstado(null)
-                                }
-                            >
-
-                                <X size={20} />
-
-                            </button>
-
-                        </div>
-
-
-                        <div className="form-group">
-
-                            <label>
-                                Estado
-                            </label>
-
-                            <select
-                                value={nuevoEstado}
-                                onChange={(e) =>
-                                    setNuevoEstado(
-                                        e.target.value
-                                    )
-                                }
-                            >
-
-                                {ESTADOS.map((estado) => (
-
-                                    <option
-                                        key={estado}
-                                        value={estado}
-                                    >
-
-                                        {estado.charAt(0).toUpperCase() +
-                                            estado.slice(1)}
-
-                                    </option>
-
-                                ))}
-
-                            </select>
-
-                        </div>
-
-
-                        <div className="form-group">
-
-                            <label>
-
-                                <Phone size={14} />
-
-                                Teléfono de contacto
-
-                            </label>
-
-                            <input
-                                type="tel"
-                                value={nuevoTelefono}
-                                onChange={(e) =>
-                                    setNuevoTelefono(
-                                        e.target.value
-                                    )
-                                }
-                                placeholder="Ej: 3001234567"
-                                maxLength={20}
-                            />
-
-                        </div>
-
-
-                        <div className="form-buttons">
-
-                            <button
-                                type="button"
-                                className="cancel-button"
-                                onClick={() =>
-                                    setEditEstado(null)
-                                }
-                            >
-                                Cancelar
-                            </button>
-
-
-                            <button
-                                type="submit"
-                                className="save-button"
-                            >
-                                Guardar cambios
-                            </button>
-
-                        </div>
-
-                    </form>
-
-                </div>
-
-            )}
 
         </div>
 
