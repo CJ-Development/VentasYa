@@ -341,6 +341,8 @@ function CategoryForm({
                 error
             );
 
+            console.error("Error response:", error?.response?.data);
+
             const backendData =
                 error?.response?.data;
 

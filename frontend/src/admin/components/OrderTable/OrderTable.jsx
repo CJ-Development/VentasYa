@@ -126,7 +126,9 @@ function OrderTable({ refreshKey, onAction }) {
 
             const { data } = await getOrders();
 
-            setPedidos(data);
+            console.log("Pedidos cargados:", data);
+
+            setPedidos(data || []);
 
             setError(null);
 
@@ -134,9 +136,11 @@ function OrderTable({ refreshKey, onAction }) {
 
         catch (err) {
 
-            console.error(err);
+            console.error("Error cargando pedidos:", err);
 
             setError("No fue posible cargar los pedidos.");
+
+            setPedidos([]);
 
         }
 
@@ -218,7 +222,9 @@ function OrderTable({ refreshKey, onAction }) {
 
         const cliente = pedido.usuario_info
             ? `${pedido.usuario_info.nombres} ${pedido.usuario_info.apellidos}`.toLowerCase()
-            : "";
+            : pedido.usuario
+                ? `usuario #${pedido.usuario}`.toLowerCase()
+                : "";
 
         const textoBusqueda = busqueda
             .trim()
