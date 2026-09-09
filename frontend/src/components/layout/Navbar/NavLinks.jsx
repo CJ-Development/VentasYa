@@ -159,44 +159,49 @@ function NavLinks({ mobileMenuOpen, setMobileMenuOpen }) {
 
                         {isActive && hasChildren && (
                             <div className="mega-menu mega-menu--productos">
+                                <div className="mega-menu-header">
+                                    <h2><Icon size={18} className="mega-header-icon" />{cat.nombre}</h2>
+                                </div>
                                 <div className="mega-menu-cols">
-                                    <div className="mega-column">
-                                        <h3><Icon size={16} className="mega-column-icon" />{cat.nombre}</h3>
-                                        {(cat.subcategorias || []).map((sub) => {
-                                            const SubIcon = getCategoryIcon(sub.nombre);
-                                            const hasSubSubs = (sub.subcategorias || []).length > 0;
-                                            return (
-                                                <div key={sub.id_categoria}>
+                                    {(cat.subcategorias || []).map((sub) => {
+                                        const SubIcon = getCategoryIcon(sub.nombre);
+                                        const hasSubSubs = (sub.subcategorias || []).length > 0;
+                                        return (
+                                            <div key={sub.id_categoria} className="mega-column">
+                                                <h3>
+                                                    <SubIcon size={14} className="mega-column-icon" />
+                                                    {sub.nombre}
+                                                </h3>
+                                                {hasSubSubs ? (
+                                                    <div className="mega-items">
+                                                        {(sub.subcategorias || []).map((subsub) => {
+                                                            const SubSubIcon = getCategoryIcon(subsub.nombre);
+                                                            return (
+                                                                <Link
+                                                                    key={subsub.id_categoria}
+                                                                    to={itemHref(subsub.slug, subsub.id_categoria)}
+                                                                    className="mega-item"
+                                                                    onClick={handleLinkClick}
+                                                                >
+                                                                    <SubSubIcon size={12} className="mega-item-icon" />
+                                                                    {subsub.nombre}
+                                                                </Link>
+                                                            );
+                                                        })}
+                                                    </div>
+                                                ) : (
                                                     <Link
                                                         to={itemHref(sub.slug, sub.id_categoria)}
-                                                        className="mega-item"
+                                                        className="mega-item mega-item--single"
                                                         onClick={handleLinkClick}
                                                     >
-                                                        <SubIcon size={14} className="mega-item-icon" />
-                                                        {sub.nombre}
+                                                        <SubIcon size={12} className="mega-item-icon" />
+                                                        Ver productos
                                                     </Link>
-                                                    {hasSubSubs && (
-                                                        <div className="mega-subitems">
-                                                            {(sub.subcategorias || []).map((subsub) => {
-                                                                const SubSubIcon = getCategoryIcon(subsub.nombre);
-                                                                return (
-                                                                    <Link
-                                                                        key={subsub.id_categoria}
-                                                                        to={itemHref(subsub.slug, subsub.id_categoria)}
-                                                                        className="mega-item mega-item--sub"
-                                                                        onClick={handleLinkClick}
-                                                                    >
-                                                                        <SubSubIcon size={12} className="mega-item-icon" />
-                                                                        {subsub.nombre}
-                                                                    </Link>
-                                                                );
-                                                            })}
-                                                        </div>
-                                                    )}
-                                                </div>
-                                            );
-                                        })}
-                                    </div>
+                                                )}
+                                            </div>
+                                        );
+                                    })}
                                 </div>
                             </div>
                         )}
@@ -222,61 +227,50 @@ function NavLinks({ mobileMenuOpen, setMobileMenuOpen }) {
 
                     {activeMenu === "more" && (
                         <div className="mega-menu mega-menu--productos">
+                            <div className="mega-menu-header">
+                                <h2>Más categorías</h2>
+                            </div>
                             <div className="mega-menu-cols">
-                                <div className="mega-column">
-                                    <h3>Más categorías</h3>
-                                    {moreCategories.map((cat) => {
-                                        const hasChildren = (cat.subcategorias || []).length > 0;
-                                        const CatIcon = getCategoryIcon(cat.nombre);
-                                        return (
-                                            <div key={cat.id_categoria}>
+                                {moreCategories.map((cat) => {
+                                    const hasChildren = (cat.subcategorias || []).length > 0;
+                                    const CatIcon = getCategoryIcon(cat.nombre);
+                                    return (
+                                        <div key={cat.id_categoria} className="mega-column">
+                                            <h3>
+                                                <CatIcon size={14} className="mega-column-icon" />
+                                                {cat.nombre}
+                                            </h3>
+                                            {hasChildren ? (
+                                                <div className="mega-items">
+                                                    {(cat.subcategorias || []).map((sub) => {
+                                                        const SubIcon = getCategoryIcon(sub.nombre);
+                                                        const hasSubSubs = (sub.subcategorias || []).length > 0;
+                                                        return (
+                                                            <Link
+                                                                key={sub.id_categoria}
+                                                                to={itemHref(sub.slug, sub.id_categoria)}
+                                                                className="mega-item"
+                                                                onClick={handleLinkClick}
+                                                            >
+                                                                <SubIcon size={12} className="mega-item-icon" />
+                                                                {sub.nombre}
+                                                            </Link>
+                                                        );
+                                                    })}
+                                                </div>
+                                            ) : (
                                                 <Link
                                                     to={itemHref(cat.slug, cat.id_categoria)}
-                                                    className="mega-item"
+                                                    className="mega-item mega-item--single"
+                                                    onClick={handleLinkClick}
                                                 >
-                                                    <CatIcon size={14} className="mega-item-icon" />
-                                                    {cat.nombre}
+                                                    <CatIcon size={12} className="mega-item-icon" />
+                                                    Ver productos
                                                 </Link>
-                                                {hasChildren && (
-                                                    <div className="mega-subitems">
-                                                        {(cat.subcategorias || []).map((sub) => {
-                                                            const SubIcon = getCategoryIcon(sub.nombre);
-                                                            const hasSubSubs = (sub.subcategorias || []).length > 0;
-                                                            return (
-                                                                <div key={sub.id_categoria}>
-                                                                    <Link
-                                                                        to={itemHref(sub.slug, sub.id_categoria)}
-                                                                        className="mega-item mega-item--sub"
-                                                                    >
-                                                                        <SubIcon size={12} className="mega-item-icon" />
-                                                                        {sub.nombre}
-                                                                    </Link>
-                                                                    {hasSubSubs && (
-                                                                        <div className="mega-subitems">
-                                                                            {(sub.subcategorias || []).map((subsub) => {
-                                                                                const SubSubIcon = getCategoryIcon(subsub.nombre);
-                                                                                return (
-                                                                                    <Link
-                                                                                        key={subsub.id_categoria}
-                                                                                        to={itemHref(subsub.slug, subsub.id_categoria)}
-                                                                                        className="mega-item mega-item--sub"
-                                                                                    >
-                                                                                        <SubSubIcon size={10} className="mega-item-icon" />
-                                                                                        {subsub.nombre}
-                                                                                    </Link>
-                                                                                );
-                                                                            })}
-                                                                        </div>
-                                                                    )}
-                                                                </div>
-                                                            );
-                                                        })}
-                                                    </div>
-                                                )}
-                                            </div>
-                                        );
-                                    })}
-                                </div>
+                                            )}
+                                        </div>
+                                    );
+                                })}
                             </div>
                         </div>
                     )}
