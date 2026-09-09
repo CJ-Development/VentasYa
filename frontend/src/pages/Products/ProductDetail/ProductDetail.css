@@ -1979,3 +1979,292 @@
     }
 
 }
+
+
+/* =====================================================
+   MÓVIL PEQUEÑO (320-430px)
+===================================================== */
+
+@media (max-width: 430px) {
+
+    .product-detail-wrapper {
+        padding: 0 10px;
+    }
+
+    .product-breadcrumb {
+        font-size: 11px;
+        gap: 4px;
+    }
+
+    .gallery-main {
+        height: 400px;
+        border-radius: 12px;
+    }
+
+    .gallery-thumbnail {
+        width: 62px;
+        height: 68px;
+        flex-basis: 62px;
+    }
+
+    .gallery-arrow {
+        width: 26px;
+        flex-basis: 26px;
+    }
+
+    .product-info h1 {
+        font-size: 20px;
+    }
+
+    .product-price {
+        font-size: 20px;
+    }
+
+    .product-info-panel {
+        padding: 14px;
+    }
+
+    .product-category {
+        font-size: 10px;
+        padding: 3px 8px;
+    }
+
+    .product-options-row {
+        gap: 10px;
+    }
+
+    .product-option-group {
+        padding: 12px;
+    }
+
+    .color-swatch {
+        width: 28px;
+        height: 28px;
+        flex-basis: 28px;
+    }
+
+    .size-btn {
+        padding: 8px 4px;
+        min-width: 48px;
+    }
+
+    .size-name {
+        font-size: 11px;
+    }
+
+    .product-benefits {
+        grid-template-columns: 1fr;
+        gap: 8px;
+    }
+
+    .benefit-card {
+        padding: 8px 10px;
+    }
+
+    .benefit-icon {
+        width: 28px;
+        height: 28px;
+    }
+
+    .benefit-card strong {
+        font-size: 11px;
+    }
+
+    .benefit-card span {
+        font-size: 10px;
+    }
+
+    .quantity {
+        height: 46px;
+    }
+
+    .quantity button {
+        width: 36px;
+        height: 44px;
+        flex-basis: 36px;
+    }
+
+    .quantity span {
+        width: 50px;
+        flex-basis: 50px;
+        font-size: 14px;
+    }
+
+    .buy-button {
+        height: 46px;
+        font-size: 13px;
+    }
+
+    .favorite {
+        height: 46px;
+    }
+
+    .recommendations-grid {
+        grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+        gap: 8px;
+    }
+}
+
+@media (max-width: 375px) {
+
+    .product-detail-wrapper {
+        padding: 0 8px;
+    }
+
+    .gallery-main {
+        height: 360px;
+    }
+
+    .gallery-thumbnail-wrapper {
+        gap: 3px;
+    }
+
+    .gallery-thumbnail {
+        width: 56px;
+        height: 62px;
+        flex-basis: 56px;
+    }
+
+    .product-info h1 {
+        font-size: 18px;
+    }
+
+    .product-price {
+        font-size: 18px;
+    }
+
+    .product-info-panel {
+        padding: 12px;
+    }
+
+    .product-category {
+        font-size: 9px;
+        padding: 2px 6px;
+    }
+
+    .color-swatch {
+        width: 26px;
+        height: 26px;
+        flex-basis: 26px;
+    }
+
+    .color-swatch__name {
+        font-size: 10px;
+    }
+
+    .size-btn {
+        min-width: 44px;
+        padding: 7px 3px;
+    }
+
+    .size-name {
+        font-size: 10px;
+    }
+
+    .quantity {
+        height: 44px;
+    }
+
+    .quantity button {
+        width: 34px;
+        height: 42px;
+        flex-basis: 34px;
+    }
+
+    .quantity span {
+        width: 44px;
+        flex-basis: 44px;
+        font-size: 13px;
+    }
+
+    .buy-button {
+        height: 44px;
+        font-size: 12px;
+    }
+
+    .favorite {
+        height: 44px;
+    }
+
+    .recommendations-grid {
+        grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+    }
+}
+
+@media (max-width: 320px) {
+
+    .product-detail-wrapper {
+        padding: 0 6px;
+    }
+
+    .gallery-main {
+        height: 340px;
+    }
+
+    .gallery-thumbnail {
+        width: 52px;
+        height: 58px;
+        flex-basis: 52px;
+    }
+
+    .product-info h1 {
+        font-size: 17px;
+    }
+
+    .product-price {
+        font-size: 17px;
+    }
+
+    .product-info-panel {
+        padding: 10px;
+    }
+
+    .product-category {
+        font-size: 9px;
+        padding: 2px 5px;
+    }
+
+    .color-swatch {
+        width: 24px;
+        height: 24px;
+        flex-basis: 24px;
+    }
+
+    .size-btn {
+        min-width: 42px;
+        padding: 6px 2px;
+    }
+
+    .size-name {
+        font-size: 9px;
+    }
+
+    .quantity {
+        height: 42px;
+    }
+
+    .quantity button {
+        width: 32px;
+        height: 40px;
+        flex-basis: 32px;
+    }
+
+    .quantity span {
+        width: 40px;
+        flex-basis: 40px;
+        font-size: 12px;
+    }
+
+    .buy-button {
+        height: 42px;
+        font-size: 11px;
+    }
+
+    .favorite {
+        height: 42px;
+    }
+
+    .recommendations-grid {
+        grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    }
+}

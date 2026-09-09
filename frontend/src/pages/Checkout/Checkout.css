@@ -807,3 +807,205 @@
 
     text-align: center;
 }
+
+/* =========================================================
+   MÓVIL PEQUEÑO (320-430px)
+========================================================= */
+
+@media (max-width: 430px) {
+
+    .checkout-page {
+        padding-left: 10px;
+        padding-right: 10px;
+    }
+
+    .checkout-header {
+        padding: 16px 0;
+    }
+
+    .checkout-header h1 {
+        font-size: 20px;
+    }
+
+    .checkout-grid {
+        grid-template-columns: 1fr;
+        gap: 16px;
+    }
+
+    .checkout-form-section {
+        padding: 16px;
+    }
+
+    .checkout-form-section h2 {
+        font-size: 16px;
+    }
+
+    .checkout-address-card {
+        padding: 14px;
+    }
+
+    .checkout-address-card h3 {
+        font-size: 13px;
+    }
+
+    .checkout-address-details {
+        font-size: 12px;
+    }
+
+    .checkout-new-address-form {
+        padding: 14px;
+    }
+
+    .checkout-form-group {
+        margin-bottom: 12px;
+    }
+
+    .checkout-form-group label {
+        font-size: 12px;
+        margin-bottom: 6px;
+    }
+
+    .checkout-form-group input,
+    .checkout-form-group select {
+        height: 40px;
+        font-size: 13px;
+        padding: 0 12px;
+    }
+
+    .checkout-submit-button {
+        height: 46px;
+        font-size: 13px;
+    }
+
+    .checkout-summary {
+        padding: 16px;
+    }
+
+    .checkout-summary h2 {
+        font-size: 16px;
+    }
+
+    .checkout-summary-item {
+        font-size: 12px;
+        padding: 8px 0;
+    }
+
+    .checkout-summary-total {
+        font-size: 15px;
+        padding-top: 12px;
+    }
+
+    .checkout-summary-note {
+        font-size: 11px;
+    }
+}
+
+@media (max-width: 375px) {
+
+    .checkout-page {
+        padding-left: 8px;
+        padding-right: 8px;
+    }
+
+    .checkout-header h1 {
+        font-size: 18px;
+    }
+
+    .checkout-form-section {
+        padding: 14px;
+    }
+
+    .checkout-form-section h2 {
+        font-size: 15px;
+    }
+
+    .checkout-address-card {
+        padding: 12px;
+    }
+
+    .checkout-address-card h3 {
+        font-size: 12px;
+    }
+
+    .checkout-address-details {
+        font-size: 11px;
+    }
+
+    .checkout-new-address-form {
+        padding: 12px;
+    }
+
+    .checkout-form-group input,
+    .checkout-form-group select {
+        height: 38px;
+        font-size: 12px;
+    }
+
+    .checkout-submit-button {
+        height: 44px;
+        font-size: 12px;
+    }
+
+    .checkout-summary {
+        padding: 14px;
+    }
+
+    .checkout-summary-total {
+        font-size: 14px;
+    }
+}
+
+@media (max-width: 320px) {
+
+    .checkout-page {
+        padding-left: 6px;
+        padding-right: 6px;
+    }
+
+    .checkout-header h1 {
+        font-size: 17px;
+    }
+
+    .checkout-form-section {
+        padding: 12px;
+    }
+
+    .checkout-form-section h2 {
+        font-size: 14px;
+    }
+
+    .checkout-address-card {
+        padding: 10px;
+    }
+
+    .checkout-address-card h3 {
+        font-size: 11px;
+    }
+
+    .checkout-address-details {
+        font-size: 10px;
+    }
+
+    .checkout-new-address-form {
+        padding: 10px;
+    }
+
+    .checkout-form-group input,
+    .checkout-form-group select {
+        height: 36px;
+        font-size: 11px;
+    }
+
+    .checkout-submit-button {
+        height: 42px;
+        font-size: 11px;
+    }
+
+    .checkout-summary {
+        padding: 12px;
+    }
+
+    .checkout-summary-total {
+        font-size: 13px;
+    }
+}

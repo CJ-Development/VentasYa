@@ -936,3 +936,219 @@
         width: 59%;
     }
 }
+
+/* =========================================================
+   MÓVIL PEQUEÑO (320-430px)
+========================================================= */
+
+@media (max-width: 430px) {
+
+    .hero {
+        padding: 14px 10px 20px;
+    }
+
+    .hero-categories {
+        gap: 10px;
+    }
+
+    .hero-card {
+        min-height: 220px;
+        border-radius: var(--radius-md);
+    }
+
+    .hero-card-content {
+        width: 55%;
+        padding: 18px 0 16px 16px;
+    }
+
+    .hero-card h1 {
+        font-size: 19px;
+    }
+
+    .hero-card p {
+        max-width: 130px;
+        font-size: 11px;
+    }
+
+    .hero-card-features {
+        gap: 6px;
+        margin-top: 10px;
+    }
+
+    .hero-feature {
+        width: 45px;
+        font-size: 9px;
+    }
+
+    .hero-feature-icon {
+        width: 26px;
+        height: 26px;
+    }
+
+    .hero-card-button {
+        margin-top: 10px;
+        min-height: 30px;
+        padding: 0 12px;
+        font-size: 10px;
+    }
+
+    .hero-card-image {
+        width: 55%;
+    }
+
+    .hero-benefits {
+        padding: 6px 12px;
+        gap: 6px;
+    }
+
+    .hero-benefit {
+        min-height: 48px;
+        padding: 6px 0;
+    }
+
+    .hero-benefit-icon {
+        width: 38px;
+        height: 38px;
+    }
+
+    .hero-benefit-text strong {
+        font-size: 12px;
+    }
+
+    .hero-benefit-text span {
+        font-size: 11px;
+    }
+
+    .hero-highlights {
+        gap: 10px;
+    }
+
+    .hero-highlight {
+        min-height: 50px;
+        padding: 8px 10px;
+    }
+
+    .hero-highlight-icon {
+        width: 28px;
+        height: 28px;
+    }
+
+    .hero-highlight-text strong {
+        font-size: 10px;
+    }
+
+    .hero-highlight-text span {
+        font-size: 9px;
+    }
+}
+
+@media (max-width: 375px) {
+
+    .hero {
+        padding: 12px 8px 18px;
+    }
+
+    .hero-card {
+        min-height: 205px;
+    }
+
+    .hero-card-content {
+        width: 53%;
+        padding: 16px 0 14px 14px;
+    }
+
+    .hero-card h1 {
+        font-size: 17px;
+    }
+
+    .hero-card p {
+        max-width: 115px;
+        font-size: 10px;
+    }
+
+    .hero-card-button {
+        min-height: 28px;
+        padding: 0 10px;
+        font-size: 9px;
+    }
+
+    .hero-benefits {
+        grid-template-columns: 1fr;
+        padding: 8px 10px;
+    }
+
+    .hero-benefit {
+        border-bottom: 1px solid var(--color-border);
+    }
+
+    .hero-benefit:last-child {
+        border-bottom: none;
+    }
+
+    .hero-highlights {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 320px) {
+
+    .hero {
+        padding: 10px 6px 16px;
+    }
+
+    .hero-card {
+        min-height: 190px;
+    }
+
+    .hero-card-content {
+        width: 50%;
+        padding: 14px 0 12px 12px;
+    }
+
+    .hero-card h1 {
+        font-size: 16px;
+    }
+
+    .hero-card p {
+        max-width: 100px;
+        font-size: 9px;
+    }
+
+    .hero-card-features {
+        gap: 4px;
+        margin-top: 8px;
+    }
+
+    .hero-feature {
+        width: 40px;
+        font-size: 8px;
+    }
+
+    .hero-feature-icon {
+        width: 24px;
+        height: 24px;
+    }
+
+    .hero-card-button {
+        min-height: 26px;
+        padding: 0 8px;
+        font-size: 9px;
+    }
+
+    .hero-card-image {
+        width: 53%;
+    }
+
+    .hero-benefit-icon {
+        width: 34px;
+        height: 34px;
+    }
+
+    .hero-benefit-text strong {
+        font-size: 11px;
+    }
+
+    .hero-benefit-text span {
+        font-size: 10px;
+    }
+}
