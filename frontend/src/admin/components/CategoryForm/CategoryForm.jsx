@@ -434,12 +434,10 @@ function CategoryForm({
                     </h1>
 
                     <p>
-
                         {editing
                             ? "Actualiza la información de la categoría."
-                            : "Crea una categoría o subcategoría para organizar tu tienda."
+                            : "Crea una categoría principal o subcategoría para organizar tu tienda."
                         }
-
                     </p>
 
                 </div>
@@ -594,9 +592,7 @@ function CategoryForm({
 
 
                             <small>
-
-                                Selecciona una categoría para crear una subcategoría.
-
+                                Selecciona una categoría principal para crear una subcategoría.
                             </small>
 
                         </div>
