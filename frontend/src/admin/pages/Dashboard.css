@@ -745,34 +745,34 @@
 
     align-items: center;
 
-    justify-content: center;
+justify-content: center;
 
 }
 
 
 .dashboard-bottom-card div:last-child {
 
-    display: flex;
+display: flex;
 
-    flex-direction: column;
+flex-direction: column;
 
-    gap: 3px;
+gap: 3px;
 
 }
 
 
 .dashboard-bottom-card span {
 
-    color: #64748B;
+color: #64748B;
 
-    font-size: .69rem;
+font-size: .69rem;
 
 }
 
 
 .dashboard-bottom-card strong {
 
-    color: #062B3A;
+color: #062B3A;
 
     font-size: 1rem;
 

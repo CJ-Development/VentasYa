@@ -1,12 +1,17 @@
 import "./DashboardCard.css";
 
+import { Eye, EyeOff } from "lucide-react";
+
 
 function DashboardCard({
     icon,
     title,
     value,
     extra,
-    type
+    type,
+    showToggle,
+    isHidden,
+    onToggle
 }) {
 
     return (
@@ -29,11 +34,22 @@ function DashboardCard({
                 </span>
 
 
-                <span className="card-arrow">
+                {showToggle ? (
+                    <button
+                        type="button"
+                        className="card-toggle"
+                        onClick={onToggle}
+                        aria-label={isHidden ? "Mostrar ventas" : "Ocultar ventas"}
+                    >
+                        {isHidden ? <Eye size={16} /> : <EyeOff size={16} />}
+                    </button>
+                ) : (
+                    <span className="card-arrow">
 
-                    <ArrowUpRightIcon />
+                        <ArrowUpRightIcon />
 
-                </span>
+                    </span>
+                )}
 
             </div>
 

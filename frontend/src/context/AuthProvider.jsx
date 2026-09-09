@@ -38,6 +38,20 @@ function AuthProvider({ children }) {
 
             setUsuario(userData);
 
+            // =================================================
+            // OBTENER TOKEN CSRF DESPUÉS DEL LOGIN
+            // =================================================
+
+            try {
+                await getCsrfToken();
+            } catch (csrfError) {
+                console.warn(
+                    "[AuthProvider] Error obteniendo CSRF token después del login:",
+                    csrfError
+                );
+                // Continuamos aunque falle el CSRF
+            }
+
             return userData;
         } catch (error) {
             console.error("Error en login:", error);

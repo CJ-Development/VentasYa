@@ -8,7 +8,9 @@ import {
     ArrowUpRight,
     ArrowRight,
     AlertTriangle,
-    RefreshCw
+    RefreshCw,
+    Eye,
+    EyeOff
 } from "lucide-react";
 
 import { useEffect, useState } from "react";
@@ -54,6 +56,8 @@ function Dashboard() {
     const [loading, setLoading] = useState(true);
 
     const [error, setError] = useState(null);
+
+    const [showSales, setShowSales] = useState(false);
 
 
     const cargarDatos = async () => {
@@ -209,13 +213,17 @@ function Dashboard() {
 
             title: "Ventas",
 
-            value: formatearPesos(
-                stats.ventasMes ?? 0
-            ),
+            value: showSales
+                ? formatearPesos(stats.ventasMes ?? 0)
+                : "••••••••",
 
             extra: "Ventas de este mes",
 
             type: "sales",
+
+            showToggle: true,
+
+            isHidden: !showSales,
 
         },
 
@@ -314,6 +322,9 @@ function Dashboard() {
                         value={tarjeta.value}
                         extra={tarjeta.extra}
                         type={tarjeta.type}
+                        showToggle={tarjeta.showToggle}
+                        isHidden={tarjeta.isHidden}
+                        onToggle={() => setShowSales(!showSales)}
                     />
 
                 ))}
@@ -669,17 +680,25 @@ function Dashboard() {
                     </div>
 
                     <div>
-
                         <span>
                             Ventas del mes
                         </span>
 
                         <strong>
-                            {formatearPesos(
-                                stats.ventasMes ?? 0
-                            )}
+                            {showSales
+                                ? formatearPesos(stats.ventasMes ?? 0)
+                                : "••••••••"
+                            }
                         </strong>
 
+                        <button
+                            type="button"
+                            className="dashboard-sales-toggle"
+                            onClick={() => setShowSales(!showSales)}
+                            aria-label={showSales ? "Ocultar ventas" : "Mostrar ventas"}
+                        >
+                            {showSales ? <EyeOff size={16} /> : <Eye size={16} />}
+                        </button>
                     </div>
 
                 </div>

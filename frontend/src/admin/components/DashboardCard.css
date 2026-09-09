@@ -87,13 +87,15 @@
 }
 
 /* =========================================================
-   PARTE SUPERIOR
+   HEADER
 ========================================================= */
 
-.card-top {
+.dashboard-card-header {
     display: flex;
 
     align-items: center;
+
+    justify-content: space-between;
 
     gap: 14px;
 
@@ -155,6 +157,63 @@
     font-weight: 600;
 
     color: #64748B;
+
+    flex: 1;
+}
+
+/* =========================================================
+   TOGGLE BUTTON
+========================================================= */
+
+.card-toggle {
+    width: 32px;
+    height: 32px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border: 1px solid #E5E7EB;
+
+    border-radius: 8px;
+
+    background: #F9FAFB;
+
+    color: #64748B;
+
+    cursor: pointer;
+
+    transition: all 0.2s ease;
+
+    flex-shrink: 0;
+}
+
+.card-toggle:hover {
+    background: #F3F4F6;
+
+    border-color: #D1D5DB;
+
+    color: #374151;
+}
+
+.card-toggle:focus-visible {
+    outline: 2px solid #0EA5B5;
+
+    outline-offset: 2px;
+}
+
+/* =========================================================
+   ARROW (default for non-toggle cards)
+========================================================= */
+
+.card-arrow {
+    color: #CBD5E1;
+
+    flex-shrink: 0;
+}
+
+.card-arrow svg {
+    display: block;
 }
 
 /* =========================================================
