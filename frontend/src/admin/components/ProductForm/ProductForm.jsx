@@ -27,6 +27,8 @@ import {
 
 import { ensureCsrf } from "../../../services/api";
 
+import CategorySelector from "../CategoryForm/CategorySelector";
+
 const API_ORIGIN = "http://127.0.0.1:8000";
 
 const MAX_IMAGES = 6;
@@ -1832,38 +1834,16 @@ function ProductForm({
 
                             <div className="form-group">
 
-                                <label>
-                                    Categoría
-                                </label>
-
-                                <select
-                                    name="categoria_id"
+                                <CategorySelector
+                                    categories={categories}
                                     value={datos.categoria_id}
-                                    onChange={handleData}
-                                >
-
-                                    <option value="">
-                                        Seleccionar
-                                    </option>
-
-                                    {categories.map(
-                                        (category) => (
-
-                                            <option
-                                                key={
-                                                    category.id_categoria
-                                                }
-                                                value={
-                                                    category.id_categoria
-                                                }
-                                            >
-                                                {category.nombre}
-                                            </option>
-
-                                        )
-                                    )}
-
-                                </select>
+                                    onChange={(value) =>
+                                        setDatos((prev) => ({
+                                            ...prev,
+                                            categoria_id: value,
+                                        }))
+                                    }
+                                />
 
                                 {errors.categoria_id && (
                                     <span className="error-text">
