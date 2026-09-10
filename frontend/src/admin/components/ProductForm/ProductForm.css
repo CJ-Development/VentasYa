@@ -1622,11 +1622,17 @@
    ========================================================= */
 
 .image-color-list {
-    display: flex;
+    display: grid;
 
-    flex-direction: column;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
 
     gap: 18px;
+}
+
+@media (max-width: 768px) {
+    .image-color-list {
+        grid-template-columns: 1fr;
+    }
 }
 
 .color-image-card {
@@ -1703,20 +1709,47 @@
 }
 
 .image-upload-layout {
-    display: grid;
+    display: flex;
 
-    grid-template-columns:
-        repeat(4, minmax(0, 1fr));
+    flex-direction: row;
 
     gap: 12px;
 
     padding: 18px;
+
+    overflow-x: auto;
+
+    overflow-y: hidden;
+
+    scrollbar-width: thin;
+    scrollbar-color: #CBD5E1 #F7F9FA;
+}
+
+.image-upload-layout::-webkit-scrollbar {
+    height: 8px;
+}
+
+.image-upload-layout::-webkit-scrollbar-track {
+    background: #F7F9FA;
+    border-radius: 4px;
+}
+
+.image-upload-layout::-webkit-scrollbar-thumb {
+    background: #CBD5E1;
+    border-radius: 4px;
+}
+
+.image-upload-layout::-webkit-scrollbar-thumb:hover {
+    background: #94A3B8;
 }
 
 .image-preview-card {
     position: relative;
 
+    width: 190px;
     height: 190px;
+
+    flex-shrink: 0;
 
     border: 1px solid #E0E7EC;
 
@@ -1820,7 +1853,10 @@
    ========================================================= */
 
 .image-upload-box {
+    width: 190px;
     height: 190px;
+
+    flex-shrink: 0;
 
     display: flex;
     flex-direction: column;
