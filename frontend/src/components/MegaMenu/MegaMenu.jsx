@@ -1,209 +1,333 @@
-import { useEffect, useMemo, useState } from "react";
-import { Sparkles, ArrowRight } from "lucide-react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { ArrowRight, ChevronRight } from "lucide-react";
 import { Link } from "react-router-dom";
-
-import api from "../../services/api";
 
 import "./MegaMenu.css";
 
-/* =====================================================
-   MegaMenu
-   ----------------------------------------------------
-   - variant="productos": catalogo, categorias + panel
-     destacado con CTA.
-
-   Layout: panel destacado a la izquierda, columnas de
-   categorías/subcategorías/sub-subcategorías a la derecha.
-
-   Soporta hasta 3 niveles de jerarquía:
-   - Nivel 1: Categoría principal
-   - Nivel 2: Subcategoría
-   - Nivel 3: Sub-subcategoría
-===================================================== */
-
-const itemHref = (slug) => `/categoria/${slug}`;
-
-/* =====================================================
-   Cache simple en memoria para no re-fetchar en cada hover.
-===================================================== */
-const cacheCategorias = { data: null, promise: null };
-
-const fetchCategorias = async () => {
-    if (cacheCategorias.data) return cacheCategorias.data;
-    if (cacheCategorias.promise) return cacheCategorias.promise;
-    cacheCategorias.promise = api.get("/categories/")
-        .then((res) => {
-            cacheCategorias.data = res.data || [];
-            return cacheCategorias.data;
-        })
-        .finally(() => {
-            cacheCategorias.promise = null;
-        });
-    return cacheCategorias.promise;
+const itemHref = (slug, id) => {
+    if (slug) return `/categoria/${slug}`;
+    return `/categoria/${id}`;
 };
 
+const getChildren = (category) => {
+    if (!category) return [];
 
-/* Acepta la respuesta jerárquica de /categories/ y devuelve una lista
- * de columnas con { titulo, href, items }. Una columna por cada
- * categoría padre; sus subcategorías y sub-subcategorías se vuelven items. */
-const armarColumnasProductos = (categorias) => {
-
-    const activas = (categorias || []).filter((c) => c.estado !== "archivado");
-
-    // Filtrar solo categorías raíz (sin padre)
-    const raices = activas.filter((c) => !c.categoria_padre);
-
-    if (raices.length === 0) {
-        return [
-            {
-                titulo: "Categorías",
-                items: activas.map((c) => ({ 
-                    label: c.nombre, 
-                    slug: c.slug 
-                })),
-            },
-        ];
+    if (Array.isArray(category.subcategorias)) {
+        return category.subcategorias.filter(
+            (item) => item?.estado !== "archivado"
+        );
     }
 
-    return raices.map((raiz) => {
-        const items = [];
-        
-        // Agregar subcategorías del backend
-        const subs = raiz.subcategorias || [];
-        
-        subs.forEach((sub) => {
-            // Agregar subcategoría
-            items.push({
-                label: sub.nombre,
-                slug: sub.slug,
-                isSub: true
-            });
-            
-            // Agregar sub-subcategorías
-            const subsubs = sub.subcategorias || [];
-            subsubs.forEach((subsub) => {
-                items.push({
-                    label: subsub.nombre,
-                    slug: subsub.slug,
-                    isSubSub: true
-                });
-            });
-        });
-        
-        // Si no tiene subcategorías, agregar la categoría raíz como item
-        if (items.length === 0) {
-            items.push({
-                label: raiz.nombre,
-                slug: raiz.slug
-            });
-        }
-        
-        return {
-            titulo: raiz.nombre,
-            href: itemHref(raiz.slug),
-            items,
-        };
-    });
+    if (Array.isArray(category.hijos)) {
+        return category.hijos.filter(
+            (item) => item?.estado !== "archivado"
+        );
+    }
 
+    return [];
 };
 
+const getDirectChildren = (category) => {
+    return getChildren(category);
+};
 
-function MegaMenu({ variant = "productos" }) {
+/*
+ * El MegaMenu visualiza:
+ *
+ * Nivel 1 → categoría seleccionada en Navbar
+ * Nivel 2 → columnas
+ * Nivel 3 → elementos de cada columna
+ *
+ * Los niveles 4, 5 y 6 siguen existiendo en la estructura,
+ * pero no se fuerzan dentro del MegaMenu porque eso dañaría
+ * su composición horizontal. "Ver todo" lleva a la categoría
+ * correspondiente para continuar navegando.
+ */
 
-    const [categorias, setCategorias] = useState(cacheCategorias.data || []);
+function MegaMenu({
+    category = null,
+    categories = [],
+    anchorElement = null,
+    onNavigate,
+    isMore = false,
+}) {
+    const menuRef = useRef(null);
+    const [position, setPosition] = useState({
+        left: 16,
+        top: 0,
+    });
+
+    const roots = useMemo(() => {
+        if (category) {
+            return [category];
+        }
+
+        return Array.isArray(categories) ? categories : [];
+    }, [category, categories]);
+
+    /*
+     * Cuando existe una categoría principal seleccionada:
+     *
+     * HOMBRE
+     *   ↓
+     * ROPA | CALZADO | ROPA DEPORTIVA
+     *
+     * Cada subcategoría se transforma en una columna.
+     */
+    const columns = useMemo(() => {
+        if (category) {
+            return getDirectChildren(category);
+        }
+
+        /*
+         * "Más" muestra las categorías restantes como columnas.
+         * Cada raíz puede mostrar sus subcategorías como items.
+         */
+        return roots;
+    }, [category, roots]);
+
+    const updatePosition = () => {
+        if (!anchorElement || !menuRef.current) return;
+
+        const rect = anchorElement.getBoundingClientRect();
+        const menuRect = menuRef.current.getBoundingClientRect();
+
+        const viewportWidth = window.innerWidth;
+
+        const safeMargin = 16;
+
+        /*
+         * Posición ideal:
+         * comienza alineado con la izquierda del elemento
+         * que abrió el MegaMenu.
+         */
+        const idealLeft = rect.left;
+
+        /*
+         * Límite derecho:
+         * nunca permitir que el menú se salga del viewport.
+         */
+        const maxLeft = Math.max(
+            safeMargin,
+            viewportWidth - menuRect.width - safeMargin
+        );
+
+        const finalLeft = Math.min(
+            Math.max(idealLeft, safeMargin),
+            maxLeft
+        );
+
+        setPosition({
+            left: finalLeft,
+            top: rect.bottom + 8,
+        });
+    };
+
+    useLayoutEffect(() => {
+        updatePosition();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [anchorElement, columns.length]);
 
     useEffect(() => {
+        const handleViewportChange = () => {
+            updatePosition();
+        };
 
-        let cancelado = false;
-
-        fetchCategorias()
-            .then((data) => {
-                if (!cancelado) setCategorias(data);
-            })
-            .catch((err) => console.error("MegaMenu: error categorías", err));
+        window.addEventListener("resize", handleViewportChange);
+        window.addEventListener(
+            "scroll",
+            handleViewportChange,
+            true
+        );
 
         return () => {
-            cancelado = true;
+            window.removeEventListener(
+                "resize",
+                handleViewportChange
+            );
+
+            window.removeEventListener(
+                "scroll",
+                handleViewportChange,
+                true
+            );
         };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [anchorElement]);
 
-    }, []);
-
-    const data = useMemo(() => {
-        return {
-            columns: armarColumnasProductos(categorias),
-            panel: {
-                tag: "Catálogo",
-                title: "Explora nuestras categorías",
-                description: "Encuentra productos de calidad para toda la familia.",
-                cta: "Ver todos los productos",
-                href: "/products",
-            },
-        };
-
-    }, [categorias]);
-
-    const Icon = Sparkles;
-
-    const tieneDatos = categorias.length > 0;
+    if (!columns.length) {
+        return null;
+    }
 
     return (
-        <div className="mega-menu mega-menu--productos">
+        <div
+            ref={menuRef}
+            className={`mega-menu mega-menu--horizontal ${
+                isMore ? "mega-menu--more" : ""
+            }`}
+            style={{
+                left: `${position.left}px`,
+                top: `${position.top}px`,
+            }}
+            onMouseDown={(event) => event.stopPropagation()}
+        >
+            <div className="mega-menu-scroll">
 
-            {/* Columnas de categorías/subcategorías (a la izquierda) */}
-            <div className="mega-menu-cols">
-                {data.columns.map((col) => (
-                    <div className="mega-column" key={col.titulo}>
-                        {col.href ? (
-                            <Link to={col.href} className="mega-column-title">
-                                <h3>
-                                    {col.titulo}
-                                </h3>
+                {columns.map((column) => {
+                    const childItems = getChildren(column);
+
+                    /*
+                     * Para un MegaMenu abierto desde una categoría:
+                     *
+                     * column = Ropa
+                     * childItems = Camisas, Pantalones, Jeans...
+                     */
+                    if (category) {
+                        return (
+                            <div
+                                key={column.id_categoria}
+                                className="mega-column"
+                            >
+                                <Link
+                                    to={itemHref(
+                                        column.slug,
+                                        column.id_categoria
+                                    )}
+                                    className="mega-column-title"
+                                    onClick={onNavigate}
+                                >
+                                    <span>
+                                        {column.nombre}
+                                    </span>
+
+                                    <ChevronRight
+                                        size={14}
+                                        aria-hidden="true"
+                                    />
+                                </Link>
+
+                                <div className="mega-column-items">
+                                    {childItems.length > 0 ? (
+                                        childItems.map((item) => (
+                                            <Link
+                                                key={item.id_categoria}
+                                                to={itemHref(
+                                                    item.slug,
+                                                    item.id_categoria
+                                                )}
+                                                className="mega-item"
+                                                onClick={onNavigate}
+                                            >
+                                                <span>
+                                                    {item.nombre}
+                                                </span>
+                                            </Link>
+                                        ))
+                                    ) : (
+                                        <Link
+                                            to={itemHref(
+                                                column.slug,
+                                                column.id_categoria
+                                            )}
+                                            className="mega-item mega-item--empty"
+                                            onClick={onNavigate}
+                                        >
+                                            Ver productos
+                                        </Link>
+                                    )}
+                                </div>
+
+                                <Link
+                                    to={itemHref(
+                                        column.slug,
+                                        column.id_categoria
+                                    )}
+                                    className="mega-column-all"
+                                    onClick={onNavigate}
+                                >
+                                    Ver todo
+                                    <ArrowRight
+                                        size={13}
+                                        aria-hidden="true"
+                                    />
+                                </Link>
+                            </div>
+                        );
+                    }
+
+                    /*
+                     * "Más":
+                     * cada categoría restante se convierte en una
+                     * columna.
+                     */
+                    return (
+                        <div
+                            key={column.id_categoria}
+                            className="mega-column"
+                        >
+                            <Link
+                                to={itemHref(
+                                    column.slug,
+                                    column.id_categoria
+                                )}
+                                className="mega-column-title"
+                                onClick={onNavigate}
+                            >
+                                <span>{column.nombre}</span>
+
+                                <ChevronRight
+                                    size={14}
+                                    aria-hidden="true"
+                                />
                             </Link>
-                        ) : (
-                            <h3>
-                                {col.titulo}
-                            </h3>
-                        )}
-                        {col.items.length === 0 ? (
-                            <span className="mega-item mega-item--empty">
-                                {tieneDatos
-                                    ? "Próximamente"
-                                    : "Cargando..."}
-                            </span>
-                        ) : (
-                            col.items.map((it, idx) => {
-                                const href = itemHref(it.slug);
-                                return (
-                                    <Link 
-                                        to={href} 
-                                        key={`${col.titulo}-${idx}`} 
-                                        className={`mega-item ${it.isSub ? 'mega-item--sub' : ''} ${it.isSubSub ? 'mega-item--subsub' : ''}`}
+
+                            <div className="mega-column-items">
+                                {childItems.length > 0 ? (
+                                    childItems.map((item) => (
+                                        <Link
+                                            key={item.id_categoria}
+                                            to={itemHref(
+                                                item.slug,
+                                                item.id_categoria
+                                            )}
+                                            className="mega-item"
+                                            onClick={onNavigate}
+                                        >
+                                            {item.nombre}
+                                        </Link>
+                                    ))
+                                ) : (
+                                    <Link
+                                        to={itemHref(
+                                            column.slug,
+                                            column.id_categoria
+                                        )}
+                                        className="mega-item mega-item--empty"
+                                        onClick={onNavigate}
                                     >
-                                        <span>{it.label}</span>
+                                        Ver productos
                                     </Link>
-                                );
-                            })
-                        )}
-                    </div>
-                ))}
+                                )}
+                            </div>
+
+                            <Link
+                                to={itemHref(
+                                    column.slug,
+                                    column.id_categoria
+                                )}
+                                className="mega-column-all"
+                                onClick={onNavigate}
+                            >
+                                Ver todo
+                                <ArrowRight
+                                    size={13}
+                                    aria-hidden="true"
+                                />
+                            </Link>
+                        </div>
+                    );
+                })}
             </div>
-
-            {/* Panel destacado (a la derecha, en ambas variantes) */}
-            <aside className="mega-menu-panel">
-                <div className="mega-panel-head">
-                    <span className="mega-panel-tag">
-                        <Icon size={14} />
-                        {data.panel.tag}
-                    </span>
-                    <h4>{data.panel.title}</h4>
-                    <p>{data.panel.description}</p>
-                    <a href={data.panel.href} className="mega-panel-cta">
-                        {data.panel.cta}
-                        <ArrowRight size={16} />
-                    </a>
-                </div>
-            </aside>
-
         </div>
     );
 }

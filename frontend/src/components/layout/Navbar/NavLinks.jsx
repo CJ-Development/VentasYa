@@ -1,33 +1,16 @@
 import { useState, useEffect, useMemo } from "react";
 import { Link } from "react-router-dom";
 import {
-    Shirt,
     User,
     Baby,
     PawPrint,
     Laptop,
     Watch,
-    Home,
-    Trophy,
-    Sparkles,
-    Package,
-    Smartphone,
-    ShoppingBag,
-    Utensils,
-    Car,
-    Book,
-    Music,
-    Camera,
-    Gamepad2,
     Heart,
-    Flower2,
-    Dumbbell,
-    Plane,
-    Coffee,
-    Wine,
-    Gift,
-    Layers,
-    Grid3x3
+    Package,
+    Shirt,
+    ShoppingBag,
+    ChevronDown,
 } from "lucide-react";
 
 import api from "../../../services/api";
@@ -38,77 +21,221 @@ const itemHref = (slug, id) => {
     return `/categoria/${id}`;
 };
 
-const getCategoryIcon = (nombre) => {
+const getCategoryIcon = (nombre = "") => {
     const nombreLower = nombre.toLowerCase();
-    
-    if (nombreLower.includes('hombre') || nombreLower.includes('caballero')) return User;
-    if (nombreLower.includes('mujer') || nombreLower.includes('dama') || nombreLower.includes('señora')) return Heart;
-    if (nombreLower.includes('niñ') || nombreLower.includes('bebé') || nombreLower.includes('bebe')) return Baby;
-    if (nombreLower.includes('mascot') || nombreLower.includes('perro') || nombreLower.includes('gato')) return PawPrint;
-    if (nombreLower.includes('tecnolog') || nombreLower.includes('electrónic') || nombreLower.includes('computador') || nombreLower.includes('laptop')) return Laptop;
-    if (nombreLower.includes('accesorio') || nombreLower.includes('reloj') || nombreLower.includes('gafas')) return Watch;
-    if (nombreLower.includes('hogar') || nombreLower.includes('casa') || nombreLower.includes('mueble') || nombreLower.includes('decoración')) return Home;
-    if (nombreLower.includes('deport') || nombreLower.includes('fitness') || nombreLower.includes('gimnasio')) return Trophy;
-    if (nombreLower.includes('belleza') || nombreLower.includes('cosmétic') || nombreLower.includes('maquillaje')) return Sparkles;
-    if (nombreLower.includes('ropa') || nombreLower.includes('vestido') || nombreLower.includes('camisa')) return Shirt;
-    if (nombreLower.includes('calzado') || nombreLower.includes('zapato')) return ShoppingBag;
-    if (nombreLower.includes('teléfono') || nombreLower.includes('celular') || nombreLower.includes('movil')) return Smartphone;
-    if (nombreLower.includes('cocina') || nombreLower.includes('aliment') || nombreLower.includes('comida')) return Utensils;
-    if (nombreLower.includes('vehículo') || nombreLower.includes('auto') || nombreLower.includes('carro')) return Car;
-    if (nombreLower.includes('libro') || nombreLower.includes('lectura')) return Book;
-    if (nombreLower.includes('música') || nombreLower.includes('sonido')) return Music;
-    if (nombreLower.includes('cámara') || nombreLower.includes('foto')) return Camera;
-    if (nombreLower.includes('juego') || nombreLower.includes('videojuego')) return Gamepad2;
-    if (nombreLower.includes('flor') || nombreLower.includes('jardín') || nombreLower.includes('planta')) return Flower2;
-    if (nombreLower.includes('ejercicio') || nombreLower.includes('pesa')) return Dumbbell;
-    if (nombreLower.includes('viaje') || nombreLower.includes('turismo')) return Plane;
-    if (nombreLower.includes('café') || nombreLower.includes('bebida')) return Coffee;
-    if (nombreLower.includes('vino') || nombreLower.includes('licor')) return Wine;
-    if (nombreLower.includes('regalo')) return Gift;
-    
-    return Package; // Icono por defecto
+
+    if (
+        nombreLower.includes("hombre") ||
+        nombreLower.includes("caballero")
+    ) {
+        return User;
+    }
+
+    if (
+        nombreLower.includes("mujer") ||
+        nombreLower.includes("dama") ||
+        nombreLower.includes("señora")
+    ) {
+        return Heart;
+    }
+
+    if (
+        nombreLower.includes("niñ") ||
+        nombreLower.includes("bebé") ||
+        nombreLower.includes("bebe")
+    ) {
+        return Baby;
+    }
+
+    if (
+        nombreLower.includes("mascot") ||
+        nombreLower.includes("perro") ||
+        nombreLower.includes("gato")
+    ) {
+        return PawPrint;
+    }
+
+    if (
+        nombreLower.includes("tecnolog") ||
+        nombreLower.includes("electrónic") ||
+        nombreLower.includes("computador") ||
+        nombreLower.includes("laptop")
+    ) {
+        return Laptop;
+    }
+
+    if (
+        nombreLower.includes("accesorio") ||
+        nombreLower.includes("reloj") ||
+        nombreLower.includes("gafas")
+    ) {
+        return Watch;
+    }
+
+    if (
+        nombreLower.includes("ropa") ||
+        nombreLower.includes("vestido") ||
+        nombreLower.includes("camisa")
+    ) {
+        return Shirt;
+    }
+
+    if (
+        nombreLower.includes("calzado") ||
+        nombreLower.includes("zapato")
+    ) {
+        return ShoppingBag;
+    }
+
+    return Package;
+};
+
+/*
+ * Obtiene el ID del padre de forma tolerante.
+ * Soporta respuestas que utilicen:
+ * - id_categoria_padre
+ * - categoria_padre como objeto
+ * - categoria_padre como ID
+ */
+const getParentId = (categoria) => {
+    if (!categoria) return null;
+
+    if (categoria.id_categoria_padre != null) {
+        return categoria.id_categoria_padre;
+    }
+
+    if (categoria.categoria_padre?.id_categoria != null) {
+        return categoria.categoria_padre.id_categoria;
+    }
+
+    if (
+        typeof categoria.categoria_padre === "number" ||
+        typeof categoria.categoria_padre === "string"
+    ) {
+        return categoria.categoria_padre;
+    }
+
+    return null;
+};
+
+const normalizeCategories = (categories) => {
+    const lista = Array.isArray(categories) ? categories : [];
+
+    return lista
+        .filter((categoria) => categoria?.estado !== "archivado")
+        .map((categoria) => ({
+            ...categoria,
+            subcategorias: Array.isArray(categoria.subcategorias)
+                ? categoria.subcategorias
+                    .filter((sub) => sub?.estado !== "archivado")
+                    .map((sub) => ({
+                        ...sub,
+                        subcategorias: Array.isArray(sub.subcategorias)
+                            ? sub.subcategorias.filter(
+                                (subsub) =>
+                                    subsub?.estado !== "archivado"
+                            )
+                            : [],
+                    }))
+                : [],
+        }));
 };
 
 function NavLinks({ mobileMenuOpen, setMobileMenuOpen }) {
     const [categorias, setCategorias] = useState([]);
     const [activeMenu, setActiveMenu] = useState(null);
     const [isMobile, setIsMobile] = useState(false);
+    const [activeAnchor, setActiveAnchor] = useState(null);
 
     useEffect(() => {
+        let cancelado = false;
+
         api.get("/categories/")
             .then((res) => {
-                const activas = (res.data || []).filter((c) => c.estado !== "archivado");
-                const raices = activas.filter((c) => !c.categoria_padre);
+                if (cancelado) return;
+
+                const data = normalizeCategories(res.data || []);
+
+                /*
+                 * Cuando la API ya entrega la jerarquía anidada,
+                 * usamos directamente las categorías raíz.
+                 *
+                 * Si eventualmente devuelve una lista plana,
+                 * también intentamos detectar raíces mediante el padre.
+                 */
+                const raices = data.filter(
+                    (categoria) => getParentId(categoria) == null
+                );
+
                 setCategorias(raices);
             })
-            .catch((err) => console.error("Error cargando categorías:", err));
+            .catch((err) => {
+                console.error("Error cargando categorías:", err);
+            });
+
+        return () => {
+            cancelado = true;
+        };
     }, []);
 
     useEffect(() => {
         const checkMobile = () => {
             setIsMobile(window.innerWidth <= 900);
         };
+
         checkMobile();
-        window.addEventListener('resize', checkMobile);
-        return () => window.removeEventListener('resize', checkMobile);
+
+        window.addEventListener("resize", checkMobile);
+
+        return () => {
+            window.removeEventListener("resize", checkMobile);
+        };
     }, []);
 
-    const handleMenuToggle = (categoryId, e) => {
-        if (isMobile) {
-            e.preventDefault();
-            setActiveMenu(activeMenu === categoryId ? null : categoryId);
-        }
+    const handleMenuEnter = (categoryId, element) => {
+        if (isMobile) return;
+
+        setActiveMenu(categoryId);
+        setActiveAnchor(element);
+    };
+
+    const handleMenuLeave = () => {
+        if (isMobile) return;
+
+        setActiveMenu(null);
+        setActiveAnchor(null);
+    };
+
+    const handleMenuToggle = (categoryId, event) => {
+        if (!isMobile) return;
+
+        event.preventDefault();
+
+        setActiveMenu((current) =>
+            current === categoryId ? null : categoryId
+        );
+
+        setActiveAnchor(event.currentTarget);
     };
 
     const handleLinkClick = () => {
-        if (isMobile && setMobileMenuOpen) {
+        setActiveMenu(null);
+        setActiveAnchor(null);
+
+        if (setMobileMenuOpen) {
             setMobileMenuOpen(false);
         }
     };
 
-    // Mostrar primeras 6 categorías en navegación principal, resto en "Más"
-    const mainCategories = useMemo(() => categorias.slice(0, 6), [categorias]);
-    const moreCategories = useMemo(() => categorias.slice(6), [categorias]);
+    const mainCategories = useMemo(
+        () => categorias.slice(0, 6),
+        [categorias]
+    );
+
+    const moreCategories = useMemo(
+        () => categorias.slice(6),
+        [categorias]
+    );
 
     return (
         <nav className="navbar-bottom">
@@ -116,9 +243,7 @@ function NavLinks({ mobileMenuOpen, setMobileMenuOpen }) {
             {/* ==================================================
                 INICIO
             ================================================== */}
-
             <div className="nav-item nav-item-home">
-
                 <Link
                     to="/"
                     className="nav-link"
@@ -126,84 +251,83 @@ function NavLinks({ mobileMenuOpen, setMobileMenuOpen }) {
                 >
                     Inicio
                 </Link>
-
             </div>
-
 
             {/* ==================================================
                 CATEGORÍAS PRINCIPALES
             ================================================== */}
-
             {mainCategories.map((cat) => {
-                const hasChildren = (cat.subcategorias || []).length > 0;
-                const isActive = activeMenu === cat.id_categoria;
+                const hasChildren =
+                    Array.isArray(cat.subcategorias) &&
+                    cat.subcategorias.length > 0;
+
+                const isActive =
+                    activeMenu === cat.id_categoria;
+
                 const Icon = getCategoryIcon(cat.nombre);
 
                 return (
                     <div
                         key={cat.id_categoria}
-                        className="nav-item"
-                        onMouseEnter={() => !isMobile && setActiveMenu(cat.id_categoria)}
-                        onMouseLeave={() => !isMobile && setActiveMenu(null)}
-                        onClick={(e) => handleMenuToggle(cat.id_categoria, e)}
+                        className={`nav-item ${
+                            isActive ? "nav-item--mega-open" : ""
+                        }`}
+                        onMouseEnter={(event) =>
+                            handleMenuEnter(
+                                cat.id_categoria,
+                                event.currentTarget
+                            )
+                        }
+                        onMouseLeave={handleMenuLeave}
+                        onClick={(event) =>
+                            hasChildren &&
+                            handleMenuToggle(
+                                cat.id_categoria,
+                                event
+                            )
+                        }
                     >
                         <Link
-                            to={itemHref(cat.slug, cat.id_categoria)}
-                            className="nav-link"
-                            onClick={handleLinkClick}
+                            to={itemHref(
+                                cat.slug,
+                                cat.id_categoria
+                            )}
+                            className={`nav-link ${
+                                isActive ? "is-active" : ""
+                            }`}
+                            onClick={(event) => {
+                                if (isMobile && hasChildren) {
+                                    event.preventDefault();
+                                } else {
+                                    handleLinkClick();
+                                }
+                            }}
                         >
-                            <Icon size={16} className="nav-category-icon" />
+                            <Icon
+                                size={16}
+                                className="nav-category-icon"
+                            />
+
                             {cat.nombre}
-                            {hasChildren && <span className="nav-arrow">▾</span>}
+
+                            {hasChildren && (
+                                <ChevronDown
+                                    size={14}
+                                    className={`nav-arrow-icon ${
+                                        isActive
+                                            ? "nav-arrow-icon--open"
+                                            : ""
+                                    }`}
+                                />
+                            )}
                         </Link>
 
                         {isActive && hasChildren && (
-                            <div className="mega-menu mega-menu--productos">
-                                <div className="mega-menu-header">
-                                    <h2><Icon size={18} className="mega-header-icon" />{cat.nombre}</h2>
-                                </div>
-                                <div className="mega-menu-cols">
-                                    {(cat.subcategorias || []).map((sub) => {
-                                        const SubIcon = getCategoryIcon(sub.nombre);
-                                        const hasSubSubs = (sub.subcategorias || []).length > 0;
-                                        return (
-                                            <div key={sub.id_categoria} className="mega-column">
-                                                <h3>
-                                                    <SubIcon size={14} className="mega-column-icon" />
-                                                    {sub.nombre}
-                                                </h3>
-                                                {hasSubSubs ? (
-                                                    <div className="mega-items">
-                                                        {(sub.subcategorias || []).map((subsub) => {
-                                                            const SubSubIcon = getCategoryIcon(subsub.nombre);
-                                                            return (
-                                                                <Link
-                                                                    key={subsub.id_categoria}
-                                                                    to={itemHref(subsub.slug, subsub.id_categoria)}
-                                                                    className="mega-item"
-                                                                    onClick={handleLinkClick}
-                                                                >
-                                                                    <SubSubIcon size={12} className="mega-item-icon" />
-                                                                    {subsub.nombre}
-                                                                </Link>
-                                                            );
-                                                        })}
-                                                    </div>
-                                                ) : (
-                                                    <Link
-                                                        to={itemHref(sub.slug, sub.id_categoria)}
-                                                        className="mega-item mega-item--single"
-                                                        onClick={handleLinkClick}
-                                                    >
-                                                        <SubIcon size={12} className="mega-item-icon" />
-                                                        Ver productos
-                                                    </Link>
-                                                )}
-                                            </div>
-                                        );
-                                    })}
-                                </div>
-                            </div>
+                            <MegaMenu
+                                category={cat}
+                                anchorElement={activeAnchor}
+                                onNavigate={handleLinkClick}
+                            />
                         )}
                     </div>
                 );
@@ -212,71 +336,52 @@ function NavLinks({ mobileMenuOpen, setMobileMenuOpen }) {
             {/* ==================================================
                 MÁS
             ================================================== */}
-
             {moreCategories.length > 0 && (
                 <div
-                    className="nav-item"
-                    onMouseEnter={() => !isMobile && setActiveMenu("more")}
-                    onMouseLeave={() => !isMobile && setActiveMenu(null)}
-                    onClick={(e) => handleMenuToggle("more", e)}
+                    className={`nav-item ${
+                        activeMenu === "more"
+                            ? "nav-item--mega-open"
+                            : ""
+                    }`}
+                    onMouseEnter={(event) =>
+                        handleMenuEnter(
+                            "more",
+                            event.currentTarget
+                        )
+                    }
+                    onMouseLeave={handleMenuLeave}
+                    onClick={(event) =>
+                        handleMenuToggle("more", event)
+                    }
                 >
-                    <span className="nav-link">
+                    <button
+                        type="button"
+                        className={`nav-link nav-link-button ${
+                            activeMenu === "more"
+                                ? "is-active"
+                                : ""
+                        }`}
+                        onClick={(event) =>
+                            handleMenuToggle("more", event)
+                        }
+                    >
                         Más
-                        <span className="nav-arrow">▾</span>
-                    </span>
+                        <ChevronDown
+                            size={14}
+                            className="nav-arrow-icon"
+                        />
+                    </button>
 
                     {activeMenu === "more" && (
-                        <div className="mega-menu mega-menu--productos">
-                            <div className="mega-menu-header">
-                                <h2>Más categorías</h2>
-                            </div>
-                            <div className="mega-menu-cols">
-                                {moreCategories.map((cat) => {
-                                    const hasChildren = (cat.subcategorias || []).length > 0;
-                                    const CatIcon = getCategoryIcon(cat.nombre);
-                                    return (
-                                        <div key={cat.id_categoria} className="mega-column">
-                                            <h3>
-                                                <CatIcon size={14} className="mega-column-icon" />
-                                                {cat.nombre}
-                                            </h3>
-                                            {hasChildren ? (
-                                                <div className="mega-items">
-                                                    {(cat.subcategorias || []).map((sub) => {
-                                                        const SubIcon = getCategoryIcon(sub.nombre);
-                                                        const hasSubSubs = (sub.subcategorias || []).length > 0;
-                                                        return (
-                                                            <Link
-                                                                key={sub.id_categoria}
-                                                                to={itemHref(sub.slug, sub.id_categoria)}
-                                                                className="mega-item"
-                                                                onClick={handleLinkClick}
-                                                            >
-                                                                <SubIcon size={12} className="mega-item-icon" />
-                                                                {sub.nombre}
-                                                            </Link>
-                                                        );
-                                                    })}
-                                                </div>
-                                            ) : (
-                                                <Link
-                                                    to={itemHref(cat.slug, cat.id_categoria)}
-                                                    className="mega-item mega-item--single"
-                                                    onClick={handleLinkClick}
-                                                >
-                                                    <CatIcon size={12} className="mega-item-icon" />
-                                                    Ver productos
-                                                </Link>
-                                            )}
-                                        </div>
-                                    );
-                                })}
-                            </div>
-                        </div>
+                        <MegaMenu
+                            categories={moreCategories}
+                            anchorElement={activeAnchor}
+                            onNavigate={handleLinkClick}
+                            isMore
+                        />
                     )}
                 </div>
             )}
-
         </nav>
     );
 }

@@ -876,6 +876,41 @@
 }
 
 /* =========================================================
+   NAV LINK BUTTON
+========================================================= */
+
+.nav-link-button {
+    border: none;
+    font-family: inherit;
+    background: transparent;
+    cursor: pointer;
+}
+
+/* =========================================================
+   NAV ITEM MEGA OPEN
+========================================================= */
+
+.nav-item--mega-open > .nav-link {
+    color: var(--color-primary-dark);
+}
+
+/* =========================================================
+   NAV ARROW ICON
+========================================================= */
+
+.nav-arrow-icon {
+    flex-shrink: 0;
+
+    transition:
+        transform var(--transition-fast),
+        color var(--transition-fast);
+}
+
+.nav-arrow-icon--open {
+    transform: rotate(180deg);
+}
+
+/* =========================================================
    INICIO
 ========================================================= */
 
@@ -939,142 +974,6 @@
     min-width: 90px;
 }
 
-/* =========================================================
-   MEGA MENU
-========================================================= */
-
-.nav-item .mega-menu {
-    position: absolute;
-
-    top: 100%;
-
-    left: 0;
-
-    min-width: 980px;
-    max-width: 1200px;
-
-    background: var(--color-bg);
-
-    border: 1px solid var(--color-border);
-
-    border-top: 3px solid var(--color-primary);
-
-    border-radius:
-        0
-        0
-        var(--radius-xl)
-        var(--radius-xl);
-
-    box-shadow: var(--shadow-lg);
-
-    z-index: var(--z-dropdown);
-
-    animation: menuFade var(--transition) var(--ease-out);
-}
-
-.nav-item .mega-menu--ofertas {
-    border-top-color: var(--color-orange);
-}
-
-/* Header del mega menú */
-.mega-menu-header {
-    padding: 20px 24px 16px;
-    border-bottom: 1px solid var(--color-border);
-    background: var(--color-bg-alt);
-}
-
-.mega-menu-header h2 {
-    margin: 0;
-    font-size: 18px;
-    font-weight: 700;
-    color: var(--color-text);
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.mega-header-icon {
-    color: var(--color-primary);
-}
-
-/* Contenedor de columnas */
-.mega-menu-cols {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-    gap: 24px;
-    padding: 24px;
-}
-
-/* Columna individual */
-.mega-column {
-    display: flex;
-    flex-direction: column;
-}
-
-.mega-column h3 {
-    margin: 0 0 12px;
-    font-size: 14px;
-    font-weight: 600;
-    color: var(--color-text);
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    padding-bottom: 8px;
-    border-bottom: 2px solid var(--color-primary);
-}
-
-.mega-column-icon {
-    color: var(--color-primary);
-}
-
-/* Items dentro de columna */
-.mega-items {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-}
-
-.mega-item {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 8px 12px;
-    border-radius: 6px;
-    color: var(--color-text);
-    font-size: 13px;
-    text-decoration: none;
-    transition: all 0.2s ease;
-}
-
-.mega-item:hover {
-    background: var(--color-bg-alt);
-    color: var(--color-primary);
-}
-
-.mega-item-icon {
-    color: #6B7280;
-    flex-shrink: 0;
-}
-
-.mega-item:hover .mega-item-icon {
-    color: var(--color-primary);
-}
-
-.mega-item--single {
-    margin-top: 8px;
-    font-weight: 500;
-}
-
-@keyframes menuFade {
-    from {
-        opacity: 0;
-        transform: translateY(8px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
 
 /* =========================================================
    RESPONSIVE

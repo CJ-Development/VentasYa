@@ -1,628 +1,460 @@
-/* =========================================================
-   MEGA MENU
-   Layout:
-     · columna izquierda  → panel destacado (más peso visual)
-     · columna derecha    → categorías / subcategorías
-                            (protagonismo reducido)
-========================================================= */
+/* ============================================================
+   MEGA MENU — BAÚL MÁGICO SHOP
+   Diseño horizontal, dinámico y reutilizable
+============================================================ */
 
 .mega-menu {
-    position: absolute;
+    position: fixed;
+    z-index: 3000;
 
-    top: 100%;
-    left: 0;
+    width: max-content;
+    max-width: calc(100vw - 32px);
 
-    width: min(880px, 80vw);
+    box-sizing: border-box;
 
-    background: #FFFFFF;
+    background: #ffffff;
 
-    padding:
-        26px 28px;
+    border: 1px solid #e5e7eb;
+    border-top: 3px solid var(--color-primary);
 
-    display: grid;
-
-    grid-template-columns:
-        minmax(280px, 1fr)
-        minmax(0, 2.4fr);
-
-    gap:
-        30px;
-
-    border:
-        1px solid #E5E7EB;
-
-    border-top:
-        3px solid #0EA5B5;
-
-    border-radius:
-        0
-        0
-        18px
-        18px;
+    border-radius: 16px;
 
     box-shadow:
-        0 25px 55px rgba(31, 41, 55, 0.13);
+        0 18px 45px rgba(15, 23, 42, 0.14),
+        0 4px 12px rgba(15, 23, 42, 0.05);
 
-    z-index: 1200;
+    overflow: hidden;
 
-    animation:
-        fadeMenu
-        0.25s ease;
+    animation: megaMenuEnter 0.18s ease-out;
 }
 
-/* =========================================================
-   OFERTAS
-========================================================= */
 
-.mega-menu--ofertas {
-    border-top-color: #FF7A00;
+/* ============================================================
+   CONTENEDOR HORIZONTAL
+============================================================ */
 
-    background:
-        radial-gradient(
-            circle at top left,
-            rgba(255, 122, 0, 0.07),
-            transparent 45%
-        ),
-        #FFFFFF;
+.mega-menu-scroll {
+    display: flex;
+
+    align-items: flex-start;
+
+    flex-wrap: nowrap;
+
+    gap: 0;
+
+    width: max-content;
+    min-width: 100%;
+
+    max-width: calc(100vw - 32px);
+
+    padding: 22px 8px 20px 22px;
+
+    overflow-x: auto;
+    overflow-y: hidden;
+
+    scrollbar-width: thin;
+    scrollbar-color: #cbd5e1 transparent;
 }
 
-/* Variante ofertas: el panel destacado va a la derecha,
-   las columnas de categorías/subcategorías a la izquierda. */
 
-.mega-menu--ofertas {
-    grid-template-columns:
-        minmax(0, 2.4fr)
-        minmax(260px, 1fr);
+/* Scrollbar Chrome / Edge */
+
+.mega-menu-scroll::-webkit-scrollbar {
+    height: 7px;
 }
 
-/* Variante productos: misma inversión que en ofertas,
-   panel a la derecha, columnas a la izquierda. */
-
-.mega-menu--productos {
-    grid-template-columns:
-        minmax(0, 2.4fr)
-        minmax(280px, 1fr);
+.mega-menu-scroll::-webkit-scrollbar-track {
+    background: transparent;
 }
 
-/* =========================================================
-   COLUMNAS (a la derecha)
-========================================================= */
-
-.mega-menu-cols {
-    display: grid;
-
-    grid-template-columns:
-        repeat(3, 1fr);
-
-    gap: 24px;
-
-    align-content:start;
+.mega-menu-scroll::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 999px;
 }
 
-/* =========================================================
+.mega-menu-scroll::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+}
+
+
+/* ============================================================
    COLUMNA
-========================================================= */
+============================================================ */
 
 .mega-column {
+    flex: 0 0 180px;
+
+    width: 180px;
+    max-width: 180px;
+
+    padding: 0 18px;
+
+    border-right: 1px solid #eef2f4;
+
+    box-sizing: border-box;
+}
+
+.mega-column:first-child {
+    padding-left: 4px;
+}
+
+.mega-column:last-child {
+    border-right: none;
+}
+
+
+/* ============================================================
+   TÍTULO DE SUBCATEGORÍA
+============================================================ */
+
+.mega-column-title {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    gap: 10px;
+
+    width: 100%;
+
+    margin: 0 0 11px;
+    padding: 0 0 10px;
+
+    border: none;
+    border-bottom: 1px solid #e8edef;
+
+    background: transparent;
+
+    color: var(--color-text);
+
+    font-size: 12px;
+    font-weight: 800;
+
+    line-height: 1.25;
+
+    text-decoration: none;
+
+    text-transform: uppercase;
+    letter-spacing: 0.045em;
+
+    transition:
+        color 0.18s ease,
+        border-color 0.18s ease;
+}
+
+.mega-column-title span {
+    overflow: hidden;
+
+    text-overflow: ellipsis;
+}
+
+.mega-column-title svg {
+    flex-shrink: 0;
+
+    color: #94a3b8;
+
+    transition:
+        color 0.18s ease,
+        transform 0.18s ease;
+}
+
+.mega-column-title:hover {
+    color: var(--color-primary-dark);
+
+    border-color: var(--color-primary-light);
+}
+
+.mega-column-title:hover svg {
+    color: var(--color-primary);
+
+    transform: translateX(2px);
+}
+
+
+/* ============================================================
+   ELEMENTOS DE LA COLUMNA
+============================================================ */
+
+.mega-column-items {
     display: flex;
 
     flex-direction: column;
 
     gap: 3px;
+
+    max-height: 250px;
+
+    overflow-y: auto;
+
+    scrollbar-width: thin;
+    scrollbar-color: #dbe4e7 transparent;
 }
 
-/* =========================================================
-   TÍTULO COLUMNA
-========================================================= */
-
-.mega-column h3 {
-    position: relative;
-
-    color: #6B7280;
-
-    font-size: 11px;
-
-    font-weight: 700;
-
-    text-transform: uppercase;
-
-    letter-spacing: 0.5px;
-
-    display: flex;
-
-    align-items: center;
-
-    gap: 6px;
-
-    margin-bottom: 8px;
-
-    padding-bottom: 8px;
-
-    border-bottom:
-        1px solid #F0F1F2;
+.mega-column-items::-webkit-scrollbar {
+    width: 5px;
 }
 
-.mega-column h3::after {
-    content: "";
+.mega-column-items::-webkit-scrollbar-track {
+    background: transparent;
+}
 
-    position: absolute;
-
-    left: 0;
-    bottom: -1px;
-
-    width: 22px;
-    height: 2px;
-
-    background: #0EA5B5;
+.mega-column-items::-webkit-scrollbar-thumb {
+    background: #dbe4e7;
 
     border-radius: 999px;
 }
 
-.mega-menu--ofertas .mega-column h3 {
-    color: #6B7280;
-}
 
-.mega-menu--ofertas .mega-column h3::after {
-    background: #FF7A00;
-}
-
-.mega-column-title h3 {
-    cursor:pointer;
-}
-
-/* =========================================================
-   ITEMS
-========================================================= */
+/* ============================================================
+   ITEM
+============================================================ */
 
 .mega-item {
-    position: relative;
-
     display: flex;
-
     align-items: center;
-    justify-content: space-between;
 
     min-height: 30px;
 
-    color: #4B5563;
+    padding: 5px 8px;
+
+    border-radius: 7px;
+
+    color: #4b5563;
 
     font-size: 12px;
-
     font-weight: 500;
 
-    padding:
-        5px 8px;
+    line-height: 1.35;
 
-    border-radius: 6px;
+    text-decoration: none;
 
     transition:
-        background 0.2s ease,
-        color 0.2s ease,
-        padding-left 0.2s ease;
+        color 0.18s ease,
+        background 0.18s ease,
+        transform 0.18s ease;
 }
 
 .mega-item:hover {
-    color: #0EA5B5;
+    color: var(--color-primary-dark);
 
-    background: #E8F7F8;
+    background: var(--color-primary-lighter);
 
-    padding-left: 12px;
+    transform: translateX(2px);
 }
 
-/* Indicador lateral */
 
-.mega-item::before {
-    content: "";
+/* ============================================================
+   VER TODO
+============================================================ */
 
-    position: absolute;
-
-    left: 0;
-    top: 50%;
-
-    width: 2px;
-    height: 0;
-
-    background: #0EA5B5;
-
-    border-radius: 999px;
-
-    transform:
-        translateY(-50%);
-
-    transition:
-        height 0.2s ease;
-}
-
-.mega-item:hover::before {
-    height: 50%;
-}
-
-.mega-item--empty{
-
-    color:#9CA3AF;
-
-    font-style:italic;
-
-    cursor:default;
-
-    pointer-events:none;
-
-}
-
-.mega-item--empty:hover{
-
-    background:transparent;
-
-    color:#9CA3AF;
-
-    padding-left:8px;
-
-    transform:none;
-
-}
-
-.mega-item--empty::before{
-
-    display:none;
-
-}
-
-/* =========================================================
-   ITEMS OFERTAS
-========================================================= */
-
-.mega-menu--ofertas .mega-item:hover {
-    color: #FF7A00;
-
-    background: #FFF1E8;
-}
-
-.mega-menu--ofertas .mega-item::before {
-    background: #FF7A00;
-}
-
-/* =========================================================
-   BADGES
-========================================================= */
-
-.mega-badge {
+.mega-column-all {
     display: inline-flex;
-
-    align-items: center;
-    justify-content: center;
-
-    min-width: 30px;
-
-    font-size: 9px;
-
-    font-weight: 800;
-
-    line-height: 1;
-
-    padding:
-        3px 6px;
-
-    border-radius: 999px;
-
-    background: #FFE7E0;
-
-    color: #FF6B6B;
-
-    text-transform: uppercase;
-
-    letter-spacing: 0.3px;
-
-    margin-left: 6px;
-}
-
-/* Badges principales */
-
-.mega-badge--70,
-.mega-badge--hoy,
-.mega-badge--free,
-.mega-badge--stock {
-    background: #FF6B6B;
-
-    color: #FFFFFF;
-}
-
-/* =========================================================
-   PANEL DESTACADO (a la izquierda)
-========================================================= */
-
-.mega-menu-panel {
-    display: flex;
-
-    flex-direction: column;
-
-    gap: 12px;
-}
-
-/* =========================================================
-   PANEL PRINCIPAL
-========================================================= */
-
-.mega-panel-head {
-    background:
-        linear-gradient(
-            145deg,
-            #EAF6F8 0%,
-            #F7FBFB 100%
-        );
-
-    border:
-        1px solid #E1F0F2;
-
-    border-radius: 16px;
-
-    padding:
-        20px;
-
-    display: flex;
-
-    flex-direction: column;
-
-    gap: 9px;
-
-    overflow: hidden;
-
-    position: relative;
-}
-
-.mega-panel-head::after {
-    content: "";
-
-    position: absolute;
-
-    width: 110px;
-    height: 110px;
-
-    right: -35px;
-    bottom: -40px;
-
-    border-radius: 50%;
-
-    background:
-        rgba(14, 165, 181, 0.08);
-
-    pointer-events: none;
-}
-
-/* =========================================================
-   PANEL OFERTAS
-========================================================= */
-
-.mega-menu--ofertas .mega-panel-head {
-    background:
-        linear-gradient(
-            145deg,
-            #FFF0EB 0%,
-            #FFF9F7 100%
-        );
-
-    border-color:
-        #FFE0D6;
-}
-
-/* =========================================================
-   TAG
-========================================================= */
-
-.mega-panel-tag {
-    display: inline-flex;
-
     align-items: center;
 
-    gap: 6px;
+    gap: 5px;
 
-    width: fit-content;
+    margin-top: 10px;
 
-    background: #FFFFFF;
+    padding: 6px 2px;
 
-    padding:
-        6px 12px;
-
-    border-radius: 999px;
+    color: var(--color-primary-dark);
 
     font-size: 11px;
-
     font-weight: 800;
 
-    color: #0EA5B5;
+    text-decoration: none;
 
-    box-shadow:
-        0 3px 10px rgba(31, 41, 55, 0.06);
-}
-
-.mega-menu--ofertas .mega-panel-tag {
-    color: #FF6B6B;
-}
-
-/* =========================================================
-   TÍTULO PANEL
-========================================================= */
-
-.mega-panel-head h4 {
-    position: relative;
-
-    z-index: 1;
-
-    font-size: 22px;
-
-    font-weight: 800;
-
-    line-height: 1.2;
-
-    color: #0EA5B5;
-
-    margin-top: 3px;
-}
-
-/* Variante productos: encabezado del panel en azul,
-   igual que las ofertas son naranjas. */
-.mega-menu--productos .mega-panel-head h4 {
-    color: #0EA5B5;
-}
-
-/* =========================================================
-   DESCRIPCIÓN
-========================================================= */
-
-.mega-panel-head p {
-    position: relative;
-
-    z-index: 1;
-
-    font-size: 13px;
-
-    line-height: 1.55;
-
-    color: #4B5563;
-
-    flex: 1;
-}
-
-/* =========================================================
-   CTA
-========================================================= */
-
-.mega-panel-cta {
-    position: relative;
-
-    z-index: 2;
-
-    display: inline-flex;
-
-    align-items: center;
-
-    justify-content: center;
-
-    gap: 7px;
-
-    width: fit-content;
-
-    padding:
-        10px 18px;
-
-    background: #0EA5B5;
-
-    color: #FFFFFF;
-
-    border-radius: 999px;
-
-    font-size: 12px;
-
-    font-weight: 800;
+    white-space: nowrap;
 
     transition:
-        background 0.22s ease,
-        transform 0.22s ease,
-        box-shadow 0.22s ease;
+        color 0.18s ease,
+        transform 0.18s ease;
 }
 
-.mega-menu--ofertas .mega-panel-cta {
-    background: #FF7A00;
+.mega-column-all:hover {
+    color: var(--color-primary);
+
+    transform: translateX(3px);
 }
 
-.mega-panel-cta:hover {
-    background: #087F8C;
 
-    transform:
-        translateX(3px);
+/* ============================================================
+   CUANDO NO HAY HIJOS
+============================================================ */
 
-    box-shadow:
-        0 7px 18px rgba(14, 165, 181, 0.20);
+.mega-item--empty {
+    color: #9ca3af;
+
+    font-style: italic;
+
+    cursor: pointer;
 }
 
-.mega-menu--ofertas .mega-panel-cta:hover {
-    background: #E96900;
+.mega-item--empty:hover {
+    color: var(--color-primary-dark);
 
-    box-shadow:
-        0 7px 18px rgba(255, 122, 0, 0.20);
+    background: var(--color-primary-lighter);
 }
 
-/* =========================================================
+
+/* ============================================================
+   VARIANTE "MÁS"
+============================================================ */
+
+.mega-menu--more {
+    border-top-color: var(--color-primary);
+}
+
+
+/* ============================================================
    ANIMACIÓN
-========================================================= */
+============================================================ */
 
-@keyframes fadeMenu {
-
+@keyframes megaMenuEnter {
     from {
         opacity: 0;
 
         transform:
-            translateY(8px);
+            translateY(-5px)
+            scale(0.99);
     }
 
     to {
         opacity: 1;
 
         transform:
-            translateY(0);
+            translateY(0)
+            scale(1);
     }
 }
 
-/* =========================================================
-   RESPONSIVE 1100
-========================================================= */
+
+/* ============================================================
+   TABLET
+============================================================ */
 
 @media (max-width: 1100px) {
 
     .mega-menu {
-        width: min(900px, 90vw);
-
-        grid-template-columns:
-            1fr;
-
-        padding:
-            22px;
+        max-width: calc(100vw - 24px);
     }
 
-    .mega-menu-cols {
-        grid-template-columns:
-            repeat(3, 1fr);
+    .mega-menu-scroll {
+        max-width: calc(100vw - 24px);
 
-        gap: 22px;
-    }
-}
-
-/* =========================================================
-   RESPONSIVE 800
-========================================================= */
-
-@media (max-width: 800px) {
-
-    .mega-menu {
-        width: 90vw;
-
-        left: -10px;
+        padding: 20px 8px 18px 18px;
     }
 
-    .mega-menu-cols {
-        grid-template-columns:
-            repeat(2, 1fr);
+    .mega-column {
+        flex-basis: 165px;
+
+        width: 165px;
+        max-width: 165px;
+
+        padding: 0 14px;
     }
 }
 
-/* =========================================================
-   RESPONSIVE 600
-========================================================= */
 
-@media (max-width: 600px) {
+/* ============================================================
+   MOBILE
+============================================================ */
+
+@media (max-width: 900px) {
 
     .mega-menu {
-        padding:
-            20px;
+        position: fixed;
+
+        left: 12px !important;
+        right: 12px;
+
+        top: auto !important;
+        bottom: 12px;
+
+        width: auto;
+
+        max-width: none;
+
+        border-radius: 16px;
+
+        max-height: 75vh;
     }
 
-    .mega-menu-cols {
-        grid-template-columns:
-            1fr 1fr;
+    .mega-menu-scroll {
+        width: auto;
+        min-width: 0;
 
-        gap: 18px;
+        max-width: none;
+
+        padding: 18px 8px;
+
+        overflow-x: auto;
+        overflow-y: hidden;
+    }
+
+    .mega-column {
+        flex-basis: 165px;
+
+        width: 165px;
+        max-width: 165px;
+    }
+}
+
+
+/* ============================================================
+   MÓVIL PEQUEÑO
+============================================================ */
+
+@media (max-width: 480px) {
+
+    .mega-menu {
+        left: 8px !important;
+        right: 8px;
+
+        bottom: 8px;
+    }
+
+    .mega-menu-scroll {
+        padding: 15px 6px;
+    }
+
+    .mega-column {
+        flex-basis: 150px;
+
+        width: 150px;
+        max-width: 150px;
+
+        padding: 0 11px;
+    }
+
+    .mega-column-title {
+        font-size: 11px;
     }
 
     .mega-item {
-        font-size: 12px;
+        font-size: 11px;
+
+        min-height: 29px;
+    }
+
+    .mega-column-all {
+        font-size: 10px;
+    }
+}
+
+
+/* ============================================================
+   REDUCED MOTION
+============================================================ */
+
+@media (prefers-reduced-motion: reduce) {
+
+    .mega-menu {
+        animation: none;
+    }
+
+    .mega-item,
+    .mega-column-title,
+    .mega-column-all {
+        transition: none;
     }
 }
