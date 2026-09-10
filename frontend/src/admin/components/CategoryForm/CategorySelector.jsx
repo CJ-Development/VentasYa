@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { Search, ArrowLeft, X, Folder, FolderOpen, ChevronRight, ChevronDown } from "lucide-react";
+import { Search, ArrowLeft, X, Folder, FolderOpen, ChevronRight, ChevronDown, Check } from "lucide-react";
 import "./CategorySelector.css";
 
 function CategorySelector({
@@ -244,26 +244,49 @@ function CategorySelector({
                             // Navegación por árbol
                             currentPath.length === 0 ? (
                                 // Nivel 1
-                                currentCategories.map(cat => (
-                                    <div
-                                        key={cat.id_categoria}
-                                        className={`category-selector-item ${Number(value) === Number(cat.id_categoria) ? 'selected' : ''}`}
-                                        onClick={() => {
-                                            const children = getChildren(cat.id_categoria);
-                                            if (children.length > 0) {
-                                                navigateTo(cat);
-                                            } else {
-                                                selectCategory(cat);
-                                            }
-                                        }}
-                                    >
-                                        <Folder size={14} />
-                                        <span>{cat.nombre}</span>
-                                        {getChildren(cat.id_categoria).length > 0 && (
-                                            <ChevronRight size={14} className="item-arrow" />
-                                        )}
-                                    </div>
-                                ))
+                                currentCategories.map(cat => {
+                                    const children = getChildren(cat.id_categoria);
+                                    
+                                    return (
+                                        <div
+                                            key={cat.id_categoria}
+                                            className={`category-selector-item ${Number(value) === Number(cat.id_categoria) ? 'selected' : ''}`}
+                                        >
+                                            <div className="category-selector-item-main">
+                                                <Folder size={14} />
+                                                <span>{cat.nombre}</span>
+                                            </div>
+                                            <div className="category-selector-item-actions">
+                                                <button
+                                                    type="button"
+                                                    className="category-select-btn"
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        selectCategory(cat);
+                                                    }}
+                                                    title="Seleccionar como padre"
+                                                >
+                                                    <Check size={14} />
+                                                    Seleccionar
+                                                </button>
+                                                {children.length > 0 && (
+                                                    <button
+                                                        type="button"
+                                                        className="category-navigate-btn"
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            navigateTo(cat);
+                                                        }}
+                                                        title="Ver subcategorías"
+                                                    >
+                                                        Ver hijos
+                                                        <ChevronRight size={14} />
+                                                    </button>
+                                                )}
+                                            </div>
+                                        </div>
+                                    );
+                                })
                             ) : (
                                 // Niveles 2 y 3
                                 currentCategories.map(cat => {
@@ -274,19 +297,39 @@ function CategorySelector({
                                         <div
                                             key={cat.id_categoria}
                                             className={`category-selector-item ${Number(value) === Number(cat.id_categoria) ? 'selected' : ''}`}
-                                            onClick={() => {
-                                                if (children.length > 0 && level < 2) {
-                                                    navigateTo(cat);
-                                                } else {
-                                                    selectCategory(cat);
-                                                }
-                                            }}
                                         >
-                                            <Folder size={14} />
-                                            <span>{cat.nombre}</span>
-                                            {children.length > 0 && level < 2 && (
-                                                <ChevronRight size={14} className="item-arrow" />
-                                            )}
+                                            <div className="category-selector-item-main">
+                                                <Folder size={14} />
+                                                <span>{cat.nombre}</span>
+                                            </div>
+                                            <div className="category-selector-item-actions">
+                                                <button
+                                                    type="button"
+                                                    className="category-select-btn"
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        selectCategory(cat);
+                                                    }}
+                                                    title="Seleccionar como padre"
+                                                >
+                                                    <Check size={14} />
+                                                    Seleccionar
+                                                </button>
+                                                {children.length > 0 && level < 2 && (
+                                                    <button
+                                                        type="button"
+                                                        className="category-navigate-btn"
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            navigateTo(cat);
+                                                        }}
+                                                        title="Ver subcategorías"
+                                                    >
+                                                        Ver hijos
+                                                        <ChevronRight size={14} />
+                                                    </button>
+                                                )}
+                                            </div>
                                         </div>
                                     );
                                 })

@@ -604,6 +604,50 @@
 
 
 /* =========================
+   SUB-SUBCATEGORÍAS
+========================= */
+
+.sub-subcategory-list {
+    margin-top: 8px;
+    padding-left: 24px;
+}
+
+.sub-subcategory-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 12px;
+    border-radius: 6px;
+    background: #f9fafb;
+}
+
+.sub-subcategory-name-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex: 1;
+}
+
+.sub-sub-line {
+    margin-left: 8px;
+}
+
+.sub-sub-line-2 {
+    margin-left: 0;
+}
+
+.sub-sub-name {
+    font-size: 13px;
+    font-weight: 500;
+}
+
+.sub-sub-type {
+    font-size: 11px;
+    color: #9ca3af;
+}
+
+
+/* =========================
    LOADING / ERROR
 ========================= */
 

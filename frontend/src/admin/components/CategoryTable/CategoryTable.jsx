@@ -405,93 +405,185 @@ function CategoryTable({ refreshKey, onEdit }) {
 
                                     <div className="subcategory-list">
 
-                                        {children.map((subcategoria) => (
+                                        {children.map((subcategoria) => {
+                                            const subChildren = obtenerHijas(subcategoria.id_categoria);
+                                            const isSubExpanded = expanded[subcategoria.id_categoria] ?? false;
 
-                                            <div
-                                                className="subcategory-row"
-                                                key={subcategoria.id_categoria}
-                                            >
+                                            return (
+                                                <div
+                                                    className="subcategory-row"
+                                                    key={subcategoria.id_categoria}
+                                                >
 
-                                                <div className="subcategory-name-wrapper">
+                                                    <div className="subcategory-name-wrapper">
 
-                                                    <span className="tree-line" />
+                                                        <span className="tree-line" />
 
-                                                    <div className="subcategory-icon">
+                                                        {subChildren.length > 0 ? (
+                                                            <button
+                                                                className="expand-button sub-expand"
+                                                                onClick={() =>
+                                                                    toggleCategory(subcategoria.id_categoria)
+                                                                }
+                                                            >
+                                                                {isSubExpanded ? (
+                                                                    <ChevronDown size={14} />
+                                                                ) : (
+                                                                    <ChevronRight size={14} />
+                                                                )}
+                                                            </button>
+                                                        ) : (
+                                                            <span className="expand-placeholder sub-expand" />
+                                                        )}
 
-                                                        <Folder size={16} />
+                                                        <div className="subcategory-icon">
 
-                                                    </div>
-
-                                                    <div>
-
-                                                        <div className="subcategory-name">
-
-                                                            {subcategoria.nombre}
+                                                            {isSubExpanded && subChildren.length > 0 ? (
+                                                                <FolderOpen size={16} />
+                                                            ) : (
+                                                                <Folder size={16} />
+                                                            )}
 
                                                         </div>
 
-                                                        <span className="subcategory-type">
+                                                        <div>
 
-                                                            Subcategoría
+                                                            <div className="subcategory-name">
+
+                                                                {subcategoria.nombre}
+
+                                                            </div>
+
+                                                            <span className="subcategory-type">
+
+                                                                Subcategoría
+
+                                                            </span>
+
+                                                        </div>
+
+                                                    </div>
+
+
+                                                    <div className="subcategory-actions">
+
+                                                        <span
+                                                            className={
+                                                                subcategoria.estado === "activo"
+                                                                    ? "status-badge active"
+                                                                    : "status-badge inactive"
+                                                            }
+                                                        >
+
+                                                            {subcategoria.estado === "activo"
+                                                                ? "Activa"
+                                                                : "Inactiva"
+                                                            }
 
                                                         </span>
+
+
+                                                        <button
+                                                            className="icon-action edit"
+                                                            onClick={() =>
+                                                                onEdit(subcategoria)
+                                                            }
+                                                            title="Editar subcategoría"
+                                                        >
+
+                                                            <Edit3 size={16} />
+
+                                                        </button>
+
+
+                                                        <button
+                                                            className="icon-action delete"
+                                                            onClick={() =>
+                                                                eliminarCategoria(
+                                                                    subcategoria.id_categoria,
+                                                                    subcategoria.nombre
+                                                                )
+                                                            }
+                                                            title="Eliminar subcategoría"
+                                                        >
+
+                                                            <Trash2 size={16} />
+
+                                                        </button>
 
                                                     </div>
 
                                                 </div>
+                                            );
+                                        })}
 
+                                        {/* Sub-subcategorías */}
+                                        {children.map((subcategoria) => {
+                                            const subChildren = obtenerHijas(subcategoria.id_categoria);
+                                            const isSubExpanded = expanded[subcategoria.id_categoria] ?? false;
 
-                                                <div className="subcategory-actions">
+                                            if (!isSubExpanded || subChildren.length === 0) return null;
 
-                                                    <span
-                                                        className={
-                                                            subcategoria.estado === "activo"
-                                                                ? "status-badge active"
-                                                                : "status-badge inactive"
-                                                        }
-                                                    >
-
-                                                        {subcategoria.estado === "activo"
-                                                            ? "Activa"
-                                                            : "Inactiva"
-                                                        }
-
-                                                    </span>
-
-
-                                                    <button
-                                                        className="icon-action edit"
-                                                        onClick={() =>
-                                                            onEdit(subcategoria)
-                                                        }
-                                                        title="Editar subcategoría"
-                                                    >
-
-                                                        <Edit3 size={16} />
-
-                                                    </button>
-
-
-                                                    <button
-                                                        className="icon-action delete"
-                                                        onClick={() =>
-                                                            eliminarCategoria(
-                                                                subcategoria.id_categoria,
-                                                                subcategoria.nombre
-                                                            )
-                                                        }
-                                                        title="Eliminar subcategoría"
-                                                    >
-
-                                                        <Trash2 size={16} />
-
-                                                    </button>
-
+                                            return (
+                                                <div key={`subsub-${subcategoria.id_categoria}`} className="sub-subcategory-list">
+                                                    {subChildren.map((subsub) => (
+                                                        <div
+                                                            className="sub-subcategory-row"
+                                                            key={subsub.id_categoria}
+                                                        >
+                                                            <div className="sub-subcategory-name-wrapper">
+                                                                <span className="tree-line sub-sub-line" />
+                                                                <span className="tree-line sub-sub-line-2" />
+                                                                <div className="subcategory-icon">
+                                                                    <Folder size={14} />
+                                                                </div>
+                                                                <div>
+                                                                    <div className="subcategory-name sub-sub-name">
+                                                                        {subsub.nombre}
+                                                                    </div>
+                                                                    <span className="subcategory-type sub-sub-type">
+                                                                        Sub-subcategoría
+                                                                    </span>
+                                                                </div>
+                                                            </div>
+                                                            <div className="subcategory-actions">
+                                                                <span
+                                                                    className={
+                                                                        subsub.estado === "activo"
+                                                                            ? "status-badge active"
+                                                                            : "status-badge inactive"
+                                                                    }
+                                                                >
+                                                                    {subsub.estado === "activo"
+                                                                        ? "Activa"
+                                                                        : "Inactiva"
+                                                                    }
+                                                                </span>
+                                                                <button
+                                                                    className="icon-action edit"
+                                                                    onClick={() => onEdit(subsub)}
+                                                                    title="Editar sub-subcategoría"
+                                                                >
+                                                                    <Edit3 size={14} />
+                                                                </button>
+                                                                <button
+                                                                    className="icon-action delete"
+                                                                    onClick={() =>
+                                                                        eliminarCategoria(
+                                                                            subsub.id_categoria,
+                                                                            subsub.nombre
+                                                                        )
+                                                                    }
+                                                                    title="Eliminar sub-subcategoría"
+                                                                >
+                                                                    <Trash2 size={14} />
+                                                                </button>
+                                                            </div>
+                                                        </div>
+                                                    ))}
                                                 </div>
-
-                                            </div>
-
-                                        ))}
+                                            );
+                                        })}
 
                                     </div>
 
