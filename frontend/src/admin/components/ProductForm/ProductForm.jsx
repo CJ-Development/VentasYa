@@ -280,6 +280,12 @@ function ProductForm({
     const [useDiseño, setUseDiseño] = useState(false);
     const [useTalla, setUseTalla] = useState(true);
 
+    /* =====================================================
+       PESTAÑA ACTIVA (COLOR | DISEÑO)
+       ===================================================== */
+
+    const [activeTab, setActiveTab] = useState("color");
+
 
     /* =====================================================
        CARGAR CATÁLOGOS
@@ -2015,531 +2021,378 @@ function ProductForm({
 
 
                                 {/* ================================
-                                   COLORES
+                                   ATRIBUTOS (COLOR | DISEÑO)
                                    ================================ */}
 
-                                <div className="colors-section">
+                                <div className="attributes-section">
 
-                                    <div className="section-top">
+                                    {/* TABS SWITCH */}
+                                    <div className="attributes-tabs">
 
-                                        <div>
+                                        <button
+                                            type="button"
+                                            className={`attribute-tab ${activeTab === "color" ? "active" : ""}`}
+                                            onClick={() => setActiveTab("color")}
+                                        >
+                                            Color
+                                        </button>
 
-                                            <h4>
-                                                Colores disponibles
-                                            </h4>
-
-                                            <span>
-                                                {productColors.length || 0}
-                                                {" "}
-                                                {productColors.length === 1
-                                                    ? "color registrado"
-                                                    : "colores registrados"}
-                                            </span>
-
-                                        </div>
+                                        <button
+                                            type="button"
+                                            className={`attribute-tab ${activeTab === "diseño" ? "active" : ""}`}
+                                            onClick={() => setActiveTab("diseño")}
+                                        >
+                                            Diseño
+                                        </button>
 
                                     </div>
 
+                                    {/* COLOR TAB CONTENT */}
+                                    {activeTab === "color" && (
 
-                                    <div className="color-options">
+                                        <div className="attribute-content">
 
-                                        {colores.map(
-                                            (color) => {
+                                            <div className="attribute-header">
 
-                                                const isSelected =
-                                                    Number(
-                                                        selectedColor
-                                                    ) ===
-                                                    Number(
-                                                        color.id_color
-                                                    );
+                                                <span>
+                                                    {productColors.length || 0}
+                                                    {" "}
+                                                    {productColors.length === 1
+                                                        ? "color registrado"
+                                                        : "colores registrados"}
+                                                </span>
 
-                                                const isUsed =
-                                                    productColors.includes(
-                                                        Number(
-                                                            color.id_color
-                                                        )
-                                                    );
-
-                                                return (
-
-                                                    <div
-                                                        key={
-                                                            color.id_color
-                                                        }
-                                                        className={
-                                                            `color-option-wrap ${
-                                                                isSelected
-                                                                    ? "selected"
-                                                                    : ""
-                                                            }`
-                                                        }
-                                                    >
-
-                                                        <button
-                                                            type="button"
-                                                            className={
-                                                                `color-option ${
-                                                                    isSelected
-                                                                        ? "selected"
-                                                                        : ""
-                                                                }`
-                                                            }
-                                                            onClick={() =>
-                                                                selectColor(
-                                                                    color.id_color
-                                                                )
-                                                            }
-                                                        >
-
-                                                            <span
-                                                                className="color-circle"
-                                                                style={{
-                                                                    backgroundColor:
-                                                                        color.codigo_hex ||
-                                                                        "#CBD5E1"
-                                                                }}
-                                                            />
-
-                                                            <strong>
-                                                                {color.nombre}
-                                                            </strong>
-
-                                                            {isSelected && (
-                                                                <span className="color-check">
-                                                                    ✓
-                                                                </span>
-                                                            )}
-
-                                                        </button>
-
-                                                        {isUsed && (
-                                                            <button
-                                                                type="button"
-                                                                className="color-remove-button"
-                                                                title={`Quitar ${color.nombre} del producto`}
-                                                                onClick={(
-                                                                    event
-                                                                ) => {
-                                                                    event.stopPropagation();
-                                                                    removeColor(
-                                                                        color.id_color
-                                                                    );
-                                                                }}
-                                                            >
-                                                                <X size={13} />
-                                                            </button>
-                                                        )}
-
-                                                    </div>
-
-                                                );
-
-                                            }
-                                        )}
-
-
-                                        {newColorForm.open ? (
-
-                                            <div
-                                                className="add-color-option"
-                                                style={{
-                                                    flexDirection: "column",
-                                                    alignItems: "stretch",
-                                                    padding: "12px",
-                                                    gap: "8px",
-                                                }}
-                                                onKeyDown={(event) => {
-                                                    if (event.key === "Enter") {
-                                                        event.preventDefault();
-                                                        submitNewColor(event);
-                                                    }
-                                                }}
-                                            >
-
-                                                <div
-                                                    style={{
-                                                        display: "flex",
-                                                        alignItems: "center",
-                                                        gap: "10px",
-                                                    }}
-                                                >
-
-                                                    <input
-                                                        type="color"
-                                                        value={
-                                                            newColorForm.codigo_hex
-                                                        }
-                                                        onChange={(event) =>
-                                                            setNewColorForm(
-                                                                (prev) => ({
-                                                                    ...prev,
-                                                                    codigo_hex:
-                                                                        event
-                                                                            .target
-                                                                            .value,
-                                                                })
-                                                            )
-                                                        }
-                                                        style={{
-                                                            width: "36px",
-                                                            height: "36px",
-                                                            padding: 0,
-                                                            border:
-                                                                "1px solid #E0E7EC",
-                                                            borderRadius:
-                                                                "8px",
-                                                            background:
-                                                                "transparent",
-                                                            cursor:
-                                                                "pointer",
-                                                        }}
-                                                        aria-label="Color picker"
-                                                    />
-
-                                                    <span
-                                                        className="color-circle"
-                                                        style={{
-                                                            backgroundColor:
-                                                                newColorForm.codigo_hex,
-                                                        }}
-                                                    />
-
-                                                </div>
-
-                                                <input
-                                                    type="text"
-                                                    placeholder="Nombre del color"
-                                                    value={
-                                                        newColorForm.nombre
-                                                    }
-                                                    onChange={(event) =>
-                                                        setNewColorForm(
-                                                            (prev) => ({
-                                                                ...prev,
-                                                                nombre:
-                                                                    event
-                                                                        .target
-                                                                        .value,
-                                                            })
-                                                        )
-                                                    }
-                                                    autoFocus
-                                                />
-
-                                                <div
-                                                    style={{
-                                                        display: "flex",
-                                                        gap: "6px",
-                                                    }}
-                                                >
-
+                                                {!newColorForm.open && (
                                                     <button
                                                         type="button"
-                                                        onClick={
-                                                            submitNewColor
-                                                        }
-                                                        className="primary-button"
-                                                        style={{
-                                                            minHeight: "34px",
-                                                            padding:
-                                                                "0 12px",
-                                                            fontSize:
-                                                                "12px",
-                                                        }}
-                                                        disabled={
-                                                            newColorForm.submitting ||
-                                                            !newColorForm.nombre.trim()
-                                                        }
+                                                        className="add-attribute-button"
+                                                        onClick={openNewColorForm}
                                                     >
-                                                        {newColorForm.submitting
-                                                            ? "Guardando..."
-                                                            : "Guardar"}
+                                                        <Plus size={16} />
+                                                        Crear color
                                                     </button>
-
-                                                    <button
-                                                        type="button"
-                                                        className="secondary-button"
-                                                        style={{
-                                                            minHeight: "34px",
-                                                            padding:
-                                                                "0 12px",
-                                                            fontSize:
-                                                                "12px",
-                                                        }}
-                                                        onClick={
-                                                            closeNewColorForm
-                                                        }
-                                                        disabled={
-                                                            newColorForm.submitting
-                                                        }
-                                                    >
-                                                        Cancelar
-                                                    </button>
-
-                                                </div>
+                                                )}
 
                                             </div>
 
-                                        ) : (
+                                            {newColorForm.open ? (
 
-                                            <button
-                                                type="button"
-                                                className="add-color-option"
-                                                onClick={openNewColorForm}
-                                            >
+                                                <div className="create-attribute-form">
 
-                                                <Plus size={18} />
+                                                    <div className="color-picker-row">
 
-                                                Agregar color
+                                                        <input
+                                                            type="color"
+                                                            value={newColorForm.codigo_hex}
+                                                            onChange={(event) =>
+                                                                setNewColorForm(
+                                                                    (prev) => ({
+                                                                        ...prev,
+                                                                        codigo_hex: event.target.value,
+                                                                    })
+                                                                )
+                                                            }
+                                                        />
 
-                                            </button>
+                                                        <span
+                                                            className="color-circle"
+                                                            style={{
+                                                                backgroundColor: newColorForm.codigo_hex,
+                                                            }}
+                                                        />
 
-                                        )}
+                                                        <input
+                                                            type="text"
+                                                            placeholder="Nombre del color"
+                                                            value={newColorForm.nombre}
+                                                            onChange={(event) =>
+                                                                setNewColorForm(
+                                                                    (prev) => ({
+                                                                        ...prev,
+                                                                        nombre: event.target.value,
+                                                                    })
+                                                                )
+                                                            }
+                                                            autoFocus
+                                                        />
 
-                                    </div>
+                                                    </div>
 
-                                    {errors.color && (
+                                                    <div className="form-actions">
 
-                                        <span className="error-text">
-                                            {errors.color}
-                                        </span>
+                                                        <button
+                                                            type="button"
+                                                            onClick={submitNewColor}
+                                                            className="primary-button"
+                                                            disabled={
+                                                                newColorForm.submitting ||
+                                                                !newColorForm.nombre.trim()
+                                                            }
+                                                        >
+                                                            {newColorForm.submitting
+                                                                ? "Guardando..."
+                                                                : "Guardar"}
+                                                        </button>
+
+                                                        <button
+                                                            type="button"
+                                                            className="secondary-button"
+                                                            onClick={closeNewColorForm}
+                                                            disabled={newColorForm.submitting}
+                                                        >
+                                                            Cancelar
+                                                        </button>
+
+                                                    </div>
+
+                                                </div>
+
+                                            ) : (
+
+                                                <div className="attribute-list">
+
+                                                    {colores.map((color) => {
+
+                                                        const isSelected =
+                                                            Number(selectedColor) ===
+                                                            Number(color.id_color);
+
+                                                        const isUsed =
+                                                            productColors.includes(
+                                                                Number(color.id_color)
+                                                            );
+
+                                                        return (
+
+                                                            <div
+                                                                key={color.id_color}
+                                                                className={`attribute-item ${isSelected ? "selected" : ""}`}
+                                                            >
+
+                                                                <button
+                                                                    type="button"
+                                                                    className="attribute-button"
+                                                                    onClick={() =>
+                                                                        selectColor(color.id_color)
+                                                                    }
+                                                                >
+
+                                                                    <span
+                                                                        className="color-circle"
+                                                                        style={{
+                                                                            backgroundColor:
+                                                                                color.codigo_hex ||
+                                                                                "#CBD5E1",
+                                                                        }}
+                                                                    />
+
+                                                                    <strong>
+                                                                        {color.nombre}
+                                                                    </strong>
+
+                                                                    {isSelected && (
+                                                                        <span className="check-icon">
+                                                                            ✓
+                                                                        </span>
+                                                                    )}
+
+                                                                </button>
+
+                                                                {isUsed && (
+                                                                    <button
+                                                                        type="button"
+                                                                        className="remove-button"
+                                                                        title={`Quitar ${color.nombre}`}
+                                                                        onClick={(event) => {
+                                                                            event.stopPropagation();
+                                                                            removeColor(color.id_color);
+                                                                        }}
+                                                                    >
+                                                                        <X size={13} />
+                                                                    </button>
+                                                                )}
+
+                                                            </div>
+
+                                                        );
+
+                                                    })}
+
+                                                </div>
+
+                                            )}
+
+                                            {errors.color && (
+                                                <span className="error-text">
+                                                    {errors.color}
+                                                </span>
+                                            )}
+
+                                        </div>
 
                                     )}
 
-                                </div>
+                                    {/* DISEÑO TAB CONTENT */}
+                                    {activeTab === "diseño" && (
 
+                                        <div className="attribute-content">
 
-                                {/* ================================
-                                   DISEÑOS
-                                   ================================ */}
+                                            <div className="attribute-header">
 
-                                <div className="colors-section">
+                                                <span>
+                                                    {productDiseños.length || 0}
+                                                    {" "}
+                                                    {productDiseños.length === 1
+                                                        ? "diseño registrado"
+                                                        : "diseños registrados"}
+                                                </span>
 
-                                    <div className="section-top">
-
-                                        <div>
-
-                                            <h4>
-                                                Diseños disponibles
-                                            </h4>
-
-                                            <span>
-                                                {productDiseños.length || 0}
-                                                {" "}
-                                                {productDiseños.length === 1
-                                                    ? "diseño registrado"
-                                                    : "diseños registrados"}
-                                            </span>
-
-                                        </div>
-
-                                    </div>
-
-
-                                    <div className="color-options">
-
-                                        {diseños.map(
-                                            (diseño) => {
-
-                                                const isUsed =
-                                                    productDiseños.includes(
-                                                        Number(
-                                                            diseño.id_diseño
-                                                        )
-                                                    );
-
-                                                return (
-
-                                                    <div
-                                                        key={
-                                                            diseño.id_diseño
-                                                        }
-                                                        className="color-option-wrap"
-                                                    >
-
-                                                        <button
-                                                            type="button"
-                                                            className="color-option"
-                                                            onClick={() =>
-                                                                selectDiseño(
-                                                                    diseño.id_diseño
-                                                                )
-                                                            }
-                                                        >
-
-                                                            {diseño.imagen ? (
-                                                                <img
-                                                                    src={diseño.imagen}
-                                                                    alt={diseño.nombre}
-                                                                    className="design-thumbnail"
-                                                                />
-                                                            ) : (
-                                                                <span className="design-placeholder">
-                                                                    {diseño.nombre.charAt(0)}
-                                                                </span>
-                                                            )}
-
-                                                            <strong>
-                                                                {diseño.nombre}
-                                                            </strong>
-
-                                                        </button>
-
-                                                        {isUsed && (
-                                                            <button
-                                                                type="button"
-                                                                className="color-remove-button"
-                                                                title={`Quitar ${diseño.nombre} del producto`}
-                                                                onClick={(
-                                                                    event
-                                                                ) => {
-                                                                    event.stopPropagation();
-                                                                    removeDiseño(
-                                                                        diseño.id_diseño
-                                                                    );
-                                                                }}
-                                                            >
-                                                                <X size={13} />
-                                                            </button>
-                                                        )}
-
-                                                    </div>
-
-                                                );
-
-                                            }
-                                        )}
-
-
-                                        {newDiseñoForm.open ? (
-
-                                            <div
-                                                className="add-color-option"
-                                                style={{
-                                                    flexDirection: "column",
-                                                    alignItems: "stretch",
-                                                    padding: "12px",
-                                                    gap: "8px",
-                                                }}
-                                                onKeyDown={(event) => {
-                                                    if (event.key === "Enter") {
-                                                        event.preventDefault();
-                                                        submitNewDiseño(event);
-                                                    }
-                                                }}
-                                            >
-
-                                                <input
-                                                    type="text"
-                                                    placeholder="Nombre del diseño"
-                                                    value={
-                                                        newDiseñoForm.nombre
-                                                    }
-                                                    onChange={(event) =>
-                                                        setNewDiseñoForm(
-                                                            (prev) => ({
-                                                                ...prev,
-                                                                nombre:
-                                                                    event
-                                                                        .target
-                                                                        .value,
-                                                            })
-                                                        )
-                                                    }
-                                                    autoFocus
-                                                />
-
-                                                <input
-                                                    type="text"
-                                                    placeholder="URL de imagen (opcional)"
-                                                    value={
-                                                        newDiseñoForm.imagen
-                                                    }
-                                                    onChange={(event) =>
-                                                        setNewDiseñoForm(
-                                                            (prev) => ({
-                                                                ...prev,
-                                                                imagen:
-                                                                    event
-                                                                        .target
-                                                                        .value,
-                                                            })
-                                                        )
-                                                    }
-                                                />
-
-                                                <div
-                                                    style={{
-                                                        display: "flex",
-                                                        gap: "6px",
-                                                    }}
-                                                >
-
+                                                {!newDiseñoForm.open && (
                                                     <button
                                                         type="button"
-                                                        onClick={
-                                                            submitNewDiseño
-                                                        }
-                                                        className="primary-button"
-                                                        style={{
-                                                            minHeight: "34px",
-                                                            padding:
-                                                                "0 12px",
-                                                            fontSize:
-                                                                "12px",
-                                                        }}
-                                                        disabled={
-                                                            newDiseñoForm.submitting ||
-                                                            !newDiseñoForm.nombre.trim()
-                                                        }
+                                                        className="add-attribute-button"
+                                                        onClick={openNewDiseñoForm}
                                                     >
-                                                        {newDiseñoForm.submitting
-                                                            ? "Guardando..."
-                                                            : "Guardar"}
+                                                        <Plus size={16} />
+                                                        Crear diseño
                                                     </button>
-
-                                                    <button
-                                                        type="button"
-                                                        className="secondary-button"
-                                                        style={{
-                                                            minHeight: "34px",
-                                                            padding:
-                                                                "0 12px",
-                                                            fontSize:
-                                                                "12px",
-                                                        }}
-                                                        onClick={
-                                                            closeNewDiseñoForm
-                                                        }
-                                                        disabled={
-                                                            newDiseñoForm.submitting
-                                                        }
-                                                    >
-                                                        Cancelar
-                                                    </button>
-
-                                                </div>
+                                                )}
 
                                             </div>
 
-                                        ) : (
+                                            {newDiseñoForm.open ? (
 
-                                            <button
-                                                type="button"
-                                                className="add-color-option"
-                                                onClick={openNewDiseñoForm}
-                                            >
+                                                <div className="create-attribute-form">
 
-                                                <Plus size={18} />
+                                                    <input
+                                                        type="text"
+                                                        placeholder="Nombre del diseño"
+                                                        value={newDiseñoForm.nombre}
+                                                        onChange={(event) =>
+                                                            setNewDiseñoForm(
+                                                                (prev) => ({
+                                                                    ...prev,
+                                                                    nombre: event.target.value,
+                                                                })
+                                                            )
+                                                        }
+                                                        autoFocus
+                                                    />
 
-                                                Agregar diseño
+                                                    <input
+                                                        type="text"
+                                                        placeholder="URL de imagen (opcional)"
+                                                        value={newDiseñoForm.imagen}
+                                                        onChange={(event) =>
+                                                            setNewDiseñoForm(
+                                                                (prev) => ({
+                                                                    ...prev,
+                                                                    imagen: event.target.value,
+                                                                })
+                                                            )
+                                                        }
+                                                    />
 
-                                            </button>
+                                                    <div className="form-actions">
 
-                                        )}
+                                                        <button
+                                                            type="button"
+                                                            onClick={submitNewDiseño}
+                                                            className="primary-button"
+                                                            disabled={
+                                                                newDiseñoForm.submitting ||
+                                                                !newDiseñoForm.nombre.trim()
+                                                            }
+                                                        >
+                                                            {newDiseñoForm.submitting
+                                                                ? "Guardando..."
+                                                                : "Guardar"}
+                                                        </button>
 
-                                    </div>
+                                                        <button
+                                                            type="button"
+                                                            className="secondary-button"
+                                                            onClick={closeNewDiseñoForm}
+                                                            disabled={newDiseñoForm.submitting}
+                                                        >
+                                                            Cancelar
+                                                        </button>
+
+                                                    </div>
+
+                                                </div>
+
+                                            ) : (
+
+                                                <div className="attribute-list">
+
+                                                    {diseños.map((diseño) => {
+
+                                                        const isUsed =
+                                                            productDiseños.includes(
+                                                                Number(diseño.id_diseño)
+                                                            );
+
+                                                        return (
+
+                                                            <div
+                                                                key={diseño.id_diseño}
+                                                                className="attribute-item"
+                                                            >
+
+                                                                <button
+                                                                    type="button"
+                                                                    className="attribute-button"
+                                                                    onClick={() =>
+                                                                        selectDiseño(diseño.id_diseño)
+                                                                    }
+                                                                >
+
+                                                                    {diseño.imagen ? (
+                                                                        <img
+                                                                            src={diseño.imagen}
+                                                                            alt={diseño.nombre}
+                                                                            className="design-thumbnail"
+                                                                        />
+                                                                    ) : (
+                                                                        <span className="design-placeholder">
+                                                                            {diseño.nombre.charAt(0)}
+                                                                        </span>
+                                                                    )}
+
+                                                                    <strong>
+                                                                        {diseño.nombre}
+                                                                    </strong>
+
+                                                                </button>
+
+                                                                {isUsed && (
+                                                                    <button
+                                                                        type="button"
+                                                                        className="remove-button"
+                                                                        title={`Quitar ${diseño.nombre}`}
+                                                                        onClick={(event) => {
+                                                                            event.stopPropagation();
+                                                                            removeDiseño(diseño.id_diseño);
+                                                                        }}
+                                                                    >
+                                                                        <X size={13} />
+                                                                    </button>
+                                                                )}
+
+                                                            </div>
+
+                                                        );
+
+                                                    })}
+
+                                                </div>
+
+                                            )}
+
+                                        </div>
+
+                                    )}
 
                                 </div>
 
