@@ -272,6 +272,12 @@ function ProductForm({
         submitting: false,
     });
 
+    const [urlInput, setUrlInput] = useState({
+        open: false,
+        colorId: null,
+        url: "",
+    });
+
     /* =====================================================
        ACTIVACIÓN DE ATRIBUTOS
        ===================================================== */
@@ -1047,37 +1053,65 @@ function ProductForm({
             return;
         }
 
-        const url =
-            window.prompt(
-                "URL de la imagen:"
-            );
+        setUrlInput({
+            open: true,
+            colorId: colorId,
+            url: "",
+        });
+    };
 
-        if (!url?.trim()) return;
+    const submitUrl = () => {
+
+        if (!urlInput.url.trim()) {
+            return;
+        }
+
+        const variantIndex = getColorVariantIndex(urlInput.colorId);
+
+        if (variantIndex === -1) {
+            return;
+        }
 
         setVariantes((prev) =>
-            prev.map((variant, index) =>
-                index === variantIndex
-                    ? {
-                        ...variant,
+            prev.map((variant, index) => {
 
-                        imagenes: [
-                            ...variant.imagenes,
-                            {
-                                imagen:
-                                    url.trim(),
+                if (index !== variantIndex) {
+                    return variant;
+                }
 
-                                principal:
-                                    variant.imagenes.length === 0,
+                return {
+                    ...variant,
+                    imagenes: [
+                        ...variant.imagenes,
+                        {
+                            imagen: urlInput.url,
+                            principal: false,
+                        },
+                    ],
+                };
 
-                                orden:
-                                    variant.imagenes.length + 1
-                            }
-                        ]
-                    }
-                    : variant
-            )
+            })
         );
 
+        setUrlInput({
+            open: false,
+            colorId: null,
+            url: "",
+        });
+
+        setErrors((prev) => ({
+            ...prev,
+            color: "",
+        }));
+    };
+
+    const closeUrlInput = () => {
+
+        setUrlInput({
+            open: false,
+            colorId: null,
+            url: "",
+        });
     };
 
 
@@ -2279,20 +2313,6 @@ function ProductForm({
                                                         autoFocus
                                                     />
 
-                                                    <input
-                                                        type="text"
-                                                        placeholder="URL de imagen (opcional)"
-                                                        value={newDiseñoForm.imagen}
-                                                        onChange={(event) =>
-                                                            setNewDiseñoForm(
-                                                                (prev) => ({
-                                                                    ...prev,
-                                                                    imagen: event.target.value,
-                                                                })
-                                                            )
-                                                        }
-                                                    />
-
                                                     <div className="form-actions">
 
                                                         <button
@@ -3124,32 +3144,6 @@ function ProductForm({
 
 
                         {/* =================================================
-                           INFORMACIÓN DE IMÁGENES
-                           ================================================= */}
-
-                        <div className="images-next-info">
-
-                            <div className="info-circle">
-                                i
-                            </div>
-
-                            <div>
-
-                                <strong>
-                                    Las imágenes se administran en el siguiente paso
-                                </strong>
-
-                                <p>
-                                    En la sección de imágenes podrás cargar las fotografías del producto.
-                                    Una imagen puede utilizarse para todas las tallas del mismo color.
-                                </p>
-
-                            </div>
-
-                        </div>
-
-
-                        {/* =================================================
                            BOTONES
                            ================================================= */}
 
@@ -3484,6 +3478,64 @@ function ProductForm({
                             )}
 
                         </div>
+
+
+                        {/* INPUT PERSONALIZADO PARA URL */}
+                        {urlInput.open && (
+
+                            <div className="url-input-modal">
+
+                                <div className="url-input-content">
+
+                                    <h4>
+                                        Agregar imagen desde URL
+                                    </h4>
+
+                                    <input
+                                        type="text"
+                                        placeholder="https://ejemplo.com/imagen.jpg"
+                                        value={urlInput.url}
+                                        onChange={(event) =>
+                                            setUrlInput((prev) => ({
+                                                ...prev,
+                                                url: event.target.value,
+                                            }))
+                                        }
+                                        autoFocus
+                                        onKeyDown={(event) => {
+                                            if (event.key === "Enter") {
+                                                event.preventDefault();
+                                                submitUrl();
+                                            }
+                                        }}
+                                    />
+
+                                    <div className="url-input-actions">
+
+                                        <button
+                                            type="button"
+                                            className="secondary-button"
+                                            onClick={closeUrlInput}
+                                        >
+                                            Cancelar
+                                        </button>
+
+                                        <button
+                                            type="button"
+                                            className="primary-button"
+                                            onClick={submitUrl}
+                                            disabled={!urlInput.url.trim()}
+                                        >
+                                            Agregar
+                                        </button>
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+                        )}
 
 
                         {productColors.length === 0 && (
