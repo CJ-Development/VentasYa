@@ -502,33 +502,61 @@
 
 
 /* =========================================================
-   OPCIONES DE COLOR
+   OPCIONES DE COLOR - LISTA VERTICAL
    ========================================================= */
 
 .color-options {
-    display: grid;
+    display: flex;
 
-    grid-template-columns:
-        repeat(4, minmax(0, 1fr));
+    flex-direction: column;
 
-    gap: 12px;
+    gap: 8px;
+
+    max-height: 280px;
+
+    overflow-y: auto;
+
+    padding-right: 4px;
+}
+
+/* Scrollbar personalizado */
+.color-options::-webkit-scrollbar {
+    width: 6px;
+}
+
+.color-options::-webkit-scrollbar-track {
+    background: #F5F7F9;
+    border-radius: 3px;
+}
+
+.color-options::-webkit-scrollbar-thumb {
+    background: #CBD5E1;
+    border-radius: 3px;
+}
+
+.color-options::-webkit-scrollbar-thumb:hover {
+    background: #94A3B8;
+}
+
+.color-option-wrap {
+    position: relative;
 }
 
 .color-option {
-    position: relative;
+    width: 100%;
 
-    min-height: 54px;
+    min-height: 48px;
 
     display: flex;
     align-items: center;
 
-    gap: 11px;
+    gap: 12px;
 
-    padding: 0 14px;
+    padding: 10px 14px;
 
     border: 1px solid #E0E7EC;
 
-    border-radius: 10px;
+    border-radius: 8px;
 
     background: #FFFFFF;
 
@@ -540,8 +568,8 @@
 
     transition:
         border-color 0.2s ease,
-        box-shadow 0.2s ease,
-        background 0.2s ease;
+        background 0.2s ease,
+        box-shadow 0.2s ease;
 }
 
 .color-option:hover {
@@ -561,30 +589,30 @@
 
 .color-option strong {
     font-size: 13px;
+    font-weight: 500;
+}
+
+.color-option.selected strong {
+    font-weight: 600;
 }
 
 .color-circle {
-    width: 22px;
-    height: 22px;
+    width: 20px;
+    height: 20px;
 
     flex-shrink: 0;
 
     border-radius: 50%;
 
-    border: 1px solid rgba(0, 0, 0, 0.15);
+    border: 1px solid rgba(0, 0, 0, 0.12);
 
     box-shadow:
-        inset 0 0 0 1px rgba(255,255,255,0.35);
+        inset 0 0 0 1px rgba(255,255,255,0.3);
 }
 
 .color-check {
-    position: absolute;
-
-    top: -9px;
-    right: -9px;
-
-    width: 24px;
-    height: 24px;
+    width: 20px;
+    height: 20px;
 
     display: flex;
     align-items: center;
@@ -596,11 +624,61 @@
 
     color: #FFFFFF;
 
-    font-size: 13px;
+    font-size: 12px;
     font-weight: 700;
 
+    flex-shrink: 0;
+
     box-shadow:
-        0 3px 8px rgba(14,165,181,0.25);
+        0 2px 6px rgba(14,165,181,0.2);
+}
+
+/* =========================================================
+   BOTÓN PARA QUITAR COLOR
+   ========================================================= */
+
+.color-remove-button {
+    position: absolute;
+
+    top: 50%;
+
+    right: 12px;
+
+    transform: translateY(-50%);
+
+    width: 28px;
+    height: 28px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border: 1px solid #F2CACA;
+
+    border-radius: 6px;
+
+    background: #FFF8F8;
+
+    color: #D64646;
+
+    cursor: pointer;
+
+    transition: 0.2s ease;
+
+    z-index: 2;
+}
+
+.color-remove-button:hover {
+    background: #FEE5E5;
+
+    border-color: #EDAAAA;
+}
+
+.color-remove-button:focus {
+    outline: none;
+
+    box-shadow:
+        0 0 0 3px rgba(214, 70, 70, 0.15);
 }
 
 
@@ -609,17 +687,19 @@
    ========================================================= */
 
 .add-color-option {
-    min-height: 54px;
+    min-height: 48px;
 
     display: flex;
     align-items: center;
     justify-content: center;
 
-    gap: 7px;
+    gap: 8px;
+
+    padding: 12px 16px;
 
     border: 1px dashed #9DD6DD;
 
-    border-radius: 10px;
+    border-radius: 8px;
 
     background: #FFFFFF;
 
@@ -637,6 +717,13 @@
     background: #F0FAFC;
 
     border-color: #0EA5B5;
+}
+
+.add-color-option:focus {
+    outline: none;
+
+    box-shadow:
+        0 0 0 3px rgba(14, 165, 181, 0.1);
 }
 
 
@@ -1729,8 +1816,7 @@
     }
 
     .color-options {
-        grid-template-columns:
-            repeat(3, minmax(0, 1fr));
+        max-height: 240px;
     }
 
     .image-upload-layout {
@@ -1769,8 +1855,7 @@
     }
 
     .color-options {
-        grid-template-columns:
-            repeat(2, minmax(0, 1fr));
+        max-height: 200px;
     }
 
     .sizes-table-header {
@@ -1838,7 +1923,15 @@
     }
 
     .color-options {
-        grid-template-columns: 1fr;
+        max-height: 180px;
+    }
+
+    .color-option {
+        padding: 10px 12px;
+    }
+
+    .color-remove-button {
+        right: 10px;
     }
 
     .sizes-header {
