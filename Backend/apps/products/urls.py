@@ -35,8 +35,8 @@ urlpatterns = [
     path("colores/<int:id>/", ColorDetalleView.as_view()),
     path("tallas/", TallaListView.as_view()),
     path("tallas/<int:id>/", TallaDetalleView.as_view()),
-    path("diseños/", DiseñoListView.as_view()),
-    path("diseños/<int:id>/", DiseñoDetalleView.as_view()),
+    path("disenos/", DiseñoListView.as_view()),
+    path("disenos/<int:id>/", DiseñoDetalleView.as_view()),
 ]
 
 app_name = "products"

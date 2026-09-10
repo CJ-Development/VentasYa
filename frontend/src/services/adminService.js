@@ -55,10 +55,10 @@ export const updateTalla = (id, data) => api.put(`/products/tallas/${id}/`, data
 export const deleteTalla = (id) => api.delete(`/products/tallas/${id}/`);
 
 /* Diseños */
-export const getDesigns = () => api.get("/products/diseños/");
-export const createDesign = (data) => api.post("/products/diseños/", data);
-export const updateDesign = (id, data) => api.put(`/products/diseños/${id}/`, data);
-export const deleteDesign = (id) => api.delete(`/products/diseños/${id}/`);
+export const getDesigns = () => api.get("/products/disenos/");
+export const createDesign = (data) => api.post("/products/disenos/", data);
+export const updateDesign = (id, data) => api.put(`/products/disenos/${id}/`, data);
+export const deleteDesign = (id) => api.delete(`/products/disenos/${id}/`);
 
 /* =====================================================
    CATEGORÍAS
