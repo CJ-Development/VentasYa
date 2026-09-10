@@ -3220,26 +3220,6 @@ function ProductForm({
                         </div>
 
 
-                        <div className="info-banner">
-
-                            <Info size={19} />
-
-                            <div>
-
-                                <strong>
-                                    Una imagen para todas las tallas
-                                </strong>
-
-                                <p>
-                                    Las fotografías se relacionan con el color.
-                                    No necesitas repetir la misma imagen para S, M, L, XL, etc.
-                                </p>
-
-                            </div>
-
-                        </div>
-
-
                         <div className="image-color-list">
 
                             {productColors.map(

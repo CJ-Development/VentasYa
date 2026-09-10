@@ -974,17 +974,17 @@
 
 .remove-button {
     position: absolute;
-    right: -8px;
+    right: 6px;
     top: 50%;
     transform: translateY(-50%);
-    width: 28px;
-    height: 28px;
+    width: 24px;
+    height: 24px;
     display: flex;
     align-items: center;
     justify-content: center;
     background: #FFFFFF;
     border: 1px solid #E3E9ED;
-    border-radius: 8px;
+    border-radius: 6px;
     color: #64748B;
     cursor: pointer;
     transition: all 0.2s ease;
