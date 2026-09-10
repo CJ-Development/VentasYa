@@ -58,11 +58,27 @@ function CategorySelector({
 
     // Obtener categorías en el nivel actual
     const currentCategories = useMemo(() => {
+        let cats;
         if (currentPath.length === 0) {
-            return filterExcluded(rootCategories);
+            cats = rootCategories;
+        } else {
+            const currentParent = currentPath[currentPath.length - 1];
+            cats = getChildren(currentParent.id_categoria);
         }
-        const currentParent = currentPath[currentPath.length - 1];
-        return filterExcluded(getChildren(currentParent.id_categoria));
+        
+        // Filtrar categorías excluidas y sus descendientes
+        return cats.filter(cat => {
+            // Excluir la categoría que se está editando
+            if (excludeId && Number(cat.id_categoria) === Number(excludeId)) return false;
+            
+            // Excluir descendientes de la categoría que se está editando (prevención de ciclos)
+            if (excludeId) {
+                const editingCategory = categories.find(c => Number(c.id_categoria) === Number(excludeId));
+                if (editingCategory && isDescendant(editingCategory, cat)) return false;
+            }
+            
+            return true;
+        });
     }, [categories, currentPath, rootCategories, excludeId]);
 
     // Búsqueda con rutas completas
@@ -72,7 +88,14 @@ function CategorySelector({
         const query = searchQuery.toLowerCase();
         
         return categories.filter(cat => {
+            // Excluir la categoría que se está editando
             if (excludeId && Number(cat.id_categoria) === Number(excludeId)) return false;
+            
+            // Excluir descendientes de la categoría que se está editando (prevención de ciclos)
+            if (excludeId) {
+                const editingCategory = categories.find(c => Number(c.id_categoria) === Number(excludeId));
+                if (editingCategory && isDescendant(editingCategory, cat)) return false;
+            }
             
             const path = buildPath(cat);
             const pathNames = path.map(c => c.nombre.toLowerCase()).join(" > ");
@@ -84,11 +107,38 @@ function CategorySelector({
         }));
     }, [categories, searchQuery, excludeId]);
 
-    // Calcular nivel de una categoría
+    // Calcular nivel de una categoría (1-6)
     const getLevel = (category) => {
         if (!category) return 0;
         const path = buildPath(category);
-        return path.length;
+        const level = path.length;
+        return Math.min(level, 6); // Máximo 6 niveles
+    };
+
+    // Verificar si una categoría es descendiente de otra (prevención de ciclos)
+    const isDescendant = (potentialParent, potentialChild) => {
+        if (!potentialParent || !potentialChild) return false;
+        if (Number(potentialParent.id_categoria) === Number(potentialChild.id_categoria)) return true;
+        
+        let current = potentialChild;
+        const visited = new Set();
+        
+        while (current) {
+            const parentId = current.id_categoria_padre ?? current.categoria_padre?.id_categoria ?? current.categoria_padre;
+            if (!parentId) break;
+            
+            if (Number(parentId) === Number(potentialParent.id_categoria)) return true;
+            
+            if (visited.has(parentId)) {
+                // Ciclo detectado en los datos existentes
+                break;
+            }
+            visited.add(parentId);
+            
+            current = categories.find(c => Number(c.id_categoria) === Number(parentId));
+        }
+        
+        return false;
     };
 
     // Navegar a una categoría
@@ -130,12 +180,21 @@ function CategorySelector({
 
     // Calcular nivel resultante
     const resultLevel = selectedCategory ? getLevel(selectedCategory) + 1 : 1;
-    const levelText = resultLevel === 1 ? "Categoría principal" : 
-                     resultLevel === 2 ? "Subcategoría" : 
-                     resultLevel === 3 ? "Sub-subcategoría" : "";
+    
+    const getLevelText = (lvl) => {
+        if (lvl === 1) return "Categoría principal";
+        if (lvl === 2) return "Subcategoría";
+        if (lvl === 3) return "Sub-subcategoría";
+        if (lvl === 4) return "Nivel 4";
+        if (lvl === 5) return "Nivel 5";
+        if (lvl === 6) return "Nivel 6";
+        return `Nivel ${lvl}`;
+    };
 
-    // Verificar si excede nivel 3
-    const exceedsMaxLevel = resultLevel > 3;
+    const levelText = getLevelText(resultLevel);
+
+    // Verificar si excede nivel 6
+    const exceedsMaxLevel = resultLevel > 6;
 
     return (
         <div className="category-selector">
@@ -315,7 +374,7 @@ function CategorySelector({
                                                     <Check size={14} />
                                                     Seleccionar
                                                 </button>
-                                                {children.length > 0 && level < 2 && (
+                                                {children.length > 0 && level < 6 && (
                                                     <button
                                                         type="button"
                                                         className="category-navigate-btn"
@@ -328,6 +387,11 @@ function CategorySelector({
                                                         Ver hijos
                                                         <ChevronRight size={14} />
                                                     </button>
+                                                )}
+                                                {level >= 6 && (
+                                                    <span className="category-max-level-hint">
+                                                        Nivel máximo
+                                                    </span>
                                                 )}
                                             </div>
                                         </div>
@@ -346,7 +410,7 @@ function CategorySelector({
                     <span className="level-value">{levelText}</span>
                     {exceedsMaxLevel && (
                         <span className="level-error">
-                            No se pueden crear categorías por debajo del tercer nivel.
+                            No se pueden crear categorías por debajo del sexto nivel.
                         </span>
                     )}
                 </div>

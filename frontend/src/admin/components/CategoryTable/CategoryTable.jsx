@@ -12,7 +12,8 @@ import {
     Edit3,
     Trash2,
     Folder,
-    FolderOpen
+    FolderOpen,
+    MoreHorizontal
 } from "lucide-react";
 
 import "./CategoryTable.css";
@@ -26,7 +27,7 @@ function CategoryTable({ refreshKey, onEdit }) {
 
     const [error, setError] = useState(null);
 
-    const [expanded, setExpanded] = useState({});
+    const [expanded, setExpanded] = useState(new Set());
 
 
     const cargarCategorias = async () => {
@@ -68,59 +69,74 @@ function CategoryTable({ refreshKey, onEdit }) {
 
 
     /*
-     * El backend posteriormente podrá enviar:
-     *
-     * categoria_padre
-     *
-     * o
-     *
-     * id_categoria_padre
-     *
-     * Este componente acepta ambas posibilidades.
+     * Obtener el ID del padre de forma tolerante
      */
+    const getParentId = (categoria) => {
+        if (!categoria) return null;
+        return categoria.id_categoria_padre ??
+               categoria.categoria_padre?.id_categoria ??
+               categoria.categoria_padre;
+    };
 
+    /*
+     * Obtener hijos de una categoría
+     */
+    const getChildren = (parentId) => {
+        return categorias
+            .filter((categoria) => Number(getParentId(categoria)) === Number(parentId))
+            .sort((a, b) => (a.orden || 0) - (b.orden || 0));
+    };
+
+    /*
+     * Obtener categorías raíz (sin padre)
+     */
     const categoriasPrincipales = useMemo(() => {
-
-        return categorias.filter((categoria) => {
-
-            const parent =
-                categoria.id_categoria_padre ??
-                categoria.categoria_padre?.id_categoria ??
-                categoria.categoria_padre;
-
-            return !parent;
-
-        });
-
+        return categorias
+            .filter((categoria) => !getParentId(categoria))
+            .sort((a, b) => (a.orden || 0) - (b.orden || 0));
     }, [categorias]);
 
+    /*
+     * Calcular nivel de una categoría (1-6)
+     */
+    const getLevel = (categoria, allCategorias) => {
+        let level = 1;
+        let current = categoria;
+        const visited = new Set();
+        
+        while (current && getParentId(current)) {
+            const parentId = getParentId(current);
+            if (visited.has(parentId)) {
+                // Ciclo detectado, detener
+                break;
+            }
+            visited.add(parentId);
+            current = allCategorias.find(c => Number(c.id_categoria) === Number(parentId));
+            if (current) level++;
+            if (level > 6) break; // Máximo 6 niveles
+        }
+        
+        return level;
+    };
 
-    const obtenerHijas = (id) => {
-
-        return categorias.filter((categoria) => {
-
-            const parent =
-                categoria.id_categoria_padre ??
-                categoria.categoria_padre?.id_categoria ??
-                categoria.categoria_padre;
-
-            return Number(parent) === Number(id);
-
-        });
-
+    /*
+     * Verificar si una categoría tiene hijos
+     */
+    const hasChildren = (categoria) => {
+        return getChildren(categoria.id_categoria).length > 0;
     };
 
 
     const toggleCategory = (id) => {
-
-        setExpanded((prev) => ({
-
-            ...prev,
-
-            [id]: !prev[id]
-
-        }));
-
+        setExpanded((prev) => {
+            const next = new Set(prev);
+            if (next.has(id)) {
+                next.delete(id);
+            } else {
+                next.add(id);
+            }
+            return next;
+        });
     };
 
 
@@ -250,350 +266,21 @@ function CategoryTable({ refreshKey, onEdit }) {
 
                 <div className="categories-list">
 
-                    {categoriasPrincipales.map((categoria) => {
-
-                        const children = obtenerHijas(
-                            categoria.id_categoria
-                        );
-
-                        const isExpanded =
-                            expanded[categoria.id_categoria] ?? true;
-
-                        return (
-
-                            <div
-                                className="category-group"
-                                key={categoria.id_categoria}
-                            >
-
-                                <div className="category-main">
-
-                                    <div className="category-main-left">
-
-                                        {children.length > 0 ? (
-
-                                            <button
-                                                className="expand-button"
-                                                onClick={() =>
-                                                    toggleCategory(
-                                                        categoria.id_categoria
-                                                    )
-                                                }
-                                            >
-
-                                                {isExpanded ? (
-
-                                                    <ChevronDown size={18} />
-
-                                                ) : (
-
-                                                    <ChevronRight size={18} />
-
-                                                )}
-
-                                            </button>
-
-                                        ) : (
-
-                                            <span className="expand-placeholder" />
-
-                                        )}
-
-
-                                        <div className="category-icon">
-
-                                            {isExpanded && children.length > 0 ? (
-
-                                                <FolderOpen size={19} />
-
-                                            ) : (
-
-                                                <Folder size={19} />
-
-                                            )}
-
-                                        </div>
-
-
-                                        <div className="category-info">
-
-                                            <div className="category-name">
-
-                                                {categoria.nombre}
-
-                                            </div>
-
-                                            <span className="category-type">
-
-                                                Categoría principal
-
-                                            </span>
-
-                                        </div>
-
-                                    </div>
-
-
-                                    <div className="category-main-right">
-
-                                        <span
-                                            className={
-                                                categoria.estado === "activo"
-                                                    ? "status-badge active"
-                                                    : "status-badge inactive"
-                                            }
-                                        >
-
-                                            {categoria.estado === "activo"
-                                                ? "Activa"
-                                                : "Inactiva"
-                                            }
-
-                                        </span>
-
-
-                                        <span className="subcategory-count">
-
-                                            {children.length}
-
-                                            {children.length === 1
-                                                ? " subcategoría"
-                                                : " subcategorías"
-                                            }
-
-                                        </span>
-
-
-                                        <div className="category-actions">
-
-                                            <button
-                                                className="icon-action edit"
-                                                onClick={() =>
-                                                    onEdit(categoria)
-                                                }
-                                                title="Editar categoría"
-                                            >
-
-                                                <Edit3 size={17} />
-
-                                            </button>
-
-
-                                            <button
-                                                className="icon-action delete"
-                                                onClick={() =>
-                                                    eliminarCategoria(
-                                                        categoria.id_categoria,
-                                                        categoria.nombre
-                                                    )
-                                                }
-                                                title="Eliminar categoría"
-                                            >
-
-                                                <Trash2 size={17} />
-
-                                            </button>
-
-                                        </div>
-
-                                    </div>
-
-                                </div>
-
-
-                                {isExpanded && children.length > 0 && (
-
-                                    <div className="subcategory-list">
-
-                                        {children.map((subcategoria) => {
-                                            const subChildren = obtenerHijas(subcategoria.id_categoria);
-                                            const isSubExpanded = expanded[subcategoria.id_categoria] ?? false;
-
-                                            return (
-                                                <div
-                                                    className="subcategory-row"
-                                                    key={subcategoria.id_categoria}
-                                                >
-
-                                                    <div className="subcategory-name-wrapper">
-
-                                                        <span className="tree-line" />
-
-                                                        {subChildren.length > 0 ? (
-                                                            <button
-                                                                className="expand-button sub-expand"
-                                                                onClick={() =>
-                                                                    toggleCategory(subcategoria.id_categoria)
-                                                                }
-                                                            >
-                                                                {isSubExpanded ? (
-                                                                    <ChevronDown size={14} />
-                                                                ) : (
-                                                                    <ChevronRight size={14} />
-                                                                )}
-                                                            </button>
-                                                        ) : (
-                                                            <span className="expand-placeholder sub-expand" />
-                                                        )}
-
-                                                        <div className="subcategory-icon">
-
-                                                            {isSubExpanded && subChildren.length > 0 ? (
-                                                                <FolderOpen size={16} />
-                                                            ) : (
-                                                                <Folder size={16} />
-                                                            )}
-
-                                                        </div>
-
-                                                        <div>
-
-                                                            <div className="subcategory-name">
-
-                                                                {subcategoria.nombre}
-
-                                                            </div>
-
-                                                            <span className="subcategory-type">
-
-                                                                Subcategoría
-
-                                                            </span>
-
-                                                        </div>
-
-                                                    </div>
-
-
-                                                    <div className="subcategory-actions">
-
-                                                        <span
-                                                            className={
-                                                                subcategoria.estado === "activo"
-                                                                    ? "status-badge active"
-                                                                    : "status-badge inactive"
-                                                            }
-                                                        >
-
-                                                            {subcategoria.estado === "activo"
-                                                                ? "Activa"
-                                                                : "Inactiva"
-                                                            }
-
-                                                        </span>
-
-
-                                                        <button
-                                                            className="icon-action edit"
-                                                            onClick={() =>
-                                                                onEdit(subcategoria)
-                                                            }
-                                                            title="Editar subcategoría"
-                                                        >
-
-                                                            <Edit3 size={16} />
-
-                                                        </button>
-
-
-                                                        <button
-                                                            className="icon-action delete"
-                                                            onClick={() =>
-                                                                eliminarCategoria(
-                                                                    subcategoria.id_categoria,
-                                                                    subcategoria.nombre
-                                                                )
-                                                            }
-                                                            title="Eliminar subcategoría"
-                                                        >
-
-                                                            <Trash2 size={16} />
-
-                                                        </button>
-
-                                                    </div>
-
-                                                </div>
-                                            );
-                                        })}
-
-                                        {/* Sub-subcategorías */}
-                                        {children.map((subcategoria) => {
-                                            const subChildren = obtenerHijas(subcategoria.id_categoria);
-                                            const isSubExpanded = expanded[subcategoria.id_categoria] ?? false;
-
-                                            if (!isSubExpanded || subChildren.length === 0) return null;
-
-                                            return (
-                                                <div key={`subsub-${subcategoria.id_categoria}`} className="sub-subcategory-list">
-                                                    {subChildren.map((subsub) => (
-                                                        <div
-                                                            className="sub-subcategory-row"
-                                                            key={subsub.id_categoria}
-                                                        >
-                                                            <div className="sub-subcategory-name-wrapper">
-                                                                <span className="tree-line sub-sub-line" />
-                                                                <span className="tree-line sub-sub-line-2" />
-                                                                <div className="subcategory-icon">
-                                                                    <Folder size={14} />
-                                                                </div>
-                                                                <div>
-                                                                    <div className="subcategory-name sub-sub-name">
-                                                                        {subsub.nombre}
-                                                                    </div>
-                                                                    <span className="subcategory-type sub-sub-type">
-                                                                        Sub-subcategoría
-                                                                    </span>
-                                                                </div>
-                                                            </div>
-                                                            <div className="subcategory-actions">
-                                                                <span
-                                                                    className={
-                                                                        subsub.estado === "activo"
-                                                                            ? "status-badge active"
-                                                                            : "status-badge inactive"
-                                                                    }
-                                                                >
-                                                                    {subsub.estado === "activo"
-                                                                        ? "Activa"
-                                                                        : "Inactiva"
-                                                                    }
-                                                                </span>
-                                                                <button
-                                                                    className="icon-action edit"
-                                                                    onClick={() => onEdit(subsub)}
-                                                                    title="Editar sub-subcategoría"
-                                                                >
-                                                                    <Edit3 size={14} />
-                                                                </button>
-                                                                <button
-                                                                    className="icon-action delete"
-                                                                    onClick={() =>
-                                                                        eliminarCategoria(
-                                                                            subsub.id_categoria,
-                                                                            subsub.nombre
-                                                                        )
-                                                                    }
-                                                                    title="Eliminar sub-subcategoría"
-                                                                >
-                                                                    <Trash2 size={14} />
-                                                                </button>
-                                                            </div>
-                                                        </div>
-                                                    ))}
-                                                </div>
-                                            );
-                                        })}
-
-                                    </div>
-
-                                )}
-
-                            </div>
-
-                        );
-
-                    })}
+                    {categoriasPrincipales.map((categoria) => (
+                        <CategoryTreeNode
+                            key={categoria.id_categoria}
+                            categoria={categoria}
+                            level={1}
+                            expanded={expanded}
+                            onToggle={toggleCategory}
+                            onEdit={onEdit}
+                            onDelete={eliminarCategoria}
+                            getChildren={getChildren}
+                            getLevel={getLevel}
+                            allCategorias={categorias}
+                            hasChildren={hasChildren}
+                        />
+                    ))}
 
                 </div>
 
@@ -603,6 +290,159 @@ function CategoryTable({ refreshKey, onEdit }) {
 
     );
 
+}
+
+
+/*
+ * Componente recursivo para renderizar nodos del árbol de categorías
+ * Soporta hasta 6 niveles de profundidad
+ */
+function CategoryTreeNode({
+    categoria,
+    level,
+    expanded,
+    onToggle,
+    onEdit,
+    onDelete,
+    getChildren,
+    getLevel,
+    allCategorias,
+    hasChildren
+}) {
+    const isExpanded = expanded.has(categoria.id_categoria);
+    const children = getChildren(categoria.id_categoria);
+    const categoriaLevel = getLevel(categoria, allCategorias);
+    const canExpand = hasChildren(categoria);
+    const isLeaf = !canExpand;
+
+    /*
+     * Etiqueta de nivel para mostrar
+     */
+    const getLevelLabel = (lvl) => {
+        if (lvl === 1) return "Categoría principal";
+        if (lvl === 2) return "Subcategoría";
+        if (lvl === 3) return "Sub-subcategoría";
+        if (lvl === 4) return "Nivel 4";
+        if (lvl === 5) return "Nivel 5";
+        if (lvl === 6) return "Nivel 6";
+        return `Nivel ${lvl}`;
+    };
+
+    return (
+        <div className={`category-tree-node category-tree-node--level-${level}`}>
+            {/* Fila de la categoría */}
+            <div 
+                className={`category-row category-row--level-${level} ${isExpanded ? 'category-row--expanded' : ''}`}
+            >
+                <div className="category-row-left">
+                    {/* Botón de expansión */}
+                    {canExpand ? (
+                        <button
+                            className="expand-button"
+                            onClick={() => onToggle(categoria.id_categoria)}
+                            aria-label={isExpanded ? "Colapsar" : "Expandir"}
+                        >
+                            {isExpanded ? (
+                                <ChevronDown size={16} />
+                            ) : (
+                                <ChevronRight size={16} />
+                            )}
+                        </button>
+                    ) : (
+                        <span className="expand-placeholder" />
+                    )}
+
+                    {/* Icono de carpeta */}
+                    <div className={`category-icon category-icon--level-${level}`}>
+                        {isExpanded && canExpand ? (
+                            <FolderOpen size={level === 1 ? 18 : 15} />
+                        ) : (
+                            <Folder size={level === 1 ? 18 : 15} />
+                        )}
+                    </div>
+
+                    {/* Información de la categoría */}
+                    <div className="category-info">
+                        <div className="category-name">
+                            {categoria.nombre}
+                        </div>
+                        <span className={`category-type category-type--level-${level}`}>
+                            {getLevelLabel(categoriaLevel)}
+                        </span>
+                    </div>
+                </div>
+
+                {/* Acciones */}
+                <div className="category-row-right">
+                    <span
+                        className={
+                            categoria.estado === "activo"
+                                ? "status-badge active"
+                                : "status-badge inactive"
+                        }
+                    >
+                        {categoria.estado === "activo"
+                            ? "Activa"
+                            : "Inactiva"}
+                    </span>
+
+                    {canExpand && (
+                        <span className="children-count">
+                            {children.length}
+                            {children.length === 1 ? " hijo" : " hijos"}
+                        </span>
+                    )}
+
+                    <div className="category-actions">
+                        <button
+                            className="icon-action edit"
+                            onClick={() => onEdit(categoria)}
+                            title="Editar categoría"
+                        >
+                            <Edit3 size={level === 1 ? 16 : 14} />
+                        </button>
+
+                        <button
+                            className="icon-action delete"
+                            onClick={() => onDelete(categoria.id_categoria, categoria.nombre)}
+                            title="Eliminar categoría"
+                        >
+                            <Trash2 size={level === 1 ? 16 : 14} />
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            {/* Hijos recursivos */}
+            {isExpanded && canExpand && level < 6 && (
+                <div className="category-children">
+                    {children.map((child) => (
+                        <CategoryTreeNode
+                            key={child.id_categoria}
+                            categoria={child}
+                            level={level + 1}
+                            expanded={expanded}
+                            onToggle={onToggle}
+                            onEdit={onEdit}
+                            onDelete={onDelete}
+                            getChildren={getChildren}
+                            getLevel={getLevel}
+                            allCategorias={allCategorias}
+                            hasChildren={hasChildren}
+                        />
+                    ))}
+                </div>
+            )}
+
+            {/* Indicador de nivel máximo alcanzado */}
+            {isExpanded && canExpand && level >= 6 && (
+                <div className="category-max-level">
+                    <MoreHorizontal size={14} />
+                    <span>Nivel máximo alcanzado (6)</span>
+                </div>
+            )}
+        </div>
+    );
 }
 
 

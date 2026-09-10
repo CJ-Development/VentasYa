@@ -253,6 +253,29 @@ function CategoryForm({
         return fullPath;
     }, [formData.nombre, categoriaPadre, categorias]);
 
+    /*
+    =====================================================
+    CALCULAR NIVEL DE LA CATEGORÍA (1-6)
+    =====================================================
+    */
+
+    const categoryLevel = useMemo(() => {
+        if (!formData.nombre) return 0;
+        const parentPath = categoriaPadre ? buildPath(categoriaPadre) : [];
+        const level = parentPath.length + 1;
+        return Math.min(level, 6);
+    }, [formData.nombre, categoriaPadre, categorias]);
+
+    const getLevelLabel = (lvl) => {
+        if (lvl === 1) return "Categoría principal";
+        if (lvl === 2) return "Subcategoría";
+        if (lvl === 3) return "Sub-subcategoría";
+        if (lvl === 4) return "Nivel 4";
+        if (lvl === 5) return "Nivel 5";
+        if (lvl === 6) return "Nivel 6";
+        return `Nivel ${lvl}`;
+    };
+
 
     /*
     =====================================================
@@ -691,6 +714,12 @@ function CategoryForm({
 
                         </div>
 
+                        {categoryLevel > 0 && (
+                            <div className="preview-level-badge">
+                                {getLevelLabel(categoryLevel)}
+                            </div>
+                        )}
+
                     </div>
 
 
@@ -711,6 +740,11 @@ function CategoryForm({
                                         </div>
                                     </div>
                                 ))}
+                                {categoryLevel >= 6 && (
+                                    <div className="preview-max-level">
+                                        <span>Nivel máximo alcanzado (6)</span>
+                                    </div>
+                                )}
                             </div>
                         ) : (
                             <div className="preview-empty">

@@ -633,6 +633,32 @@
     text-transform: uppercase;
 }
 
+/* Badge de nivel en preview */
+.preview-level-badge {
+    padding: 6px 12px;
+    background: #E6F7F9;
+    color: #0EA5B5;
+    border-radius: 18px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+/* Indicador de nivel máximo en preview */
+.preview-max-level {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 8px 12px;
+    background: #FFFBEB;
+    color: #F59E0B;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 500;
+    margin-top: 8px;
+}
+
 
 /* =========================
    NOTE

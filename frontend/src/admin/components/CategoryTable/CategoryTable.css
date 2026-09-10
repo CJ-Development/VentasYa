@@ -1,3 +1,7 @@
+/* =========================================================
+   CATEGORY TABLE - ÁRBOL RECURSIVO (6 NIVELES)
+========================================================= */
+
 .category-container {
 
     width: 100%;
@@ -13,9 +17,9 @@
 }
 
 
-/* =========================
+/* =========================================================
    HEADER
-========================= */
+========================================================= */
 
 .category-section-header {
 
@@ -73,9 +77,9 @@
 }
 
 
-/* =========================
-   LISTA
-========================= */
+/* =========================================================
+   LISTA DE ÁRBOL
+========================================================= */
 
 .categories-list {
 
@@ -85,33 +89,59 @@
 
     flex-direction: column;
 
-    gap: 12px;
+    gap: 8px;
 
 }
 
 
-/* =========================
-   CATEGORÍA PRINCIPAL
-========================= */
+/* =========================================================
+   NODO DEL ÁRBOL
+========================================================= */
 
-.category-group {
+.category-tree-node {
 
     border: 1px solid #E5E7EB;
 
-    border-radius: 12px;
+    border-radius: 10px;
 
     overflow: hidden;
 
     background: #FFFFFF;
 
+    transition: all 0.2s ease;
 }
 
 
-.category-main {
+.category-tree-node--level-1 {
+    border-width: 1px;
+}
 
-    min-height: 76px;
+.category-tree-node--level-2 {
+    border-width: 1px;
+    margin-left: 0;
+}
 
-    padding: 14px 16px;
+.category-tree-node--level-3 {
+    border-width: 1px;
+    margin-left: 0;
+}
+
+.category-tree-node--level-4,
+.category-tree-node--level-5,
+.category-tree-node--level-6 {
+    border-width: 1px;
+    margin-left: 0;
+}
+
+/* =========================================================
+   FILA DE CATEGORÍA
+========================================================= */
+
+.category-row {
+
+    min-height: 64px;
+
+    padding: 12px 14px;
 
     display: flex;
 
@@ -119,53 +149,148 @@
 
     align-items: center;
 
-    gap: 20px;
+    gap: 16px;
 
-    transition: background .2s ease;
+    transition: background 0.2s ease;
 
 }
 
-
-.category-main:hover {
-
+.category-row:hover {
     background: #F9FAFB;
-
 }
 
+.category-row--expanded {
+    background: #FAFBFC;
+}
 
-.category-main-left {
+/* Nivel 1 - Más prominente */
+.category-row--level-1 {
+    min-height: 72px;
+    padding: 14px 16px;
+}
+
+.category-row--level-1 .category-name {
+    font-size: 14px;
+    font-weight: 700;
+    color: #1F2937;
+}
+
+.category-row--level-1 .category-type {
+    font-size: 12px;
+    font-weight: 500;
+    color: #6B7280;
+}
+
+/* Nivel 2 */
+.category-row--level-2 {
+    min-height: 60px;
+    padding: 10px 14px 10px 40px;
+}
+
+.category-row--level-2 .category-name {
+    font-size: 13px;
+    font-weight: 600;
+    color: #374151;
+}
+
+.category-row--level-2 .category-type {
+    font-size: 11px;
+    color: #9CA3AF;
+}
+
+/* Nivel 3 */
+.category-row--level-3 {
+    min-height: 56px;
+    padding: 8px 14px 8px 64px;
+}
+
+.category-row--level-3 .category-name {
+    font-size: 13px;
+    font-weight: 500;
+    color: #4B5563;
+}
+
+.category-row--level-3 .category-type {
+    font-size: 11px;
+    color: #9CA3AF;
+}
+
+/* Niveles 4-6 - Más sutiles */
+.category-row--level-4 {
+    min-height: 52px;
+    padding: 8px 14px 8px 88px;
+}
+
+.category-row--level-5 {
+    min-height: 52px;
+    padding: 8px 14px 8px 112px;
+}
+
+.category-row--level-6 {
+    min-height: 52px;
+    padding: 8px 14px 8px 136px;
+}
+
+.category-row--level-4 .category-name,
+.category-row--level-5 .category-name,
+.category-row--level-6 .category-name {
+    font-size: 12px;
+    font-weight: 500;
+    color: #6B7280;
+}
+
+.category-row--level-4 .category-type,
+.category-row--level-5 .category-type,
+.category-row--level-6 .category-type {
+    font-size: 10px;
+    color: #9CA3AF;
+}
+
+/* =========================================================
+   LADO IZQUIERDO DE LA FILA
+========================================================= */
+
+.category-row-left {
 
     display: flex;
 
     align-items: center;
 
-    gap: 11px;
+    gap: 10px;
 
     min-width: 0;
 
+    flex: 1;
+
 }
 
 
-.category-main-right {
+/* =========================================================
+   LADO DERECHO DE LA FILA
+========================================================= */
+
+.category-row-right {
 
     display: flex;
 
     align-items: center;
 
-    gap: 16px;
+    gap: 12px;
+
+    flex-shrink: 0;
 
 }
 
 
-/* =========================
-   EXPANDIR
-========================= */
+/* =========================================================
+   BOTÓN DE EXPANSIÓN
+========================================================= */
 
 .expand-button {
 
-    width: 30px;
+    width: 28px;
 
-    height: 30px;
+    height: 28px;
 
     display: flex;
 
@@ -179,13 +304,15 @@
 
     color: #6B7280;
 
-    border-radius: 7px;
+    border-radius: 6px;
 
     cursor: pointer;
 
     transition:
-        background .2s ease,
-        color .2s ease;
+        background 0.2s ease,
+        color 0.2s ease;
+
+    flex-shrink: 0;
 
 }
 
@@ -201,22 +328,24 @@
 
 .expand-placeholder {
 
-    width: 30px;
+    width: 28px;
+
+    flex-shrink: 0;
 
 }
 
 
-/* =========================
-   ICONOS
-========================= */
+/* =========================================================
+   ICONO DE CATEGORÍA
+========================================================= */
 
 .category-icon {
 
-    width: 38px;
+    width: 34px;
 
-    height: 38px;
+    height: 34px;
 
-    border-radius: 10px;
+    border-radius: 8px;
 
     display: flex;
 
@@ -232,191 +361,114 @@
 
 }
 
+.category-icon--level-1 {
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+}
 
-.subcategory-icon {
-
+.category-icon--level-2 {
     width: 32px;
-
     height: 32px;
-
-    border-radius: 8px;
-
-    display: flex;
-
-    align-items: center;
-
-    justify-content: center;
-
     background: #F3F4F6;
-
     color: #6B7280;
+}
 
-    flex-shrink: 0;
-
+.category-icon--level-3,
+.category-icon--level-4,
+.category-icon--level-5,
+.category-icon--level-6 {
+    width: 28px;
+    height: 28px;
+    background: #F9FAFB;
+    color: #9CA3AF;
 }
 
 
-/* =========================
-   TEXTOS
-========================= */
+/* =========================================================
+   INFORMACIÓN DE CATEGORÍA
+========================================================= */
 
 .category-info {
 
     min-width: 0;
+
+    flex: 1;
 
 }
 
 
 .category-name {
 
-    color: #1F2937;
+    margin-bottom: 2px;
 
-    font-size: 14px;
+    white-space: nowrap;
 
-    font-weight: 600;
+    overflow: hidden;
 
-    margin-bottom: 3px;
+    text-overflow: ellipsis;
 
 }
 
 
 .category-type {
 
-    color: #9CA3AF;
-
-    font-size: 12px;
+    white-space: nowrap;
 
 }
 
 
-.subcategory-name-wrapper {
+/* =========================================================
+   HIJOS DEL ÁRBOL
+========================================================= */
+
+.category-children {
 
     display: flex;
 
-    align-items: center;
+    flex-direction: column;
 
-    gap: 12px;
+    gap: 6px;
 
-    position: relative;
-
-}
-
-
-.subcategory-name {
-
-    color: #374151;
-
-    font-size: 13px;
-
-    font-weight: 500;
-
-    margin-bottom: 2px;
-
-}
-
-
-.subcategory-type {
-
-    color: #9CA3AF;
-
-    font-size: 11px;
-
-}
-
-
-/* =========================
-   SUBCATEGORÍAS
-========================= */
-
-.subcategory-list {
-
-    border-top: 1px solid #E5E7EB;
+    padding: 8px 0 8px 0;
 
     background: #FAFBFC;
 
+    border-top: 1px solid #E5E7EB;
+
 }
 
 
-.subcategory-row {
+/* =========================================================
+   INDICADOR DE NIVEL MÁXIMO
+========================================================= */
 
-    min-height: 62px;
-
-    padding: 10px 16px 10px 57px;
+.category-max-level {
 
     display: flex;
 
     align-items: center;
 
-    justify-content: space-between;
+    gap: 8px;
 
-    gap: 20px;
+    padding: 8px 14px 8px 136px;
 
-    border-bottom: 1px solid #EEF0F2;
+    color: #F59E0B;
 
-}
+    font-size: 11px;
 
+    font-weight: 500;
 
-.subcategory-row:last-child {
+    background: #FFFBEB;
 
-    border-bottom: none;
-
-}
-
-
-.tree-line {
-
-    width: 18px;
-
-    height: 34px;
-
-    position: relative;
-
-    flex-shrink: 0;
+    border-top: 1px solid #E5E7EB;
 
 }
 
 
-.tree-line::before {
-
-    content: "";
-
-    position: absolute;
-
-    left: 8px;
-
-    top: -17px;
-
-    width: 1px;
-
-    height: 51px;
-
-    background: #D9DEE4;
-
-}
-
-
-.tree-line::after {
-
-    content: "";
-
-    position: absolute;
-
-    left: 8px;
-
-    top: 17px;
-
-    width: 12px;
-
-    height: 1px;
-
-    background: #D9DEE4;
-
-}
-
-
-/* =========================
-   ESTADOS
-========================= */
+/* =========================================================
+   ESTADOS (BADGES)
+========================================================= */
 
 .status-badge {
 
@@ -426,13 +478,13 @@
 
     justify-content: center;
 
-    min-width: 64px;
+    min-width: 58px;
 
-    padding: 7px 11px;
+    padding: 6px 10px;
 
-    border-radius: 20px;
+    border-radius: 18px;
 
-    font-size: 11px;
+    font-size: 10px;
 
     font-weight: 600;
 
@@ -457,39 +509,37 @@
 }
 
 
-.subcategory-count {
+.children-count {
 
     color: #9CA3AF;
 
-    font-size: 12px;
+    font-size: 11px;
 
     white-space: nowrap;
 
 }
 
 
-/* =========================
+/* =========================================================
    ACCIONES
-========================= */
+========================================================= */
 
-.category-actions,
-
-.subcategory-actions {
+.category-actions {
 
     display: flex;
 
     align-items: center;
 
-    gap: 7px;
+    gap: 6px;
 
 }
 
 
 .icon-action {
 
-    width: 34px;
+    width: 30px;
 
-    height: 34px;
+    height: 30px;
 
     display: flex;
 
@@ -499,16 +549,16 @@
 
     border: 1px solid #E5E7EB;
 
-    border-radius: 8px;
+    border-radius: 6px;
 
     background: #FFFFFF;
 
     cursor: pointer;
 
     transition:
-        background .2s ease,
-        color .2s ease,
-        border-color .2s ease;
+        background 0.2s ease,
+        color 0.2s ease,
+        border-color 0.2s ease;
 
 }
 
@@ -545,9 +595,9 @@
 }
 
 
-/* =========================
+/* =========================================================
    EMPTY
-========================= */
+========================================================= */
 
 .empty-categories {
 
@@ -603,53 +653,9 @@
 }
 
 
-/* =========================
-   SUB-SUBCATEGORÍAS
-========================= */
-
-.sub-subcategory-list {
-    margin-top: 8px;
-    padding-left: 24px;
-}
-
-.sub-subcategory-row {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 8px 12px;
-    border-radius: 6px;
-    background: #f9fafb;
-}
-
-.sub-subcategory-name-wrapper {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    flex: 1;
-}
-
-.sub-sub-line {
-    margin-left: 8px;
-}
-
-.sub-sub-line-2 {
-    margin-left: 0;
-}
-
-.sub-sub-name {
-    font-size: 13px;
-    font-weight: 500;
-}
-
-.sub-sub-type {
-    font-size: 11px;
-    color: #9ca3af;
-}
-
-
-/* =========================
+/* =========================================================
    LOADING / ERROR
-========================= */
+========================================================= */
 
 .category-loading,
 
@@ -666,19 +672,19 @@
 }
 
 
-/* =========================
+/* =========================================================
    RESPONSIVE
-========================= */
+========================================================= */
 
 @media (max-width: 850px) {
 
-    .category-main-right {
+    .category-row-right {
 
         gap: 8px;
 
     }
 
-    .subcategory-count {
+    .children-count {
 
         display: none;
 
@@ -689,23 +695,19 @@
 
 @media (max-width: 650px) {
 
-    .category-main {
+    .category-row {
 
         align-items: flex-start;
 
     }
 
-    .category-main-right {
+    .category-row-right {
 
         flex-direction: column;
 
         align-items: flex-end;
 
-    }
-
-    .subcategory-row {
-
-        padding-left: 30px;
+        gap: 6px;
 
     }
 
@@ -722,22 +724,50 @@
 
     }
 
-    .category-main {
+    .category-row {
 
+        padding: 10px 12px;
+
+    }
+
+    .category-row--level-1 {
         padding: 12px;
+    }
 
+    .category-row--level-2 {
+        padding-left: 32px;
+    }
+
+    .category-row--level-3 {
+        padding-left: 52px;
+    }
+
+    .category-row--level-4 {
+        padding-left: 72px;
+    }
+
+    .category-row--level-5 {
+        padding-left: 92px;
+    }
+
+    .category-row--level-6 {
+        padding-left: 112px;
     }
 
     .category-info {
 
-        max-width: 100px;
+        max-width: 120px;
 
     }
 
-    .category-main-right .status-badge {
+    .category-row-right .status-badge {
 
         display: none;
 
+    }
+
+    .category-max-level {
+        padding-left: 112px;
     }
 
 }
