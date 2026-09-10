@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from .models import Producto, Variante, ImagenProducto, Color, Talla
+from .models import Producto, Variante, ImagenProducto, Color, Talla, Diseño
 
 from apps.categories.serializers import CategoriaSerializer
 from apps.categories.models import Categoria
@@ -22,6 +22,13 @@ class TallaSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Talla
+        fields = "__all__"
+
+
+class DiseñoSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Diseño
         fields = "__all__"
 
 
@@ -83,22 +90,32 @@ class VarianteSerializer(serializers.ModelSerializer):
 
     color = ColorSerializer(read_only=True)
 
+    diseño = DiseñoSerializer(read_only=True)
+
     talla = TallaSerializer(read_only=True)
 
     color_id = serializers.PrimaryKeyRelatedField(
         queryset=Color.objects.all(),
         source="color",
         write_only=True,
-        required=True,
-        allow_null=False
+        required=False,
+        allow_null=True
+    )
+
+    diseño_id = serializers.PrimaryKeyRelatedField(
+        queryset=Diseño.objects.all(),
+        source="diseño",
+        write_only=True,
+        required=False,
+        allow_null=True
     )
 
     talla_id = serializers.PrimaryKeyRelatedField(
         queryset=Talla.objects.all(),
         source="talla",
         write_only=True,
-        required=True,
-        allow_null=False
+        required=False,
+        allow_null=True
     )
 
     class Meta:
@@ -107,12 +124,29 @@ class VarianteSerializer(serializers.ModelSerializer):
             "id_variante",
             "color",
             "color_id",
+            "diseño",
+            "diseño_id",
             "talla",
             "talla_id",
             "sku",
             "stock",
             "imagenes",
         ]
+
+    def validate(self, attrs):
+        """
+        Validar que al menos uno de color, diseño o talla esté presente.
+        """
+        color = attrs.get('color')
+        diseño = attrs.get('diseño')
+        talla = attrs.get('talla')
+        
+        if color is None and diseño is None and talla is None:
+            raise serializers.ValidationError(
+                "Cada variante debe tener al menos un atributo: color, diseño o talla."
+            )
+        
+        return attrs
 
 
 class ProductoSerializer(serializers.ModelSerializer):

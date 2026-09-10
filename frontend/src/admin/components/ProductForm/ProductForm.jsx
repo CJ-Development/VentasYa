@@ -19,8 +19,10 @@ import {
     getCategories,
     getColors,
     getTallas,
+    getDesigns,
     createColor,
     createTalla,
+    createDesign,
 } from "../../../services/adminService";
 
 import { ensureCsrf } from "../../../services/api";
@@ -62,15 +64,16 @@ const mediaUrl = (value) => {
 
 /* =========================================================
    SKU AUTOMÁTICO
-   Formato: <SLUG>-<COLOR_HEX_SHORT>-<TALLA_CODIGO>
+   Formato: <SLUG>-<ATRIBUTOS>
    · SLUG: el slug del producto (o "PROD" si aún no existe)
    · COLOR_HEX_SHORT: últimos 3 chars del hex sin # (ej. B5)
+   · DISEÑO_ID: ID del diseño (ej. D1)
    · TALLA_CODIGO: nombre de la talla en mayúsculas sin espacios
    ========================================================= */
 
 const AUTO_SKU_PREFIX = "AUTO-";
 
-const buildAutoSku = (slug, color, talla) => {
+const buildAutoSku = (slug, color, diseño, talla) => {
     const slugPart =
         (slug || "PROD")
             .toString()
@@ -78,23 +81,36 @@ const buildAutoSku = (slug, color, talla) => {
             .replace(/[^A-Z0-9]/g, "")
             .slice(0, 8) || "PROD";
 
-    const hexPart = (
-        (color?.codigo_hex || "000")
-            .replace("#", "")
-            .replace(/[^0-9A-Fa-f]/g, "")
-            .slice(-3) || "000"
-    ).toUpperCase();
+    const parts = [slugPart];
 
-    const sizePart = (
-        (talla?.nombre || "")
-            .toString()
-            .toUpperCase()
-            .replace(/\s+/g, "")
-            .replace(/[^A-Z0-9]/g, "")
-            .slice(0, 5) || "STD"
-    );
+    if (color) {
+        const hexPart = (
+            (color?.codigo_hex || "000")
+                .replace("#", "")
+                .replace(/[^0-9A-Fa-f]/g, "")
+                .slice(-3) || "000"
+        ).toUpperCase();
+        parts.push(hexPart);
+    }
 
-    return `${AUTO_SKU_PREFIX}${slugPart}-${hexPart}-${sizePart}`;
+    if (diseño) {
+        const designPart = `D${diseño.id_diseño}`;
+        parts.push(designPart);
+    }
+
+    if (talla) {
+        const sizePart = (
+            (talla?.nombre || "")
+                .toString()
+                .toUpperCase()
+                .replace(/\s+/g, "")
+                .replace(/[^A-Z0-9]/g, "")
+                .slice(0, 5) || "STD"
+        );
+        parts.push(sizePart);
+    }
+
+    return `${AUTO_SKU_PREFIX}${parts.join("-")}`;
 };
 
 
@@ -106,10 +122,11 @@ const isAutoSku = (value) =>
    VARIANTE VACÍA
    ========================================================= */
 
-const emptyVariant = (color = "") => ({
+const emptyVariant = (color = "", diseño = "") => ({
     clientId: crypto.randomUUID(),
     id_variante: null,
     color,
+    diseño,
     talla: "",
     sku: "",
     stock: 0,
@@ -148,6 +165,11 @@ const normalizeVariants = (product) => {
         color:
             v.color?.id_color ??
             v.color ??
+            "",
+
+        diseño:
+            v.diseño?.id_diseño ??
+            v.diseño ??
             "",
 
         talla:
@@ -216,6 +238,8 @@ function ProductForm({
 
     const [tallas, setTallas] = useState([]);
 
+    const [diseños, setDiseños] = useState([]);
+
     const [loading, setLoading] = useState(false);
 
     const [error, setError] = useState("");
@@ -241,6 +265,21 @@ function ProductForm({
         submitting: false,
     });
 
+    const [newDiseñoForm, setNewDiseñoForm] = useState({
+        open: false,
+        nombre: "",
+        imagen: "",
+        submitting: false,
+    });
+
+    /* =====================================================
+       ACTIVACIÓN DE ATRIBUTOS
+       ===================================================== */
+
+    const [useColor, setUseColor] = useState(true);
+    const [useDiseño, setUseDiseño] = useState(false);
+    const [useTalla, setUseTalla] = useState(true);
+
 
     /* =====================================================
        CARGAR CATÁLOGOS
@@ -253,15 +292,17 @@ function ProductForm({
         Promise.all([
             getCategories(),
             getColors(),
-            getTallas()
+            getTallas(),
+            getDesigns()
         ])
-            .then(([cats, cols, sizes]) => {
+            .then(([cats, cols, sizes, designs]) => {
 
                 if (!alive) return;
 
                 setCategories(cats.data || []);
                 setColores(cols.data || []);
                 setTallas(sizes.data || []);
+                setDiseños(designs.data || []);
 
             })
             .catch((err) => {
@@ -270,7 +311,7 @@ function ProductForm({
 
                 if (alive) {
                     setError(
-                        "No fue posible cargar categorías, colores y tallas."
+                        "No fue posible cargar categorías, colores, tallas y diseños."
                     );
                 }
 
@@ -682,8 +723,110 @@ function ProductForm({
 
 
     /* =====================================================
+       DISEÑOS
+       ===================================================== */
+
+    const productDiseños = useMemo(() => {
+        const used = new Set(
+            variantes
+                .filter((v) => v.diseño)
+                .map((v) => Number(v.diseño))
+        );
+        return Array.from(used);
+    }, [variantes]);
+
+    const selectDiseño = (diseñoId) => {
+        const normalizedId = String(diseñoId);
+
+        setVariantes((prev) => {
+            const alreadyExists = prev.some(
+                (variant) => Number(variant.diseño) === Number(normalizedId)
+            );
+
+            if (!alreadyExists) {
+                return [
+                    ...prev,
+                    emptyVariant("", normalizedId)
+                ];
+            }
+            return prev;
+        });
+    };
+
+    const removeDiseño = (diseñoId) => {
+        const normalizedId = Number(diseñoId);
+        setVariantes((prev) =>
+            prev.filter(
+                (variant) =>
+                    Number(variant.diseño) !== normalizedId
+            )
+        );
+    };
+
+    const openNewDiseñoForm = () => {
+        setError("");
+        setNewDiseñoForm({
+            open: true,
+            nombre: "",
+            imagen: "",
+            submitting: false,
+        });
+    };
+
+    const closeNewDiseñoForm = () => {
+        setNewDiseñoForm({
+            open: false,
+            nombre: "",
+            imagen: "",
+            submitting: false,
+        });
+    };
+
+    const submitNewDiseño = async (event) => {
+        if (event) event.preventDefault();
+
+        const nombre = newDiseñoForm.nombre.trim();
+        const imagen = newDiseñoForm.imagen.trim();
+
+        if (!nombre) return;
+
+        setNewDiseñoForm((prev) => ({
+            ...prev,
+            submitting: true,
+        }));
+
+        try {
+            const { data } = await createDesign({
+                nombre,
+                imagen: imagen || null,
+            });
+
+            setDiseños((prev) => [
+                ...prev,
+                data
+            ]);
+
+            setVariantes((prev) => [
+                ...prev,
+                emptyVariant("", String(data.id_diseño))
+            ]);
+
+            closeNewDiseñoForm();
+
+        } catch (err) {
+            console.error(err);
+            setError("No se pudo crear el diseño.");
+            setNewDiseñoForm((prev) => ({
+                ...prev,
+                submitting: false,
+            }));
+        }
+    };
+
+
+    /* =====================================================
        ACTUALIZAR VARIANTE
-       Si cambia el color o la talla y el SKU actual es
+       Si cambia el color, diseño o talla y el SKU actual es
        automático (o está vacío), se regenera solo.
        ===================================================== */
 
@@ -706,7 +849,7 @@ function ProductForm({
                 };
 
                 const shouldAutoRegenerate =
-                    (field === "color" || field === "talla") &&
+                    (field === "color" || field === "diseño" || field === "talla") &&
                     (isAutoSku(variant.sku) ||
                         !variant.sku.trim());
 
@@ -717,30 +860,43 @@ function ProductForm({
                             ? value
                             : variant.color;
 
+                    const diseñoId =
+                        field === "diseño"
+                            ? value
+                            : variant.diseño;
+
                     const tallaId =
                         field === "talla"
                             ? value
                             : variant.talla;
 
                     const colorInfo =
-                        colores.find(
+                        colorId ? colores.find(
                             (c) =>
                                 Number(c.id_color) ===
                                 Number(colorId)
-                        );
+                        ) : null;
+
+                    const diseñoInfo =
+                        diseñoId ? diseños.find(
+                            (d) =>
+                                Number(d.id_diseño) ===
+                                Number(diseñoId)
+                        ) : null;
 
                     const tallaInfo =
-                        tallas.find(
+                        tallaId ? tallas.find(
                             (t) =>
                                 Number(t.id_talla) ===
                                 Number(tallaId)
-                        );
+                        ) : null;
 
-                    if (colorInfo && tallaInfo) {
+                    if (colorInfo || diseñoInfo || tallaInfo) {
 
                         next.sku = buildAutoSku(
                             datos.slug,
                             colorInfo,
+                            diseñoInfo,
                             tallaInfo
                         );
 
@@ -1121,7 +1277,7 @@ function ProductForm({
 
                     /*
                      * Si el SKU sigue marcado como AUTO y ya
-                     * hay color + talla elegidos, lo regeneramos
+                     * hay color + diseño + talla elegidos, lo regeneramos
                      * con datos reales antes de enviar al backend.
                      */
                     let finalSku =
@@ -1133,23 +1289,31 @@ function ProductForm({
                     ) {
 
                         const colorInfo =
-                            colores.find(
+                            variant.color ? colores.find(
                                 (c) =>
                                     Number(c.id_color) ===
                                     Number(variant.color)
-                            );
+                            ) : null;
+
+                        const diseñoInfo =
+                            variant.diseño ? diseños.find(
+                                (d) =>
+                                    Number(d.id_diseño) ===
+                                    Number(variant.diseño)
+                            ) : null;
 
                         const tallaInfo =
-                            tallas.find(
+                            variant.talla ? tallas.find(
                                 (t) =>
                                     Number(t.id_talla) ===
                                     Number(variant.talla)
-                            );
+                            ) : null;
 
-                        if (colorInfo && tallaInfo) {
+                        if (colorInfo || diseñoInfo || tallaInfo) {
                             finalSku = buildAutoSku(
                                 datos.slug,
                                 colorInfo,
+                                diseñoInfo,
                                 tallaInfo
                             );
                         }
@@ -1165,15 +1329,17 @@ function ProductForm({
                         }
                         : {}),
 
-                    color_id:
-                        Number(
-                            variant.color
-                        ),
+                    color_id: variant.color
+                        ? Number(variant.color)
+                        : null,
 
-                    talla_id:
-                        Number(
-                            variant.talla
-                        ),
+                    diseño_id: variant.diseño
+                        ? Number(variant.diseño)
+                        : null,
+
+                    talla_id: variant.talla
+                        ? Number(variant.talla)
+                        : null,
 
                     sku: finalSku,
 
@@ -2145,6 +2311,240 @@ function ProductForm({
 
 
                                 {/* ================================
+                                   DISEÑOS
+                                   ================================ */}
+
+                                <div className="colors-section">
+
+                                    <div className="section-top">
+
+                                        <div>
+
+                                            <h4>
+                                                Diseños disponibles
+                                            </h4>
+
+                                            <span>
+                                                {productDiseños.length || 0}
+                                                {" "}
+                                                {productDiseños.length === 1
+                                                    ? "diseño registrado"
+                                                    : "diseños registrados"}
+                                            </span>
+
+                                        </div>
+
+                                    </div>
+
+
+                                    <div className="color-options">
+
+                                        {diseños.map(
+                                            (diseño) => {
+
+                                                const isUsed =
+                                                    productDiseños.includes(
+                                                        Number(
+                                                            diseño.id_diseño
+                                                        )
+                                                    );
+
+                                                return (
+
+                                                    <div
+                                                        key={
+                                                            diseño.id_diseño
+                                                        }
+                                                        className="color-option-wrap"
+                                                    >
+
+                                                        <button
+                                                            type="button"
+                                                            className="color-option"
+                                                            onClick={() =>
+                                                                selectDiseño(
+                                                                    diseño.id_diseño
+                                                                )
+                                                            }
+                                                        >
+
+                                                            {diseño.imagen ? (
+                                                                <img
+                                                                    src={diseño.imagen}
+                                                                    alt={diseño.nombre}
+                                                                    className="design-thumbnail"
+                                                                />
+                                                            ) : (
+                                                                <span className="design-placeholder">
+                                                                    {diseño.nombre.charAt(0)}
+                                                                </span>
+                                                            )}
+
+                                                            <strong>
+                                                                {diseño.nombre}
+                                                            </strong>
+
+                                                        </button>
+
+                                                        {isUsed && (
+                                                            <button
+                                                                type="button"
+                                                                className="color-remove-button"
+                                                                title={`Quitar ${diseño.nombre} del producto`}
+                                                                onClick={(
+                                                                    event
+                                                                ) => {
+                                                                    event.stopPropagation();
+                                                                    removeDiseño(
+                                                                        diseño.id_diseño
+                                                                    );
+                                                                }}
+                                                            >
+                                                                <X size={13} />
+                                                            </button>
+                                                        )}
+
+                                                    </div>
+
+                                                );
+
+                                            }
+                                        )}
+
+
+                                        {newDiseñoForm.open ? (
+
+                                            <div
+                                                className="add-color-option"
+                                                style={{
+                                                    flexDirection: "column",
+                                                    alignItems: "stretch",
+                                                    padding: "12px",
+                                                    gap: "8px",
+                                                }}
+                                                onKeyDown={(event) => {
+                                                    if (event.key === "Enter") {
+                                                        event.preventDefault();
+                                                        submitNewDiseño(event);
+                                                    }
+                                                }}
+                                            >
+
+                                                <input
+                                                    type="text"
+                                                    placeholder="Nombre del diseño"
+                                                    value={
+                                                        newDiseñoForm.nombre
+                                                    }
+                                                    onChange={(event) =>
+                                                        setNewDiseñoForm(
+                                                            (prev) => ({
+                                                                ...prev,
+                                                                nombre:
+                                                                    event
+                                                                        .target
+                                                                        .value,
+                                                            })
+                                                        )
+                                                    }
+                                                    autoFocus
+                                                />
+
+                                                <input
+                                                    type="text"
+                                                    placeholder="URL de imagen (opcional)"
+                                                    value={
+                                                        newDiseñoForm.imagen
+                                                    }
+                                                    onChange={(event) =>
+                                                        setNewDiseñoForm(
+                                                            (prev) => ({
+                                                                ...prev,
+                                                                imagen:
+                                                                    event
+                                                                        .target
+                                                                        .value,
+                                                            })
+                                                        )
+                                                    }
+                                                />
+
+                                                <div
+                                                    style={{
+                                                        display: "flex",
+                                                        gap: "6px",
+                                                    }}
+                                                >
+
+                                                    <button
+                                                        type="button"
+                                                        onClick={
+                                                            submitNewDiseño
+                                                        }
+                                                        className="primary-button"
+                                                        style={{
+                                                            minHeight: "34px",
+                                                            padding:
+                                                                "0 12px",
+                                                            fontSize:
+                                                                "12px",
+                                                        }}
+                                                        disabled={
+                                                            newDiseñoForm.submitting ||
+                                                            !newDiseñoForm.nombre.trim()
+                                                        }
+                                                    >
+                                                        {newDiseñoForm.submitting
+                                                            ? "Guardando..."
+                                                            : "Guardar"}
+                                                    </button>
+
+                                                    <button
+                                                        type="button"
+                                                        className="secondary-button"
+                                                        style={{
+                                                            minHeight: "34px",
+                                                            padding:
+                                                                "0 12px",
+                                                            fontSize:
+                                                                "12px",
+                                                        }}
+                                                        onClick={
+                                                            closeNewDiseñoForm
+                                                        }
+                                                        disabled={
+                                                            newDiseñoForm.submitting
+                                                        }
+                                                    >
+                                                        Cancelar
+                                                    </button>
+
+                                                </div>
+
+                                            </div>
+
+                                        ) : (
+
+                                            <button
+                                                type="button"
+                                                className="add-color-option"
+                                                onClick={openNewDiseñoForm}
+                                            >
+
+                                                <Plus size={18} />
+
+                                                Agregar diseño
+
+                                            </button>
+
+                                        )}
+
+                                    </div>
+
+                                </div>
+
+
+                                {/* ================================
                                    TALLAS
                                    ================================ */}
 
@@ -2296,6 +2696,10 @@ function ProductForm({
                                     <div className="sizes-table-header">
 
                                         <span>
+                                            Diseño
+                                        </span>
+
+                                        <span>
                                             Talla
                                         </span>
 
@@ -2406,6 +2810,48 @@ function ProductForm({
                                                             variant.clientId
                                                         }
                                                     >
+
+                                                        {/* DISEÑO */}
+
+                                                        <div className="size-cell">
+
+                                                            <select
+                                                                value={
+                                                                    variant.diseño || ""
+                                                                }
+                                                                onChange={(event) =>
+                                                                    updateVariant(
+                                                                        variant.clientId,
+                                                                        "diseño",
+                                                                        event.target.value
+                                                                    )
+                                                                }
+                                                            >
+
+                                                                <option value="">
+                                                                    Ninguno
+                                                                </option>
+
+                                                                {diseños.map(
+                                                                    (diseño) => (
+
+                                                                        <option
+                                                                            key={
+                                                                                diseño.id_diseño
+                                                                            }
+                                                                            value={
+                                                                                diseño.id_diseño
+                                                                            }
+                                                                        >
+                                                                            {diseño.nombre}
+                                                                        </option>
+
+                                                                    )
+                                                                )}
+
+                                                            </select>
+
+                                                        </div>
 
                                                         {/* TALLA */}
 

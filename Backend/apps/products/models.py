@@ -45,6 +45,32 @@ class Talla(models.Model):
 
 
 # ==========================
+# DISEÑOS
+# ==========================
+
+class Diseño(models.Model):
+
+    id_diseño = models.AutoField(primary_key=True)
+
+    nombre = models.CharField(
+        max_length=50,
+        unique=True
+    )
+
+    imagen = models.URLField(
+        max_length=500,
+        blank=True,
+        null=True
+    )
+
+    class Meta:
+        db_table = "diseños"
+
+    def __str__(self):
+        return self.nombre
+
+
+# ==========================
 # PRODUCTOS
 # ==========================
 
@@ -128,6 +154,14 @@ class Variante(models.Model):
         Color,
         on_delete=models.PROTECT,
         db_column="id_color",
+        null=True,
+        blank=True
+    )
+
+    diseño = models.ForeignKey(
+        Diseño,
+        on_delete=models.PROTECT,
+        db_column="id_diseño",
         null=True,
         blank=True
     )

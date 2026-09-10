@@ -11,6 +11,8 @@ from .views import (
     ColorDetalleView,
     TallaListView,
     TallaDetalleView,
+    DiseñoListView,
+    DiseñoDetalleView,
     VariantesPorProductoView,
     VarianteDetalleView,
     ImagenesPorVarianteView,
@@ -33,6 +35,8 @@ urlpatterns = [
     path("colores/<int:id>/", ColorDetalleView.as_view()),
     path("tallas/", TallaListView.as_view()),
     path("tallas/<int:id>/", TallaDetalleView.as_view()),
+    path("diseños/", DiseñoListView.as_view()),
+    path("diseños/<int:id>/", DiseñoDetalleView.as_view()),
 ]
 
 app_name = "products"

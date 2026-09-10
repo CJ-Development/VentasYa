@@ -9,8 +9,8 @@ from django.shortcuts import get_object_or_404
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import ensure_csrf_cookie
 
-from .models import Producto, Variante, Color, Talla, ImagenProducto
-from .serializers import VarianteSerializer, ProductoSerializer, ColorSerializer, TallaSerializer, ImagenSerializer
+from .models import Producto, Variante, Color, Talla, Diseño, ImagenProducto
+from .serializers import VarianteSerializer, ProductoSerializer, ColorSerializer, TallaSerializer, DiseñoSerializer, ImagenSerializer
 from .services import ProductoService
 
 
@@ -201,6 +201,41 @@ class TallaDetalleView(APIView):
 
     def delete(self, request, id):
         Talla.objects.filter(id_talla=id).delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+@method_decorator(ensure_csrf_cookie, name="dispatch")
+class DiseñoListView(APIView):
+    """GET público (catálogo), POST staff."""
+    get_permissions = _permisos_admin_en_mutacion
+
+    def get(self, request):
+        return Response(DiseñoSerializer(Diseño.objects.all().order_by("nombre"), many=True).data)
+
+    def post(self, request):
+        serializer = DiseñoSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        diseño = serializer.save()
+        return Response(DiseñoSerializer(diseño).data, status=status.HTTP_201_CREATED)
+
+
+@method_decorator(ensure_csrf_cookie, name="dispatch")
+class DiseñoDetalleView(APIView):
+    """GET público, PUT/DELETE staff."""
+    get_permissions = _permisos_admin_en_mutacion
+
+    def get(self, request, id):
+        return Response(DiseñoSerializer(get_object_or_404(Diseño, id_diseño=id)).data)
+
+    def put(self, request, id):
+        diseño = get_object_or_404(Diseño, id_diseño=id)
+        serializer = DiseñoSerializer(diseño, data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(DiseñoSerializer(diseño).data)
+
+    def delete(self, request, id):
+        Diseño.objects.filter(id_diseño=id).delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
