@@ -290,11 +290,14 @@ class ProductoService:
                 image_data = variant_data.pop("imagenes", []) or []
 
                 # Validar que al menos un atributo esté presente
+                # EXCEPTO para productos simples (variantes sin atributos)
                 color_id = variant_data.get("color_id")
                 diseño_id = variant_data.get("diseño_id")
                 talla_id = variant_data.get("talla_id")
 
-                if color_id is None and diseño_id is None and talla_id is None:
+                # Permitir variantes sin atributos para productos simples
+                # Solo validar si hay más de una variante (producto con variantes)
+                if len(variantes_data) > 1 and color_id is None and diseño_id is None and talla_id is None:
                     raise ValueError(
                         "Cada variante debe tener al menos un atributo: color, diseño o talla."
                     )

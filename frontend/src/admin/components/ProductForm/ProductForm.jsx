@@ -150,6 +150,8 @@ const normalizeProduct = (product) => ({
     precio: product?.precio ?? "",
     estado: product?.estado || "activo",
     slug: product?.slug || "",
+    stock_general: product?.stock_general ?? "",
+    imagenes_generales: product?.imagenes_generales || [],
 });
 
 
@@ -249,6 +251,16 @@ function ProductForm({
     const [errors, setErrors] = useState({});
 
     const inputRefs = useRef({});
+
+    // Tipo de producto: "simple" (sin variantes) o "variantes" (con variantes)
+    const [productType, setProductType] = useState(() => {
+        // Si el producto existe y tiene variantes, es "variantes"
+        // Si es nuevo o no tiene variantes, es "simple" por defecto
+        if (product?.variantes && product.variantes.length > 0) {
+            return "variantes";
+        }
+        return "simple";
+    });
 
     /* =====================================================
        FORMULARIOS INLINE PARA CREAR COLOR / TALLA
@@ -1174,6 +1186,55 @@ function ProductForm({
 
 
     /* =====================================================
+       IMÁGENES GENERALES (PRODUCTOS SIMPLES)
+       ===================================================== */
+
+    const addImageGeneral = (event) => {
+        const file = event.target.files?.[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const newImage = {
+                imagen: e.target.result,
+                principal: datos.imagenes_generales.length === 0,
+                orden: datos.imagenes_generales.length + 1,
+                file: file,
+            };
+
+            setDatos((prev) => ({
+                ...prev,
+                imagenes_generales: [...prev.imagenes_generales, newImage],
+            }));
+        };
+        reader.readAsDataURL(file);
+    };
+
+    const removeImageGeneral = (index) => {
+        setDatos((prev) => ({
+            ...prev,
+            imagenes_generales: prev.imagenes_generales
+                .filter((_, i) => i !== index)
+                .map((img, i) => ({
+                    ...img,
+                    orden: i + 1,
+                    principal: i === 0,
+                })),
+        }));
+    };
+
+    const setPrincipalImageGeneral = (index) => {
+        setDatos((prev) => ({
+            ...prev,
+            imagenes_generales: prev.imagenes_generales.map((img, i) => ({
+                ...img,
+                principal: i === index,
+            })),
+        }));
+    };
+
+
+    /* =====================================================
        PRINCIPAL
        Buscamos la primera variante que tenga el color dado
        (más robusto que pasar índices, que se invalidan
@@ -1246,22 +1307,24 @@ function ProductForm({
             next.precio = "Ingresa un precio mayor a 0.";
         }
 
-        if (!variantes.length) {
-            next.variantes = "Agrega al menos una talla.";
+        // Validaciones específicas según tipo de producto
+        if (productType === "simple") {
+            // Producto simple: no requiere variantes
+            // Validar stock general si se implementa
+        } else {
+            // Producto con variantes: requiere al menos una variante
+            if (!variantes.length) {
+                next.variantes = "Agrega al menos una variante.";
+            }
         }
 
         const skus = new Set();
 
         variantes.forEach((variant) => {
-            if (!variant.color) {
-                next.color =
-                    "Selecciona el color de la prenda.";
-            }
-
-            if (!variant.talla) {
+            if (!variant.color && !variant.diseño && !variant.talla) {
                 next[
-                    `variant-${variant.clientId}-talla`
-                ] = "Selecciona una talla.";
+                    `variant-${variant.clientId}-atributo`
+                ] = "Selecciona al menos un atributo (color, diseño o talla).";
             }
 
             if (!variant.sku.trim()) {
@@ -1271,8 +1334,7 @@ function ProductForm({
 
             } else if (
                 isAutoSku(variant.sku) &&
-                variant.color &&
-                variant.talla
+                (variant.color || variant.diseño || variant.talla)
             ) {
                 skus.add(variant.sku.trim());
 
@@ -1310,8 +1372,28 @@ function ProductForm({
         const formData =
             new FormData();
 
+        // Para productos simples, crear una variante por defecto
+        let variantsToProcess = variantes;
+
+        if (productType === "simple") {
+            // Crear una variante por defecto sin atributos
+            variantsToProcess = [
+                {
+                    clientId: crypto.randomUUID(),
+                    id_variante: null,
+                    color: null,
+                    diseño: null,
+                    talla: null,
+                    sku: datos.slug ? `AUTO-${datos.slug.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 8)}-GEN` : "AUTO-GEN",
+                    stock: datos.stock_general || 0,
+                    precio: Number(datos.precio) || 0,
+                    imagenes: datos.imagenes_generales || [],
+                }
+            ];
+        }
+
         const variantsPayload =
-            variantes.map(
+            variantsToProcess.map(
                 (
                     variant,
                     variantIndex
@@ -1700,41 +1782,50 @@ function ProductForm({
                     </button>
 
 
-                    <div className="step-line" />
+                    {/* Paso de variantes solo para productos con variantes */}
+                    {productType === "variantes" && (
+
+                        <>
+
+                            <div className="step-line" />
 
 
-                    <button
-                        type="button"
-                        className={
-                            tab === "variantes"
-                                ? "step active"
-                                : "step"
-                        }
-                        onClick={() =>
-                            setTab("variantes")
-                        }
-                    >
+                            <button
+                                type="button"
+                                className={
+                                    tab === "variantes"
+                                        ? "step active"
+                                        : "step"
+                                }
+                                onClick={() =>
+                                    setTab("variantes")
+                                }
+                            >
 
-                        <span className="step-number">
-                            2
-                        </span>
+                                <span className="step-number">
+                                    2
+                                </span>
 
-                        <div>
+                                <div>
 
-                            <strong>
-                                Variantes
-                            </strong>
+                                    <strong>
+                                        Variantes
+                                    </strong>
 
-                            <small>
-                                Color, tallas y stock
-                            </small>
+                                    <small>
+                                        Atributos y stock
+                                    </small>
 
-                        </div>
+                                </div>
 
-                    </button>
+                            </button>
 
 
-                    <div className="step-line" />
+                            <div className="step-line" />
+
+                        </>
+
+                    )}
 
 
                     <button
@@ -1750,7 +1841,7 @@ function ProductForm({
                     >
 
                         <span className="step-number">
-                            3
+                            {productType === "simple" ? "2" : "3"}
                         </span>
 
                         <div>
@@ -1760,7 +1851,7 @@ function ProductForm({
                             </strong>
 
                             <small>
-                                Fotos del producto
+                                Fotografías del producto
                             </small>
 
                         </div>
@@ -1808,6 +1899,68 @@ function ProductForm({
                         </div>
 
 
+                        {/* Selector de tipo de producto */}
+                        <div className="form-group">
+
+                            <label>
+                                Tipo de producto
+                            </label>
+
+                            <div className="product-type-selector">
+
+                                <button
+                                    type="button"
+                                    className={`product-type-option ${productType === "simple" ? "active" : ""}`}
+                                    onClick={() => setProductType("simple")}
+                                >
+
+                                    <div className="product-type-icon">
+                                        📦
+                                    </div>
+
+                                    <div className="product-type-info">
+
+                                        <strong>
+                                            Producto simple
+                                        </strong>
+
+                                        <small>
+                                            Sin variantes (ej. llavero, kit de belleza)
+                                        </small>
+
+                                    </div>
+
+                                </button>
+
+                                <button
+                                    type="button"
+                                    className={`product-type-option ${productType === "variantes" ? "active" : ""}`}
+                                    onClick={() => setProductType("variantes")}
+                                >
+
+                                    <div className="product-type-icon">
+                                        🎨
+                                    </div>
+
+                                    <div className="product-type-info">
+
+                                        <strong>
+                                            Con variantes
+                                        </strong>
+
+                                        <small>
+                                            Con atributos (ej. color, tamaño, material)
+                                        </small>
+
+                                    </div>
+
+                                </button>
+
+                            </div>
+
+                        </div>
+
+
                         <div className="form-grid">
 
                             <div className="form-group">
@@ -1820,7 +1973,7 @@ function ProductForm({
                                     name="nombre"
                                     value={datos.nombre}
                                     onChange={handleData}
-                                    placeholder="Ej. Camiseta Oversize Premium"
+                                    placeholder="Ej. Llavero Premium"
                                 />
 
                                 {errors.nombre && (
@@ -1877,6 +2030,29 @@ function ProductForm({
                                 )}
 
                             </div>
+
+
+                            {/* Stock general solo para productos simples */}
+                            {productType === "simple" && (
+
+                                <div className="form-group">
+
+                                    <label>
+                                        Stock
+                                    </label>
+
+                                    <input
+                                        type="number"
+                                        min="0"
+                                        name="stock_general"
+                                        value={datos.stock_general}
+                                        onChange={handleData}
+                                        placeholder="0"
+                                    />
+
+                                </div>
+
+                            )}
 
 
                             <div className="form-group">
@@ -1955,10 +2131,10 @@ function ProductForm({
                                 type="button"
                                 className="primary-button"
                                 onClick={() =>
-                                    setTab("variantes")
+                                    setTab(productType === "simple" ? "imagenes" : "variantes")
                                 }
                             >
-                                Siguiente: Variantes
+                                Siguiente: {productType === "simple" ? "Imágenes" : "Variantes"}
                                 <ChevronRight size={18} />
                             </button>
 
@@ -2584,7 +2760,7 @@ function ProductForm({
                                             <Tag size={24} />
 
                                             <strong>
-                                                Selecciona el color de la prenda
+                                                Selecciona una opción
                                             </strong>
 
                                             <span>
@@ -3186,7 +3362,10 @@ function ProductForm({
                                 </h3>
 
                                 <p>
-                                    Agrega las fotografías correspondientes a cada color.
+                                    {productType === "simple"
+                                        ? "Agrega las fotografías del producto."
+                                        : "Agrega las fotografías correspondientes a cada variante."
+                                    }
                                 </p>
 
                             </div>
@@ -3194,7 +3373,87 @@ function ProductForm({
                         </div>
 
 
-                        <div className="image-color-list">
+                        {/* Galería general para productos simples */}
+                        {productType === "simple" ? (
+
+                            <div className="general-images-section">
+
+                                <div className="image-upload-layout">
+
+                                    {datos.imagenes_generales.map((img, index) => (
+
+                                        <div
+                                            className="image-preview-card"
+                                            key={index}
+                                        >
+
+                                            <img
+                                                src={img.imagen}
+                                                alt={`Imagen ${index + 1}`}
+                                            />
+
+                                            {img.principal && (
+                                                <span className="image-badge">
+                                                    Principal
+                                                </span>
+                                            )}
+
+                                            <div className="image-actions">
+
+                                                {!img.principal && (
+                                                    <button
+                                                        type="button"
+                                                        className="image-action-btn"
+                                                        onClick={() => setPrincipalImageGeneral(index)}
+                                                    >
+                                                        <Star size={14} />
+                                                    </button>
+                                                )}
+
+                                                <button
+                                                    type="button"
+                                                    className="image-action-btn delete"
+                                                    onClick={() => removeImageGeneral(index)}
+                                                >
+                                                    <Trash2 size={14} />
+                                                </button>
+
+                                            </div>
+
+                                        </div>
+
+                                    ))}
+
+                                    {datos.imagenes_generales.length < 6 && (
+                                        <label className="image-upload-box">
+
+                                            <input
+                                                type="file"
+                                                accept="image/png,image/jpeg,image/webp"
+                                                onChange={(event) => addImageGeneral(event)}
+                                            />
+
+                                            <ImagePlus size={24} />
+
+                                            <span>
+                                                Subir imagen
+                                            </span>
+
+                                            <small>
+                                                PNG, JPG o WEBP
+                                            </small>
+
+                                        </label>
+                                    )}
+
+                                </div>
+
+                            </div>
+
+                        ) : (
+
+                            /* Galería por color para productos con variantes */
+                            <div className="image-color-list">
 
                             {productColors.map(
                                 (colorId) => {
@@ -3459,6 +3718,10 @@ function ProductForm({
 
                         </div>
 
+                        )}
+
+                        {/* Fin condicional imágenes por color */}
+
 
                         {/* INPUT PERSONALIZADO PARA URL */}
                         {urlInput.open && (
@@ -3529,7 +3792,7 @@ function ProductForm({
                                 </h4>
 
                                 <p>
-                                    Regresa al paso de variantes y selecciona el color de la prenda.
+                                    Regresa al paso de variantes y selecciona una opción.
                                 </p>
 
                                 <button
