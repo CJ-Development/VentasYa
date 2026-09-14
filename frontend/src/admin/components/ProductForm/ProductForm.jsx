@@ -3781,7 +3781,8 @@ function ProductForm({
                         )}
 
 
-                        {productColors.length === 0 && (
+                        {/* Mensaje de no colores solo para productos con variantes */}
+                        {productType === "variantes" && productColors.length === 0 && (
 
                             <div className="images-empty">
 
@@ -3816,7 +3817,7 @@ function ProductForm({
                                 type="button"
                                 className="secondary-button"
                                 onClick={() =>
-                                    setTab("variantes")
+                                    setTab(productType === "simple" ? "datos" : "variantes")
                                 }
                             >
 
