@@ -114,13 +114,12 @@ class CategoriaSerializer(serializers.ModelSerializer):
 
         # Si es creación y no llega categoria_padre_id, no hay padre.
         if instancia is None:
-            # Validar profundidad para creación
+            # Validar profundidad para creación (límite de seguridad 10 niveles)
             if nuevo_padre:
-                # Calcular profundidad que tendría la nueva categoría
                 profundidad_padre = nuevo_padre.obtener_profundidad()
-                if profundidad_padre >= 3:
+                if profundidad_padre >= 10:
                     raise serializers.ValidationError(
-                        {"categoria_padre_id": "No se pueden crear categorías de nivel 4 o superior."}
+                        {"categoria_padre_id": "No se pueden crear categorías de nivel 11 o superior."}
                     )
             return attrs
 
@@ -137,14 +136,14 @@ class CategoriaSerializer(serializers.ModelSerializer):
                 {"categoria_padre_id": "La categoría padre seleccionada crearía un ciclo."}
             )
         
-        # Validar profundidad al cambiar de padre
+        # Validar profundidad al cambiar de padre (límite de seguridad 10 niveles)
         profundidad_nueva = 1
         temp = nuevo_padre
         while temp:
             profundidad_nueva += 1
-            if profundidad_nueva > 3:
+            if profundidad_nueva > 10:
                 raise serializers.ValidationError(
-                    {"categoria_padre_id": "El cambio de padre excedería la profundidad máxima de 3 niveles."}
+                    {"categoria_padre_id": "El cambio de padre excedería la profundidad máxima de 10 niveles."}
                 )
             temp = temp.id_categoria_padre
 

@@ -263,7 +263,7 @@ function CategoryForm({
         if (!formData.nombre) return 0;
         const parentPath = categoriaPadre ? buildPath(categoriaPadre) : [];
         const level = parentPath.length + 1;
-        return Math.min(level, 6);
+        return Math.min(level, 10);
     }, [formData.nombre, categoriaPadre, categorias]);
 
     const getLevelLabel = (lvl) => {
@@ -273,6 +273,10 @@ function CategoryForm({
         if (lvl === 4) return "Nivel 4";
         if (lvl === 5) return "Nivel 5";
         if (lvl === 6) return "Nivel 6";
+        if (lvl === 7) return "Nivel 7";
+        if (lvl === 8) return "Nivel 8";
+        if (lvl === 9) return "Nivel 9";
+        if (lvl === 10) return "Nivel 10";
         return `Nivel ${lvl}`;
     };
 

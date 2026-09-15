@@ -94,7 +94,7 @@ class Categoria(models.Model):
     def obtener_profundidad(self):
         """
         Devuelve la profundidad de la categoría en la jerarquía.
-        Nivel 1 (raíz) = 1, Nivel 2 = 2, Nivel 3 = 3
+        Nivel 1 (raíz) = 1, Nivel 2 = 2, etc.
         """
         profundidad = 1
         padre = self.id_categoria_padre
@@ -102,7 +102,7 @@ class Categoria(models.Model):
         while padre:
             profundidad += 1
             padre = padre.id_categoria_padre
-            if profundidad > 3:  # Límite de seguridad
+            if profundidad > 10:  # Límite de seguridad para evitar ciclos infinitos
                 break
         
         return profundidad
@@ -112,14 +112,6 @@ class Categoria(models.Model):
         Validaciones adicionales antes de guardar.
         """
         super().clean()
-        
-        # Validar profundidad máxima (3 niveles)
-        profundidad = self.obtener_profundidad()
-        if profundidad > 3:
-            raise ValidationError(
-                f"Las categorías no pueden tener más de 3 niveles de profundidad. "
-                f"La categoría '{self.nombre}' estaría en el nivel {profundidad}."
-            )
         
         # Validar que no sea su propio padre
         if self.id_categoria_padre and self.id_categoria_padre.id_categoria == self.id_categoria:
@@ -154,3 +146,23 @@ class Categoria(models.Model):
             actual = actual.id_categoria_padre
 
         return False
+
+    def obtener_descendientes_ids(self):
+        """
+        Devuelve una lista con los IDs de todas las categorías descendientes
+        (directas y transitivas) de esta categoría.
+        Útil para filtrar productos que deben aparecer en categorías padre.
+        """
+        ids = []
+        visitados = set()
+        pendientes = list(self.subcategorias.all())
+
+        while pendientes:
+            hijo = pendientes.pop()
+            if hijo.id_categoria in visitados:
+                continue
+            visitados.add(hijo.id_categoria)
+            ids.append(hijo.id_categoria)
+            pendientes.extend(hijo.subcategorias.all())
+
+        return ids

@@ -60,7 +60,11 @@ function CategorySelector({
     const currentCategories = useMemo(() => {
         let cats;
         if (currentPath.length === 0) {
-            cats = rootCategories;
+            // Recalcular rootCategories directamente para evitar dependencia circular
+            cats = categories.filter(cat => {
+                const parent = cat.id_categoria_padre ?? cat.categoria_padre?.id_categoria ?? cat.categoria_padre;
+                return !parent;
+            });
         } else {
             const currentParent = currentPath[currentPath.length - 1];
             cats = getChildren(currentParent.id_categoria);
@@ -79,7 +83,7 @@ function CategorySelector({
             
             return true;
         });
-    }, [categories, currentPath, rootCategories, excludeId]);
+    }, [categories, currentPath, excludeId]);
 
     // Búsqueda con rutas completas
     const searchResults = useMemo(() => {

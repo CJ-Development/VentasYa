@@ -111,7 +111,17 @@ class ProductoService:
         elif ordering:
             qs = qs.order_by(ordering, "id_producto")
         if categoria_id is not None:
-            qs = qs.filter(categoria_id=categoria_id)
+            # Implementar herencia: incluir productos de la categoría y sus descendientes
+            from apps.categories.models import Categoria
+            try:
+                categoria = Categoria.objects.get(id_categoria=categoria_id)
+                descendientes_ids = categoria.obtener_descendientes_ids()
+                # Incluir la categoría actual y todas sus descendientes
+                categoria_ids = [categoria_id] + descendientes_ids
+                qs = qs.filter(categoria_id__in=categoria_ids)
+            except Categoria.DoesNotExist:
+                # Si la categoría no existe, no devolver productos
+                qs = qs.none()
         if estado is not None:
             qs = qs.filter(estado=estado)
         return qs
