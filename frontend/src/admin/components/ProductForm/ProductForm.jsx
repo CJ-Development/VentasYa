@@ -1655,25 +1655,58 @@ function ProductForm({
             console.error("Status:", err.response?.status);
             console.error("Headers:", err.response?.headers);
 
-            const backend =
-                err.response?.data;
+            const backend = err.response?.data;
+            const next = {};
 
-            setError(
-                backend?.detail ||
-                Object.entries(
-                    backend || {}
-                )
-                    .map(
-                        ([key, value]) =>
-                            `${key}: ${
-                                Array.isArray(value)
-                                    ? value.join(", ")
-                                    : value
-                            }`
-                    )
-                    .join(" | ") ||
-                "No fue posible guardar el producto."
-            );
+            // Mapear errores del backend a campos específicos
+            if (backend) {
+                if (backend.nombre) {
+                    next.nombre = Array.isArray(backend.nombre) ? backend.nombre.join(", ") : backend.nombre;
+                }
+                if (backend.slug) {
+                    next.slug = Array.isArray(backend.slug) ? backend.slug.join(", ") : backend.slug;
+                }
+                if (backend.descripcion) {
+                    next.descripcion = Array.isArray(backend.descripcion) ? backend.descripcion.join(", ") : backend.descripcion;
+                }
+                if (backend.precio) {
+                    next.precio = Array.isArray(backend.precio) ? backend.precio.join(", ") : backend.precio;
+                }
+                if (backend.categoria_id) {
+                    next.categoria_id = Array.isArray(backend.categoria_id) ? backend.categoria_id.join(", ") : backend.categoria_id;
+                }
+                if (backend.stock_general) {
+                    next.stock_general = Array.isArray(backend.stock_general) ? backend.stock_general.join(", ") : backend.stock_general;
+                }
+                if (backend.variantes) {
+                    next.variantes = Array.isArray(backend.variantes) ? backend.variantes.join(", ") : backend.variantes;
+                }
+            }
+
+            // Si hay errores específicos, mostrarlos en los campos
+            if (Object.keys(next).length > 0) {
+                setErrors(next);
+                setError(backend?.detail || "Corrige los campos marcados en rojo.");
+
+                // Scroll al primer campo con error
+                const firstErrorField = Object.keys(next)[0];
+                if (firstErrorField === "nombre" || firstErrorField === "categoria_id" || firstErrorField === "precio" || firstErrorField === "descripcion" || firstErrorField === "slug" || firstErrorField === "stock_general") {
+                    setTab("datos");
+                } else {
+                    setTab("variantes");
+                }
+            } else {
+                // Error general sin campo específico
+                setError(
+                    backend?.detail ||
+                    Object.entries(backend || {})
+                        .map(([key, value]) =>
+                            `${key}: ${Array.isArray(value) ? value.join(", ") : value}`
+                        )
+                        .join(" | ") ||
+                    "No fue posible guardar el producto."
+                );
+            }
 
         } finally {
 
