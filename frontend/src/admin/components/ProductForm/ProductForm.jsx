@@ -152,6 +152,7 @@ const normalizeProduct = (product) => ({
     slug: product?.slug || "",
     stock_general: product?.stock_general ?? "",
     imagenes_generales: product?.imagenes_generales || [],
+    diseño_id: product?.diseño_id ?? "",
 });
 
 
@@ -291,6 +292,8 @@ function ProductForm({
         colorId: null,
         url: "",
     });
+
+    const [showSlug, setShowSlug] = useState(false);
 
     /* =====================================================
        ACTIVACIÓN DE ATRIBUTOS
@@ -1320,44 +1323,47 @@ function ProductForm({
 
         const skus = new Set();
 
-        variantes.forEach((variant) => {
-            if (!variant.color && !variant.diseño && !variant.talla) {
-                next[
-                    `variant-${variant.clientId}-atributo`
-                ] = "Selecciona al menos un atributo (color, diseño o talla).";
-            }
+        // Solo validar variantes si es producto con variantes
+        if (productType === "variantes") {
+            variantes.forEach((variant) => {
+                if (!variant.color && !variant.diseño && !variant.talla) {
+                    next[
+                        `variant-${variant.clientId}-atributo`
+                    ] = "Selecciona al menos un atributo (color, diseño o talla).";
+                }
 
-            if (!variant.sku.trim()) {
-                next[
-                    `variant-${variant.clientId}-sku`
-                ] = "El SKU es obligatorio.";
+                if (!variant.sku.trim()) {
+                    next[
+                        `variant-${variant.clientId}-sku`
+                    ] = "El SKU es obligatorio.";
 
-            } else if (
-                isAutoSku(variant.sku) &&
-                (variant.color || variant.diseño || variant.talla)
-            ) {
-                skus.add(variant.sku.trim());
+                } else if (
+                    isAutoSku(variant.sku) &&
+                    (variant.color || variant.diseño || variant.talla)
+                ) {
+                    skus.add(variant.sku.trim());
 
-            } else if (
-                skus.has(variant.sku.trim())
-            ) {
-                next[
-                    `variant-${variant.clientId}-sku`
-                ] = "SKU repetido.";
+                } else if (
+                    skus.has(variant.sku.trim())
+                ) {
+                    next[
+                        `variant-${variant.clientId}-sku`
+                    ] = "SKU repetido.";
 
-            } else {
-                skus.add(variant.sku.trim());
-            }
+                } else {
+                    skus.add(variant.sku.trim());
+                }
 
-            if (
-                variant.stock === "" ||
-                Number(variant.stock) < 0
-            ) {
-                next[
-                    `variant-${variant.clientId}-stock`
-                ] = "Stock inválido.";
-            }
-        });
+                if (
+                    variant.stock === "" ||
+                    Number(variant.stock) < 0
+                ) {
+                    next[
+                        `variant-${variant.clientId}-stock`
+                    ] = "Stock inválido.";
+                }
+            });
+        }
 
         setErrors(next);
 
@@ -1376,13 +1382,13 @@ function ProductForm({
         let variantsToProcess = variantes;
 
         if (productType === "simple") {
-            // Crear una variante por defecto sin atributos
+            // Crear una variante por defecto con diseño opcional
             variantsToProcess = [
                 {
                     clientId: crypto.randomUUID(),
                     id_variante: null,
                     color: null,
-                    diseño: null,
+                    diseño: datos.diseño_id || null,
                     talla: null,
                     sku: datos.slug ? `AUTO-${datos.slug.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 8)}-GEN` : "AUTO-GEN",
                     stock: datos.stock_general || 0,
@@ -2055,6 +2061,45 @@ function ProductForm({
                             )}
 
 
+                            {/* Diseño opcional para productos simples */}
+                            {productType === "simple" && (
+
+                                <div className="form-group">
+
+                                    <label>
+                                        Diseño (opcional)
+                                    </label>
+
+                                    <select
+                                        name="diseño_id"
+                                        value={datos.diseño_id || ""}
+                                        onChange={handleData}
+                                    >
+
+                                        <option value="">
+                                            Sin diseño
+                                        </option>
+
+                                        {diseños.map((diseño) => (
+
+                                            <option
+                                                key={diseño.id_diseño}
+                                                value={diseño.id_diseño}
+                                            >
+
+                                                {diseño.nombre}
+
+                                            </option>
+
+                                        ))}
+
+                                    </select>
+
+                                </div>
+
+                            )}
+
+
                             <div className="form-group">
 
                                 <label>
@@ -2105,14 +2150,32 @@ function ProductForm({
 
                         <div className="form-group">
 
-                            <label>
-                                Slug
-                            </label>
+                            <div className="slug-header">
 
-                            <input
-                                value={datos.slug}
-                                readOnly
-                            />
+                                <label>
+                                    Slug
+                                </label>
+
+                                <button
+                                    type="button"
+                                    className="text-button"
+                                    onClick={() => setShowSlug(!showSlug)}
+                                >
+
+                                    {showSlug ? "Ocultar" : "Mostrar"}
+
+                                </button>
+
+                            </div>
+
+                            {showSlug && (
+
+                                <input
+                                    value={datos.slug}
+                                    readOnly
+                                />
+
+                            )}
 
                         </div>
 

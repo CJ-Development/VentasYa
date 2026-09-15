@@ -4,13 +4,52 @@ import mimetypes
 import urllib.request
 import urllib.error
 import json
+import random
+import string
 
 from django.conf import settings
 from django.db import transaction
 from django.db.models import Prefetch
+from django.utils.text import slugify
 
 from .models import Producto, Variante, ImagenProducto
 from .serializers import VarianteSerializer
+
+
+def generar_slug_unico(nombre, producto_id=None):
+    """
+    Genera un slug único a partir del nombre.
+    Si ya existe, agrega un sufijo aleatorio corto.
+    """
+    base_slug = slugify(nombre, allow_unicode=False)
+    if not base_slug:
+        base_slug = "producto"
+
+    # Si se está editando, verificar si el slug actual del producto es válido
+    if producto_id:
+        try:
+            producto = Producto.objects.get(id_producto=producto_id)
+            if slugify(producto.nombre, allow_unicode=False) == base_slug:
+                return producto.slug
+        except Producto.DoesNotExist:
+            pass
+
+    # Verificar si el slug base ya existe
+    if not Producto.objects.filter(slug=base_slug).exists():
+        return base_slug
+
+    # Generar sufijo único corto (4 caracteres hexadecimales)
+    sufijo = ''.join(random.choices(string.hexdigits.lower(), k=4))
+    nuevo_slug = f"{base_slug}-{sufijo}"
+
+    # Intentar hasta encontrar uno único (máximo 10 intentos)
+    intentos = 0
+    while Producto.objects.filter(slug=nuevo_slug).exists() and intentos < 10:
+        sufijo = ''.join(random.choices(string.hexdigits.lower(), k=4))
+        nuevo_slug = f"{base_slug}-{sufijo}"
+        intentos += 1
+
+    return nuevo_slug
 
 
 class ProductoService:
@@ -272,6 +311,12 @@ class ProductoService:
         # Lo usamos para NO borrar archivos de updates exitosos.
         try:
             producto_id = producto_data.pop("id_producto", None)
+
+            # Generar slug automáticamente desde el nombre
+            nombre = producto_data.get("nombre", "")
+            if nombre:
+                producto_data["slug"] = generar_slug_unico(nombre, producto_id)
+
             if producto_id:
                 producto = Producto.objects.select_for_update().get(id_producto=producto_id)
                 for field, value in producto_data.items():

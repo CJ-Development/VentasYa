@@ -2220,6 +2220,38 @@
 
 
 /* =========================================================
+   SLUG HEADER
+   ========================================================= */
+
+.slug-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.slug-header label {
+    margin: 0;
+}
+
+.text-button {
+    background: none;
+    border: none;
+    color: #0EA5B5;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    padding: 4px 8px;
+    border-radius: 4px;
+    transition: background 0.2s ease;
+}
+
+.text-button:hover {
+    background: #F0FAFB;
+}
+
+
+/* =========================================================
    BOTONES
    ========================================================= */
 
