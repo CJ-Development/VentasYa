@@ -1678,6 +1678,9 @@ function ProductForm({
                 if (backend.stock_general) {
                     next.stock_general = Array.isArray(backend.stock_general) ? backend.stock_general.join(", ") : backend.stock_general;
                 }
+                if (backend.sku) {
+                    next.variantes = Array.isArray(backend.sku) ? backend.sku.join(", ") : backend.sku;
+                }
                 if (backend.variantes) {
                     next.variantes = Array.isArray(backend.variantes) ? backend.variantes.join(", ") : backend.variantes;
                 }
