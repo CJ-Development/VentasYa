@@ -262,7 +262,7 @@
 
                     <div className="featured-products-grid">
 
-                        {productosOrdenados.map((product) => (
+                        {productosOrdenados.slice(0, 10).map((product) => (
 
                             <ProductCard
                                 key={product.id_producto}

@@ -17,7 +17,9 @@ import {
     StarHalf,
 } from "lucide-react";
 
-import { getProduct } from "../../../services/adminService";
+import api from "../../../services/api";
+import { getProducts } from "../../../services/adminService";
+import { getOffers } from "../../../services/clientService";
 
 import { useCart } from "../../../hooks/useCart";
 
@@ -347,17 +349,11 @@ function ProductDetail({ productId }) {
 
             try {
 
-                const response = await fetch(
-                    `${import.meta.env.VITE_API_URL}/api/reviews/producto/${producto.id_producto}/rating/`
+                const response = await api.get(
+                    `reviews/producto/${producto.id_producto}/rating/`
                 );
 
-                if (response.ok) {
-
-                    const data = await response.json();
-
-                    setRating(data);
-
-                }
+                setRating(response.data);
 
             } catch (err) {
 
@@ -377,17 +373,11 @@ function ProductDetail({ productId }) {
 
             try {
 
-                const response = await fetch(
-                    `${import.meta.env.VITE_API_URL}/api/reviews/producto/${producto.id_producto}/`
+                const response = await api.get(
+                    `reviews/producto/${producto.id_producto}/`
                 );
 
-                if (response.ok) {
-
-                    const data = await response.json();
-
-                    setResenas(data);
-
-                }
+                setResenas(response.data);
 
             } catch (err) {
 
@@ -410,22 +400,11 @@ function ProductDetail({ productId }) {
 
             try {
 
-                const params = new URLSearchParams();
-
-                // Si hay usuario autenticado, enviar id_usuario
-                // Si es invitado, no enviamos nada (el backend verificará por sesión/cookies)
-
-                const response = await fetch(
-                    `${import.meta.env.VITE_API_URL}/api/reviews/producto/${producto.id_producto}/puede-resenar/?${params}`
+                const response = await api.get(
+                    `reviews/producto/${producto.id_producto}/puede-resenar/`
                 );
 
-                if (response.ok) {
-
-                    const data = await response.json();
-
-                    setPuedeResenar(data);
-
-                }
+                setPuedeResenar(response.data);
 
             } catch (err) {
 
@@ -447,17 +426,11 @@ function ProductDetail({ productId }) {
 
             try {
 
-                const response = await fetch(
-                    `${import.meta.env.VITE_API_URL}/api/products/${producto.id_producto}/recomendaciones/`
+                const response = await api.get(
+                    `products/${producto.id_producto}/recomendaciones/`
                 );
 
-                if (response.ok) {
-
-                    const data = await response.json();
-
-                    setRecomendaciones(data);
-
-                }
+                setRecomendaciones(response.data);
 
             } catch (err) {
 
@@ -497,53 +470,33 @@ function ProductDetail({ productId }) {
                 compra: puedeResenar.id_compra,
             };
 
-            const response = await fetch(
-                `${import.meta.env.VITE_API_URL}/api/reviews/producto/${producto.id_producto}/`,
-                {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                    },
-                    body: JSON.stringify(payload),
-                }
+            await api.post(
+                `reviews/producto/${producto.id_producto}/`,
+                payload
             );
 
-            if (response.ok) {
+            // Recargar reseñas y rating
+            const cargarResenas = async () => {
 
-                // Recargar reseñas y rating
-                const cargarResenas = async () => {
+                const res = await api.get(
+                    `reviews/producto/${producto.id_producto}/`
+                );
 
-                    const res = await fetch(
-                        `${import.meta.env.VITE_API_URL}/api/reviews/producto/${producto.id_producto}/`
-                    );
+                setResenas(res.data);
 
-                    if (res.ok) {
+            };
 
-                        const data = await res.json();
+            const cargarRating = async () => {
 
-                        setResenas(data);
+                const res = await api.get(
+                    `reviews/producto/${producto.id_producto}/rating/`
+                );
 
-                    }
+                setRating(res.data);
 
-                };
+            };
 
-                const cargarRating = async () => {
-
-                    const res = await fetch(
-                        `${import.meta.env.VITE_API_URL}/api/reviews/producto/${producto.id_producto}/rating/`
-                    );
-
-                    if (res.ok) {
-
-                        const data = await res.json();
-
-                        setRating(data);
-
-                    }
-
-                };
-
-                await cargarResenas();
+            await cargarResenas();
                 await cargarRating();
 
                 // Resetear formulario y verificar permiso nuevamente
@@ -551,14 +504,6 @@ function ProductDetail({ productId }) {
                 setPuedeResenar({ puede: false, mensaje: "Ya has enviado tu reseña", id_compra: null });
 
                 alert("¡Reseña enviada con éxito!");
-
-            } else {
-
-                const error = await response.json();
-
-                alert(error.detail || "Error al enviar la reseña");
-
-            }
 
         } catch (err) {
 
