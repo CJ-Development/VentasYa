@@ -171,6 +171,8 @@ class ProductoSerializer(serializers.ModelSerializer):
         source="variante_set"
     )
 
+    slug = serializers.SlugField(required=False)
+
     def to_internal_value(self, data):
         # Manejar el caso donde descripcion viene como array
         if 'descripcion' in data and isinstance(data['descripcion'], list):

@@ -379,14 +379,10 @@ class ProductoService:
                         "Cada variante debe tener al menos un atributo: color, diseño o talla."
                     )
 
-                # Normalizar SKU vacío a null
+                # Generar SKU automático si no se proporciona
                 sku = variant_data.get("sku")
-                if sku == "" or sku is None:
-                    # Para productos simples (una sola variante sin atributos), generar SKU automático
-                    if producto_simple:
-                        variant_data["sku"] = generar_sku_unico(nombre)
-                    else:
-                        variant_data["sku"] = None
+                if not sku or sku == "":
+                    variant_data["sku"] = generar_sku_unico(nombre)
 
                 existing_variant = (
                     existing_variants.get(int(variant_id))
