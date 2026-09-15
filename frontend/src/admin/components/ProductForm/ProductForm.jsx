@@ -2252,7 +2252,7 @@ function ProductForm({
                                 </strong>
 
                                 <p>
-                                    Cada combinación de color y talla tendrá su propio stock y SKU.
+                                    Cada opción tendrá su propio stock y SKU.
                                 </p>
 
                             </div>
@@ -2647,7 +2647,7 @@ function ProductForm({
                                         <div>
 
                                             <h4>
-                                                Tallas y stock para:
+                                                Opciones y stock para:
 
                                                 <span className="selected-color-name">
 
@@ -2827,7 +2827,7 @@ function ProductForm({
                                             </strong>
 
                                             <span>
-                                                Después podrás configurar sus tallas, SKU y stock.
+                                                Después podrás configurar sus opciones, SKU y stock.
                                             </span>
 
                                         </div>
@@ -2837,11 +2837,11 @@ function ProductForm({
                                         <div className="select-color-empty">
 
                                             <strong>
-                                                Este color todavía no tiene tallas
+                                                Esta opción todavía no tiene variantes
                                             </strong>
 
                                             <span>
-                                                Agrega una talla para continuar.
+                                                Agrega una opción para continuar.
                                             </span>
 
                                         </div>
@@ -3325,7 +3325,7 @@ function ProductForm({
                                         <div className="preview-pill">
 
                                             <span className="preview-pill-label">
-                                                Tallas
+                                                Opciones
                                             </span>
 
                                             <strong>
@@ -3348,7 +3348,7 @@ function ProductForm({
                                                     )
                                                     .filter(Boolean)
                                                     .join(", ") ||
-                                                    "Sin tallas"}
+                                                    "Sin opciones"}
                                             </strong>
 
                                         </div>
@@ -3576,7 +3576,7 @@ function ProductForm({
                                                         </h4>
 
                                                         <span>
-                                                            Una misma imagen para todas sus tallas
+                                                            Una misma imagen para todas sus opciones
                                                         </span>
 
                                                     </div>
