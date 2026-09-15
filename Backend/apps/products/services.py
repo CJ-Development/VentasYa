@@ -428,8 +428,10 @@ class ProductoService:
                     existing_variant.color = clean_variant["color"]
                     existing_variant.diseño = clean_variant["diseño"]
                     existing_variant.talla = clean_variant["talla"]
-                    existing_variant.sku = clean_variant["sku"]
                     existing_variant.stock = clean_variant["stock"]
+                    # Solo actualizar SKU si cambió para evitar IntegrityError falso
+                    if existing_variant.sku != clean_variant["sku"]:
+                        existing_variant.sku = clean_variant["sku"]
                     try:
                         existing_variant.save()
                     except IntegrityError as e:

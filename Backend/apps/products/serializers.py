@@ -118,6 +118,8 @@ class VarianteSerializer(serializers.ModelSerializer):
         allow_null=True
     )
 
+    sku = serializers.CharField(required=False, allow_blank=True)
+
     class Meta:
         model = Variante
         fields = [
@@ -146,13 +148,38 @@ class VarianteSerializer(serializers.ModelSerializer):
         color = attrs.get('color', getattr(self.instance, 'color', None))
         diseño = attrs.get('diseño', getattr(self.instance, 'diseño', None))
         talla = attrs.get('talla', getattr(self.instance, 'talla', None))
-        
+
         if color is None and diseño is None and talla is None:
             raise serializers.ValidationError(
                 "Cada variante debe tener al menos un atributo: color, diseño o talla."
             )
-        
+
         return attrs
+
+    def validate_sku(self, value):
+        """
+        Validar unicidad de SKU solo si cambió.
+        """
+        if not value:
+            return value
+
+        # Si estamos actualizando y el SKU no cambió, permitir
+        if self.instance and self.instance.sku == value:
+            return value
+
+        # Si estamos actualizando y el SKU cambió, verificar unicidad
+        if self.instance:
+            from .models import Variante
+            if Variante.objects.filter(sku=value).exclude(id_variante=self.instance.id_variante).exists():
+                raise serializers.ValidationError("Ya existe una variante con este SKU.")
+
+        # Si estamos creando, verificar unicidad
+        if not self.instance:
+            from .models import Variante
+            if Variante.objects.filter(sku=value).exists():
+                raise serializers.ValidationError("Ya existe una variante con este SKU.")
+
+        return value
 
 
 class ProductoSerializer(serializers.ModelSerializer):
