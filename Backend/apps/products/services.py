@@ -390,6 +390,20 @@ class ProductoService:
                     else None
                 )
 
+                # El formulario completo debe actualizar las variantes que
+                # ya pertenecen al producto. Como defensa adicional para
+                # clientes con una versión anterior del frontend que no envían
+                # id_variante, resolvemos la variante por su SKU dentro de
+                # este mismo producto. Esto evita que el validador unique
+                # interprete una edición como la creación de un duplicado.
+                if existing_variant is None and producto_simple:
+                    existing_variant = next(iter(existing_variants.values()), None)
+                if existing_variant is None and variant_data.get("sku"):
+                    existing_variant = Variante.objects.filter(
+                        producto=producto,
+                        sku=variant_data["sku"],
+                    ).first()
+
                 if variant_id and (
                     not existing_variant
                     or existing_variant.producto_id != producto.id_producto
