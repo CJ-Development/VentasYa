@@ -20,14 +20,14 @@ from .serializers import VarianteSerializer
 
 def generar_slug_unico(nombre, producto_id=None):
     """
-    Genera un slug único a partir del nombre.
-    Si ya existe, agrega un sufijo aleatorio corto.
+    Genera un slug único a partir del nombre con sufijo aleatorio.
+    SIEMPRE agrega un sufijo aleatorio para evitar duplicados.
     """
     base_slug = slugify(nombre, allow_unicode=False)
     if not base_slug:
         base_slug = "producto"
 
-    # Si se está editando, verificar si el slug actual del producto es válido
+    # Si se está editando, mantener el slug existente si el nombre no cambió
     if producto_id:
         try:
             producto = Producto.objects.get(id_producto=producto_id)
@@ -36,11 +36,7 @@ def generar_slug_unico(nombre, producto_id=None):
         except Producto.DoesNotExist:
             pass
 
-    # Verificar si el slug base ya existe
-    if not Producto.objects.filter(slug=base_slug).exists():
-        return base_slug
-
-    # Generar sufijo único corto (4 caracteres hexadecimales)
+    # SIEMPRE generar sufijo aleatorio para evitar duplicados
     sufijo = ''.join(random.choices(string.hexdigits.lower(), k=4))
     nuevo_slug = f"{base_slug}-{sufijo}"
 
@@ -453,8 +449,8 @@ class ProductoService:
                 existing_images = {i.id_imagen: i for i in ImagenProducto.objects.filter(variante=variant)}
                 received_image_ids = set()
 
-                if len(image_data) > 3:
-                    raise ValueError("Cada variante puede tener máximo 3 imágenes.")
+                if len(image_data) > 6:
+                    raise ValueError("Cada variante puede tener máximo 6 imágenes.")
 
                 for image_index, image_item in enumerate(image_data, start=1):
                     image_id = image_item.get("id_imagen")

@@ -2112,30 +2112,29 @@ function ProductForm({
                                         Diseño (opcional)
                                     </label>
 
-                                    <select
-                                        name="diseño_id"
-                                        value={datos.diseño_id || ""}
-                                        onChange={handleData}
-                                    >
-
-                                        <option value="">
-                                            Sin diseño
-                                        </option>
-
+                                    <div className="design-selector-simple">
                                         {diseños.map((diseño) => (
-
-                                            <option
+                                            <button
                                                 key={diseño.id_diseño}
-                                                value={diseño.id_diseño}
+                                                type="button"
+                                                className={`design-option-simple ${datos.diseño_id == diseño.id_diseño ? 'selected' : ''}`}
+                                                onClick={() => setDatos(prev => ({ ...prev, diseño_id: diseño.id_diseño }))}
                                             >
-
-                                                {diseño.nombre}
-
-                                            </option>
-
+                                                {diseño.imagen ? (
+                                                    <img
+                                                        src={diseño.imagen}
+                                                        alt={diseño.nombre}
+                                                        className="design-thumbnail-simple"
+                                                    />
+                                                ) : (
+                                                    <span className="design-placeholder-simple">
+                                                        {diseño.nombre.charAt(0)}
+                                                    </span>
+                                                )}
+                                                <span>{diseño.nombre}</span>
+                                            </button>
                                         ))}
-
-                                    </select>
+                                    </div>
 
                                 </div>
 
@@ -3060,6 +3059,7 @@ function ProductForm({
                                                                     )
                                                                 }
                                                                 placeholder="SKU-001"
+                                                                disabled={editing}
                                                             />
 
                                                             {errors[
