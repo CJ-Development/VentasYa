@@ -1,5 +1,4 @@
 import "./ProductForm.css";
-python manage.py migrate --plan
 import { useEffect, useMemo, useRef, useState } from "react";
 
 import {
@@ -3968,3 +3967,5 @@ function ProductForm({
 }
 
 export default ProductForm;
+
+
