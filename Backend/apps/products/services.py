@@ -375,10 +375,12 @@ class ProductoService:
                         "Cada variante debe tener al menos un atributo: color, diseño o talla."
                     )
 
-                # Generar SKU automático si no se proporciona
+                # Generar SKU automático solo para variantes NUEVAS (sin id_variante)
+                # Para variantes existentes, conservar el SKU actual
                 sku = variant_data.get("sku")
                 if not sku or sku == "":
-                    variant_data["sku"] = generar_sku_unico(nombre)
+                    if variant_id is None:  # Solo generar SKU para variantes nuevas
+                        variant_data["sku"] = generar_sku_unico(nombre)
 
                 existing_variant = (
                     existing_variants.get(int(variant_id))
@@ -386,27 +388,26 @@ class ProductoService:
                     else None
                 )
 
-                # El formulario completo debe actualizar las variantes que
-                # ya pertenecen al producto. Como defensa adicional para
-                # clientes con una versión anterior del frontend que no envían
-                # id_variante, resolvemos la variante por su SKU dentro de
-                # este mismo producto. Esto evita que el validador unique
-                # interprete una edición como la creación de un duplicado.
-                if existing_variant is None and producto_simple:
-                    existing_variant = next(iter(existing_variants.values()), None)
-                if existing_variant is None and variant_data.get("sku"):
-                    existing_variant = Variante.objects.filter(
-                        producto=producto,
-                        sku=variant_data["sku"],
-                    ).first()
-
-                if variant_id and (
-                    not existing_variant
-                    or existing_variant.producto_id != producto.id_producto
-                ):
-                    raise ValueError(
-                        "Una de las variantes no pertenece al producto."
-                    )
+                # Si se proporcionó id_variante, esa es la identidad principal
+                # NO usar fallback por SKU cuando ya tenemos id_variante
+                if variant_id is not None:
+                    if existing_variant is None:
+                        raise ValueError(
+                            f"La variante con id {variant_id} no existe o no pertenece al producto."
+                        )
+                    if existing_variant.producto_id != producto.id_producto:
+                        raise ValueError(
+                            "Una de las variantes no pertenece al producto."
+                        )
+                else:
+                    # Fallbacks solo cuando NO hay id_variante (compatibilidad con payloads antiguos)
+                    if existing_variant is None and producto_simple:
+                        existing_variant = next(iter(existing_variants.values()), None)
+                    if existing_variant is None and variant_data.get("sku"):
+                        existing_variant = Variante.objects.filter(
+                            producto=producto,
+                            sku=variant_data["sku"],
+                        ).first()
 
                 variant_serializer = VarianteSerializer(
                     existing_variant,
@@ -425,18 +426,19 @@ class ProductoService:
                 clean_variant.pop("producto", None)
 
                 if existing_variant:
-                    existing_variant.color = clean_variant["color"]
-                    existing_variant.diseño = clean_variant["diseño"]
-                    existing_variant.talla = clean_variant["talla"]
-                    existing_variant.stock = clean_variant["stock"]
+                    # Actualización segura usando .get() para partial updates
+                    existing_variant.color = clean_variant.get("color", existing_variant.color)
+                    existing_variant.diseño = clean_variant.get("diseño", existing_variant.diseño)
+                    existing_variant.talla = clean_variant.get("talla", existing_variant.talla)
+                    existing_variant.stock = clean_variant.get("stock", existing_variant.stock)
                     # Solo actualizar SKU si cambió para evitar IntegrityError falso
-                    if existing_variant.sku != clean_variant["sku"]:
+                    if "sku" in clean_variant and existing_variant.sku != clean_variant["sku"]:
                         existing_variant.sku = clean_variant["sku"]
                     try:
                         existing_variant.save()
                     except IntegrityError as e:
                         if "sku" in str(e).lower():
-                            raise ValueError(f"Ya existe una variante con el SKU '{clean_variant['sku']}'.")
+                            raise ValueError(f"Ya existe una variante con el SKU '{clean_variant.get('sku', existing_variant.sku)}'.")
                         raise
                     variant = existing_variant
                 else:

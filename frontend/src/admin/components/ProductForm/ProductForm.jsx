@@ -1408,16 +1408,20 @@ function ProductForm({
                 ) => {
 
                     /*
-                     * Si el SKU sigue marcado como AUTO y ya
-                     * hay color + diseño + talla elegidos, lo regeneramos
-                     * con datos reales antes de enviar al backend.
+                     * Solo regenerar SKU si:
+                     * 1. Es una variante NUEVA (no tiene id_variante)
+                     * 2. Y el SKU está marcado como AUTO o está vacío
+                     *
+                     * Para variantes existentes, conservar el SKU actual
+                     * aunque cambie el nombre del producto.
                      */
                     let finalSku =
                         variant.sku.trim();
 
                     if (
-                        isAutoSku(finalSku) ||
-                        !finalSku
+                        !variant.id_variante &&  // Solo variantes nuevas
+                        (isAutoSku(finalSku) ||
+                        !finalSku)
                     ) {
 
                         const colorInfo =

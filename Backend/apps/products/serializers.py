@@ -118,7 +118,7 @@ class VarianteSerializer(serializers.ModelSerializer):
         allow_null=True
     )
 
-    sku = serializers.CharField(required=False, allow_blank=True)
+    sku = serializers.CharField(required=False, allow_blank=True, validators=[])
 
     class Meta:
         model = Variante
