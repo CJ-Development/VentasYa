@@ -5,6 +5,7 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 from rest_framework.permissions import AllowAny, IsAdminUser
+from rest_framework.exceptions import ValidationError
 from django.shortcuts import get_object_or_404
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import ensure_csrf_cookie
@@ -94,12 +95,19 @@ class ProductoCompletoView(APIView):
                 return Response({"detail": "El payload del producto no es válido."}, status=400)
 
             producto_data = dict(payload.get("producto") or {})
+            producto_simple = bool(payload.get("producto_simple"))
             variantes_data = [dict(v) for v in (payload.get("variantes") or [])]
             if id is not None:
                 producto_data["id_producto"] = id
 
             producto_instance = get_object_or_404(Producto, id_producto=id) if id is not None else None
-            serializer_input = {key: value for key, value in producto_data.items() if key != "id_producto"}
+            # El slug se genera exclusivamente en el servicio. Excluirlo de
+            # la validación evita que un slug repetido bloquee un nombre válido.
+            serializer_input = {
+                key: value
+                for key, value in producto_data.items()
+                if key not in {"id_producto", "slug"}
+            }
             serializer = ProductoSerializer(producto_instance, data=serializer_input) if producto_instance else ProductoSerializer(data=serializer_input)
             serializer.is_valid(raise_exception=True)
 
@@ -108,6 +116,7 @@ class ProductoCompletoView(APIView):
                 producto_data={**serializer.validated_data, "id_producto": producto_data.get("id_producto")},
                 variantes_data=variantes_data,
                 archivos=archivos,
+                producto_simple=producto_simple,
             )
 
             return Response(ProductoSerializer(producto).data, status=status.HTTP_200_OK if id is not None else status.HTTP_201_CREATED)
@@ -115,6 +124,11 @@ class ProductoCompletoView(APIView):
             return Response({"detail": "Producto no encontrado."}, status=404)
         except (ValueError, TypeError, json.JSONDecodeError) as exc:
             return Response({"detail": str(exc)}, status=400)
+        except ValidationError as exc:
+            return Response(
+                {"detail": "Corrige los campos indicados.", "errors": exc.detail},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
         except Exception as exc:
             return Response({"detail": f"Error interno: {str(exc)}"}, status=500)
 

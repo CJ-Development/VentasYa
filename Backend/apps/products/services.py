@@ -6,10 +6,12 @@ import urllib.error
 import json
 import random
 import string
+import re
 
 from django.conf import settings
 from django.db import transaction
 from django.db.models import Prefetch
+from django.db import IntegrityError
 from django.utils.text import slugify
 
 from .models import Producto, Variante, ImagenProducto
@@ -50,6 +52,33 @@ def generar_slug_unico(nombre, producto_id=None):
         intentos += 1
 
     return nuevo_slug
+
+
+def generar_sku_unico(nombre_producto):
+    """
+    Genera un SKU único a partir del nombre del producto.
+    Si ya existe, agrega un sufijo aleatorio corto.
+    """
+    base_sku = re.sub(r'[^A-Z0-9]', '', slugify(nombre_producto, allow_unicode=False).upper())[:20]
+    if not base_sku:
+        base_sku = "PROD"
+
+    # Verificar si el SKU base ya existe
+    if not Variante.objects.filter(sku=base_sku).exists():
+        return base_sku
+
+    # Generar sufijo único corto (4 caracteres hexadecimales)
+    sufijo = ''.join(random.choices(string.hexdigits.upper(), k=4))
+    nuevo_sku = f"{base_sku}-{sufijo}"
+
+    # Intentar hasta encontrar uno único (máximo 10 intentos)
+    intentos = 0
+    while Variante.objects.filter(sku=nuevo_sku).exists() and intentos < 10:
+        sufijo = ''.join(random.choices(string.hexdigits.upper(), k=4))
+        nuevo_sku = f"{base_sku}-{sufijo}"
+        intentos += 1
+
+    return nuevo_sku
 
 
 class ProductoService:
@@ -301,7 +330,7 @@ class ProductoService:
 
     @staticmethod
     @transaction.atomic
-    def guardar_completo(*, producto_data, variantes_data, archivos):
+    def guardar_completo(*, producto_data, variantes_data, archivos, producto_simple=False):
         # Lista de URLs de archivos nuevos escritos al disco.
         # Si la transacción falla (rollback), se borran para evitar huérfanos.
         uploaded_file_urls = []
@@ -328,6 +357,9 @@ class ProductoService:
             existing_variants = {v.id_variante: v for v in Variante.objects.filter(producto=producto)}
             received_variant_ids = set()
 
+            if producto_simple and len(variantes_data) != 1:
+                raise ValueError("Un producto simple debe guardar una única variante interna.")
+
             for variant_data in variantes_data:
 
                 variant_id = variant_data.pop("id_variante", None)
@@ -340,12 +372,21 @@ class ProductoService:
                 diseño_id = variant_data.get("diseño_id")
                 talla_id = variant_data.get("talla_id")
 
-                # Permitir variantes sin atributos para productos simples
-                # Solo validar si hay más de una variante (producto con variantes)
-                if len(variantes_data) > 1 and color_id is None and diseño_id is None and talla_id is None:
+                # Un producto simple no expone atributos. La variante interna
+                # solo conserva el stock y las imágenes generales.
+                if not producto_simple and color_id is None and diseño_id is None and talla_id is None:
                     raise ValueError(
                         "Cada variante debe tener al menos un atributo: color, diseño o talla."
                     )
+
+                # Normalizar SKU vacío a null
+                sku = variant_data.get("sku")
+                if sku == "" or sku is None:
+                    # Para productos simples (una sola variante sin atributos), generar SKU automático
+                    if producto_simple:
+                        variant_data["sku"] = generar_sku_unico(nombre)
+                    else:
+                        variant_data["sku"] = None
 
                 existing_variant = (
                     existing_variants.get(int(variant_id))
@@ -368,6 +409,7 @@ class ProductoService:
                         "producto_id": producto.id_producto,
                     },
                     partial=existing_variant is not None,
+                    context={"allow_attribute_less": producto_simple},
                 )
 
                 variant_serializer.is_valid(raise_exception=True)
@@ -382,10 +424,20 @@ class ProductoService:
                     existing_variant.talla = clean_variant["talla"]
                     existing_variant.sku = clean_variant["sku"]
                     existing_variant.stock = clean_variant["stock"]
-                    existing_variant.save()
+                    try:
+                        existing_variant.save()
+                    except IntegrityError as e:
+                        if "sku" in str(e).lower():
+                            raise ValueError(f"Ya existe una variante con el SKU '{clean_variant['sku']}'.")
+                        raise
                     variant = existing_variant
                 else:
-                    variant = Variante.objects.create(producto=producto, **clean_variant)
+                    try:
+                        variant = Variante.objects.create(producto=producto, **clean_variant)
+                    except IntegrityError as e:
+                        if "sku" in str(e).lower():
+                            raise ValueError(f"Ya existe una variante con el SKU '{clean_variant['sku']}'.")
+                        raise
 
                 received_variant_ids.add(variant.id_variante)
                 existing_images = {i.id_imagen: i for i in ImagenProducto.objects.filter(variante=variant)}

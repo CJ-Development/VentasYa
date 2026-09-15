@@ -137,9 +137,15 @@ class VarianteSerializer(serializers.ModelSerializer):
         """
         Validar que al menos uno de color, diseño o talla esté presente.
         """
-        color = attrs.get('color')
-        diseño = attrs.get('diseño')
-        talla = attrs.get('talla')
+        # Los productos simples se persisten con una única variante interna
+        # (para mantener stock e imágenes), pero no tienen por qué exponer
+        # color, diseño ni talla al cliente.
+        if self.context.get("allow_attribute_less"):
+            return attrs
+
+        color = attrs.get('color', getattr(self.instance, 'color', None))
+        diseño = attrs.get('diseño', getattr(self.instance, 'diseño', None))
+        talla = attrs.get('talla', getattr(self.instance, 'talla', None))
         
         if color is None and diseño is None and talla is None:
             raise serializers.ValidationError(

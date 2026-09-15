@@ -176,7 +176,9 @@ class Variante(models.Model):
 
     sku = models.CharField(
         max_length=50,
-        unique=True
+        unique=True,
+        null=True,
+        blank=True
     )
 
     stock = models.PositiveIntegerField(default=0)

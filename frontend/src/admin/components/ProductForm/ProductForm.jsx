@@ -1382,15 +1382,18 @@ function ProductForm({
         let variantsToProcess = variantes;
 
         if (productType === "simple") {
-            // Crear una variante por defecto con diseño opcional
+            // El producto simple usa una variante interna para persistir stock
+            // e imágenes. Al editar, se conserva su id y SKU para actualizarla
+            // en vez de intentar crear otra con un SKU duplicado.
+            const existingSimpleVariant = variantes[0];
             variantsToProcess = [
                 {
-                    clientId: crypto.randomUUID(),
-                    id_variante: null,
+                    clientId: existingSimpleVariant?.clientId || crypto.randomUUID(),
+                    id_variante: existingSimpleVariant?.id_variante || null,
                     color: null,
                     diseño: datos.diseño_id || null,
                     talla: null,
-                    sku: datos.slug ? `AUTO-${datos.slug.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 8)}-GEN` : "AUTO-GEN",
+                    sku: existingSimpleVariant?.sku || "",
                     stock: datos.stock_general || 0,
                     precio: Number(datos.precio) || 0,
                     imagenes: datos.imagenes_generales || [],
@@ -1545,6 +1548,8 @@ function ProductForm({
             "payload",
             JSON.stringify({
 
+                producto_simple: productType === "simple",
+
                 producto: {
 
                     ...(editing
@@ -1656,33 +1661,35 @@ function ProductForm({
             console.error("Headers:", err.response?.headers);
 
             const backend = err.response?.data;
+            const backendErrors = backend?.errors || backend;
             const next = {};
 
             // Mapear errores del backend a campos específicos
             if (backend) {
-                if (backend.nombre) {
-                    next.nombre = Array.isArray(backend.nombre) ? backend.nombre.join(", ") : backend.nombre;
+                if (backendErrors.nombre) {
+                    next.nombre = Array.isArray(backendErrors.nombre) ? backendErrors.nombre.join(", ") : backendErrors.nombre;
                 }
-                if (backend.slug) {
-                    next.slug = Array.isArray(backend.slug) ? backend.slug.join(", ") : backend.slug;
+                if (backendErrors.slug) {
+                    next.slug = Array.isArray(backendErrors.slug) ? backendErrors.slug.join(", ") : backendErrors.slug;
                 }
-                if (backend.descripcion) {
-                    next.descripcion = Array.isArray(backend.descripcion) ? backend.descripcion.join(", ") : backend.descripcion;
+                if (backendErrors.descripcion) {
+                    next.descripcion = Array.isArray(backendErrors.descripcion) ? backendErrors.descripcion.join(", ") : backendErrors.descripcion;
                 }
-                if (backend.precio) {
-                    next.precio = Array.isArray(backend.precio) ? backend.precio.join(", ") : backend.precio;
+                if (backendErrors.precio) {
+                    next.precio = Array.isArray(backendErrors.precio) ? backendErrors.precio.join(", ") : backendErrors.precio;
                 }
-                if (backend.categoria_id) {
-                    next.categoria_id = Array.isArray(backend.categoria_id) ? backend.categoria_id.join(", ") : backend.categoria_id;
+                if (backendErrors.categoria_id) {
+                    next.categoria_id = Array.isArray(backendErrors.categoria_id) ? backendErrors.categoria_id.join(", ") : backendErrors.categoria_id;
                 }
-                if (backend.stock_general) {
-                    next.stock_general = Array.isArray(backend.stock_general) ? backend.stock_general.join(", ") : backend.stock_general;
+                if (backendErrors.stock_general) {
+                    next.stock_general = Array.isArray(backendErrors.stock_general) ? backendErrors.stock_general.join(", ") : backendErrors.stock_general;
                 }
-                if (backend.sku) {
-                    next.variantes = Array.isArray(backend.sku) ? backend.sku.join(", ") : backend.sku;
+                if (backendErrors.sku) {
+                    next.variantes = Array.isArray(backendErrors.sku) ? backendErrors.sku.join(", ") : backendErrors.sku;
                 }
-                if (backend.variantes) {
-                    next.variantes = Array.isArray(backend.variantes) ? backend.variantes.join(", ") : backend.variantes;
+                if (backendErrors.variantes || backendErrors.non_field_errors) {
+                    const variantError = backendErrors.variantes || backendErrors.non_field_errors;
+                    next.variantes = Array.isArray(variantError) ? variantError.join(", ") : variantError;
                 }
             }
 
