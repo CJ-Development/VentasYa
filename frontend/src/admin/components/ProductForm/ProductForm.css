@@ -74,6 +74,183 @@
 
 
 /* =========================================================
+   PRODUCT TYPE SELECTOR
+   ========================================================= */
+
+.product-type-selector {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+}
+
+.product-type-option {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px;
+    background: #FFFFFF;
+    border: 2px solid #E9ECEF;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.product-type-option:hover {
+    border-color: #0EA5B5;
+    background: #E8F6F7;
+    transform: translateY(-2px);
+}
+
+.product-type-option.active {
+    border-color: #0EA5B5;
+    background: #E8F6F7;
+    box-shadow: 0 4px 12px rgba(14, 165, 181, 0.15);
+}
+
+.product-type-icon {
+    font-size: 28px;
+    line-height: 1;
+}
+
+.product-type-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.product-type-info strong {
+    font-size: 14px;
+    font-weight: 700;
+    color: #142B43;
+}
+
+.product-type-info small {
+    font-size: 12px;
+    color: #6B7280;
+    line-height: 1.3;
+}
+
+
+/* =========================================================
+   IMAGES GRID (para productos simples)
+   ========================================================= */
+
+.images-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+}
+
+.images-header h3 {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 700;
+    color: #142B43;
+}
+
+.add-image-button {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 16px;
+    background: #0EA5B5;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.add-image-button:hover {
+    background: #0B8A98;
+    transform: translateY(-1px);
+}
+
+.images-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 12px;
+}
+
+.image-item {
+    position: relative;
+    aspect-ratio: 1;
+    border-radius: 8px;
+    overflow: hidden;
+    border: 2px solid #E9ECEF;
+    transition: all 0.2s ease;
+}
+
+.image-item:hover {
+    border-color: #0EA5B5;
+}
+
+.image-item.principal {
+    border-color: #0EA5B5;
+    box-shadow: 0 0 0 3px rgba(14, 165, 181, 0.2);
+}
+
+.image-preview {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.image-actions {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    display: flex;
+    gap: 4px;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+
+.image-item:hover .image-actions {
+    opacity: 1;
+}
+
+.image-action-btn {
+    width: 28px;
+    height: 28px;
+    background: rgba(255, 255, 255, 0.95);
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #142B43;
+    transition: all 0.2s ease;
+}
+
+.image-action-btn:hover {
+    background: #0EA5B5;
+    color: white;
+}
+
+.image-action-btn.danger:hover {
+    background: #DC2626;
+}
+
+.image-badge {
+    position: absolute;
+    bottom: 6px;
+    left: 6px;
+    background: #0EA5B5;
+    color: white;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+
+/* =========================================================
    IMAGES GRID (para productos simples)
    ========================================================= */
 

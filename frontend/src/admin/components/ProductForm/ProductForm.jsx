@@ -1408,14 +1408,13 @@ function ProductForm({
                 {
                     clientId: existingSimpleVariant?.clientId || crypto.randomUUID(),
                     id_variante: existingSimpleVariant?.id_variante || null,
-                    color: null,
+                    color: "default", // Atributo dummy para satisfacer validación del backend
                     diseño: null,
                     talla: null,
                     sku: existingSimpleVariant?.sku || "",
                     stock: datos.stock_general || 0,
                     precio: Number(datos.precio) || 0,
                     imagenes: datos.imagenes_generales || [],
-                    es_simple: true, // Marcador para que el backend sepa que es variante simple
                 }
             ];
         }
