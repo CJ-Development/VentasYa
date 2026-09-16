@@ -1415,6 +1415,7 @@ function ProductForm({
                     stock: datos.stock_general || 0,
                     precio: Number(datos.precio) || 0,
                     imagenes: datos.imagenes_generales || [],
+                    es_simple: true, // Marcador para que el backend sepa que es variante simple
                 }
             ];
         }
@@ -2027,28 +2028,6 @@ function ProductForm({
 
                             </div>
 
-                            {/* Stock general solo para productos simples */}
-                            {productType === "simple" && (
-
-                                <div className="form-group">
-
-                                    <label>
-                                        Stock
-                                    </label>
-
-                                    <input
-                                        type="number"
-                                        min="0"
-                                        name="stock_general"
-                                        value={datos.stock_general}
-                                        onChange={handleData}
-                                        placeholder="0"
-                                    />
-
-                                </div>
-
-                            )}
-
 
                         </div>
 
@@ -2122,6 +2101,29 @@ function ProductForm({
                                 )}
 
                             </div>
+
+
+                            {/* Stock general solo para productos simples */}
+                            {productType === "simple" && (
+
+                                <div className="form-group">
+
+                                    <label>
+                                        Stock
+                                    </label>
+
+                                    <input
+                                        type="number"
+                                        min="0"
+                                        name="stock_general"
+                                        value={datos.stock_general}
+                                        onChange={handleData}
+                                        placeholder="0"
+                                    />
+
+                                </div>
+
+                            )}
 
 
                             <div className="form-group">
