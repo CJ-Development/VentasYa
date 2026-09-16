@@ -1,7 +1,8 @@
 import {
     useEffect,
     useMemo,
-    useState
+    useState,
+    useCallback
 } from "react";
 
 import {
@@ -168,11 +169,11 @@ function CategoryForm({
 
     /*
     =====================================================
-    FUNCIONES AUXILIARES (definidas antes de useMemo)
+    FUNCIONES AUXILIARES (useCallback para estabilidad)
     =====================================================
     */
 
-    const buildPath = (category) => {
+    const buildPath = useCallback((category) => {
         const path = [];
         let current = category;
 
@@ -183,7 +184,7 @@ function CategoryForm({
         }
 
         return path;
-    };
+    }, [categorias]);
 
     /*
     =====================================================
@@ -251,12 +252,12 @@ function CategoryForm({
 
     const previewStructure = useMemo(() => {
         if (!formData.nombre) return null;
-        
+
         const parentPath = categoriaPadre ? buildPath(categoriaPadre) : [];
         const fullPath = [...parentPath, { nombre: formData.nombre, isNew: true }];
-        
+
         return fullPath;
-    }, [formData.nombre, categoriaPadre, categorias]);
+    }, [formData.nombre, categoriaPadre, categorias, buildPath]);
 
     /*
     =====================================================
@@ -269,7 +270,7 @@ function CategoryForm({
         const parentPath = categoriaPadre ? buildPath(categoriaPadre) : [];
         const level = parentPath.length + 1;
         return Math.min(level, 10);
-    }, [formData.nombre, categoriaPadre, categorias]);
+    }, [formData.nombre, categoriaPadre, categorias, buildPath]);
 
     const getLevelLabel = (lvl) => {
         if (lvl === 1) return "Categoría principal";
@@ -328,6 +329,34 @@ function CategoryForm({
                 throw new Error(
                     "El nombre de la categoría es obligatorio."
                 );
+            }
+
+            // Validación de ciclos en el frontend (para edición)
+            if (editing && formData.categoria_padre_id) {
+                const selectedParent = categorias.find(
+                    cat => Number(cat.id_categoria) === Number(formData.categoria_padre_id)
+                );
+
+                if (selectedParent) {
+                    // Verificar si la categoría actual es ancestro de la categoría padre seleccionada
+                    let current = selectedParent;
+                    const visited = new Set();
+
+                    while (current) {
+                        const parentId = current.id_categoria_padre ?? current.categoria_padre?.id_categoria ?? current.categoria_padre;
+
+                        if (Number(parentId) === Number(category.id_categoria)) {
+                            throw new Error("La categoría padre seleccionada crearía un ciclo.");
+                        }
+
+                        if (visited.has(parentId)) {
+                            break;
+                        }
+                        visited.add(parentId);
+
+                        current = categorias.find(cat => Number(cat.id_categoria) === Number(parentId));
+                    }
+                }
             }
 
 

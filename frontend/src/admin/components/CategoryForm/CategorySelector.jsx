@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback } from "react";
 import { Search, ArrowLeft, X, Folder, FolderOpen, ChevronRight, ChevronDown, Check } from "lucide-react";
 import "./CategorySelector.css";
 
@@ -15,11 +15,11 @@ function CategorySelector({
     const [viewMode, setViewMode] = useState("tree"); // "tree" or "search"
 
     // =====================================================
-    // FUNCIONES AUXILIARES (definidas antes de useMemo)
+    // FUNCIONES AUXILIARES (useCallback para estabilidad)
     // =====================================================
 
     // Construir ruta completa de una categoría
-    const buildPath = (category) => {
+    const buildPath = useCallback((category) => {
         const path = [];
         let current = category;
 
@@ -30,18 +30,18 @@ function CategorySelector({
         }
 
         return path;
-    };
+    }, [categories]);
 
     // Obtener hijos de una categoría
-    const getChildren = (parentId) => {
+    const getChildren = useCallback((parentId) => {
         return categories.filter(cat => {
             const parent = cat.id_categoria_padre ?? cat.categoria_padre?.id_categoria ?? cat.categoria_padre;
             return Number(parent) === Number(parentId);
         });
-    };
+    }, [categories]);
 
     // Verificar si una categoría es descendiente de otra (prevención de ciclos)
-    const isDescendant = (potentialParent, potentialChild) => {
+    const isDescendant = useCallback((potentialParent, potentialChild) => {
         if (!potentialParent || !potentialChild) return false;
         if (Number(potentialParent.id_categoria) === Number(potentialChild.id_categoria)) return true;
 
@@ -64,15 +64,15 @@ function CategorySelector({
         }
 
         return false;
-    };
+    }, [categories]);
 
     // Calcular nivel de una categoría (1-6)
-    const getLevel = (category) => {
+    const getLevel = useCallback((category) => {
         if (!category) return 0;
         const path = buildPath(category);
         const level = path.length;
         return Math.min(level, 6); // Máximo 6 niveles
-    };
+    }, [buildPath]);
 
     // =====================================================
     // HOOKS useMemo (que dependen de las funciones anteriores)
@@ -125,7 +125,7 @@ function CategorySelector({
 
             return true;
         });
-    }, [categories, currentPath, excludeId]);
+    }, [categories, currentPath, excludeId, getChildren, isDescendant]);
 
     // Búsqueda con rutas completas
     const searchResults = useMemo(() => {
@@ -151,14 +151,14 @@ function CategorySelector({
             category: cat,
             path: buildPath(cat)
         }));
-    }, [categories, searchQuery, excludeId]);
+    }, [categories, searchQuery, excludeId, isDescendant, buildPath]);
 
     // Navegar a una categoría
-    const navigateTo = (category) => {
+    const navigateTo = useCallback((category) => {
         const path = buildPath(category);
         setCurrentPath(path);
         setViewMode("tree");
-    };
+    }, [buildPath]);
 
     // Ir atrás
     const goBack = () => {

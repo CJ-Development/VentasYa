@@ -985,6 +985,55 @@
     padding-right: 4px;
 }
 
+.attribute-search {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    background: #F8F9FA;
+    border: 1px solid #E9ECEF;
+    border-radius: 8px;
+    margin-bottom: 8px;
+}
+
+.attribute-search svg {
+    color: #6B7280;
+    flex-shrink: 0;
+}
+
+.attribute-search input {
+    flex: 1;
+    border: none;
+    background: transparent;
+    font-size: 13px;
+    color: #142B43;
+    outline: none;
+}
+
+.attribute-search input::placeholder {
+    color: #9CA3AF;
+}
+
+.clear-search {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    border: none;
+    background: #E9ECEF;
+    border-radius: 4px;
+    cursor: pointer;
+    color: #6B7280;
+    transition: all 0.2s ease;
+    flex-shrink: 0;
+}
+
+.clear-search:hover {
+    background: #D1D5DB;
+    color: #374151;
+}
+
 .attribute-item {
     position: relative;
     display: flex;

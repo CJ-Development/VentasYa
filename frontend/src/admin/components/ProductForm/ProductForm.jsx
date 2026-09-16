@@ -10,7 +10,8 @@ import {
     ChevronRight,
     Tag,
     Info,
-    ImagePlus
+    ImagePlus,
+    Search
 } from "lucide-react";
 
 import {
@@ -149,9 +150,6 @@ const normalizeProduct = (product) => ({
     precio: product?.precio ?? "",
     estado: product?.estado || "activo",
     slug: product?.slug || "",
-    stock_general: product?.stock_general ?? "",
-    imagenes_generales: product?.imagenes_generales || [],
-    diseño_id: product?.diseño_id ?? "",
 });
 
 
@@ -236,6 +234,8 @@ function ProductForm({
         }
     );
 
+    const [colorSearchQuery, setColorSearchQuery] = useState("");
+
     const [categories, setCategories] = useState([]);
 
     const [colores, setColores] = useState([]);
@@ -251,16 +251,6 @@ function ProductForm({
     const [errors, setErrors] = useState({});
 
     const inputRefs = useRef({});
-
-    // Tipo de producto: "simple" (sin variantes) o "variantes" (con variantes)
-    const [productType, setProductType] = useState(() => {
-        // Si el producto existe y tiene variantes, es "variantes"
-        // Si es nuevo o no tiene variantes, es "simple" por defecto
-        if (product?.variantes && product.variantes.length > 0) {
-            return "variantes";
-        }
-        return "simple";
-    });
 
     /* =====================================================
        FORMULARIOS INLINE PARA CREAR COLOR / TALLA
@@ -291,6 +281,17 @@ function ProductForm({
         colorId: null,
         url: "",
     });
+
+    // Filtrar colores por búsqueda
+    const filteredColores = useMemo(() => {
+        if (!colorSearchQuery.trim()) {
+            return colores;
+        }
+        const query = colorSearchQuery.toLowerCase();
+        return colores.filter(color =>
+            color.nombre.toLowerCase().includes(query)
+        );
+    }, [colores, colorSearchQuery]);
 
     const [showSlug, setShowSlug] = useState(false);
 
@@ -1191,49 +1192,7 @@ function ProductForm({
        IMÁGENES GENERALES (PRODUCTOS SIMPLES)
        ===================================================== */
 
-    const addImageGeneral = (event) => {
-        const file = event.target.files?.[0];
-        if (!file) return;
 
-        const reader = new FileReader();
-        reader.onload = (e) => {
-            const newImage = {
-                imagen: e.target.result,
-                principal: datos.imagenes_generales.length === 0,
-                orden: datos.imagenes_generales.length + 1,
-                file: file,
-            };
-
-            setDatos((prev) => ({
-                ...prev,
-                imagenes_generales: [...prev.imagenes_generales, newImage],
-            }));
-        };
-        reader.readAsDataURL(file);
-    };
-
-    const removeImageGeneral = (index) => {
-        setDatos((prev) => ({
-            ...prev,
-            imagenes_generales: prev.imagenes_generales
-                .filter((_, i) => i !== index)
-                .map((img, i) => ({
-                    ...img,
-                    orden: i + 1,
-                    principal: i === 0,
-                })),
-        }));
-    };
-
-    const setPrincipalImageGeneral = (index) => {
-        setDatos((prev) => ({
-            ...prev,
-            imagenes_generales: prev.imagenes_generales.map((img, i) => ({
-                ...img,
-                principal: i === index,
-            })),
-        }));
-    };
 
 
     /* =====================================================
@@ -1309,60 +1268,51 @@ function ProductForm({
             next.precio = "Ingresa un precio mayor a 0.";
         }
 
-        // Validaciones específicas según tipo de producto
-        if (productType === "simple") {
-            // Producto simple: no requiere variantes
-            // Validar stock general si se implementa
-        } else {
-            // Producto con variantes: requiere al menos una variante
-            if (!variantes.length) {
-                next.variantes = "Agrega al menos una variante.";
-            }
+        // Validación: requiere al menos una variante
+        if (!variantes.length) {
+            next.variantes = "Agrega al menos una variante.";
         }
 
         const skus = new Set();
 
-        // Solo validar variantes si es producto con variantes
-        if (productType === "variantes") {
-            variantes.forEach((variant) => {
-                if (!variant.color && !variant.diseño && !variant.talla) {
-                    next[
-                        `variant-${variant.clientId}-atributo`
-                    ] = "Selecciona al menos un atributo (color, diseño o talla).";
-                }
+        variantes.forEach((variant) => {
+            if (!variant.color && !variant.diseño && !variant.talla) {
+                next[
+                    `variant-${variant.clientId}-atributo`
+                ] = "Selecciona al menos un atributo (color, diseño o talla).";
+            }
 
-                if (!variant.sku.trim()) {
-                    next[
-                        `variant-${variant.clientId}-sku`
-                    ] = "El SKU es obligatorio.";
+            if (!variant.sku.trim()) {
+                next[
+                    `variant-${variant.clientId}-sku`
+                ] = "El SKU es obligatorio.";
 
-                } else if (
-                    isAutoSku(variant.sku) &&
-                    (variant.color || variant.diseño || variant.talla)
-                ) {
-                    skus.add(variant.sku.trim());
+            } else if (
+                isAutoSku(variant.sku) &&
+                (variant.color || variant.diseño || variant.talla)
+            ) {
+                skus.add(variant.sku.trim());
 
-                } else if (
-                    skus.has(variant.sku.trim())
-                ) {
-                    next[
-                        `variant-${variant.clientId}-sku`
-                    ] = "SKU repetido.";
+            } else if (
+                skus.has(variant.sku.trim())
+            ) {
+                next[
+                    `variant-${variant.clientId}-sku`
+                ] = "SKU repetido.";
 
-                } else {
-                    skus.add(variant.sku.trim());
-                }
+            } else {
+                skus.add(variant.sku.trim());
+            }
 
-                if (
-                    variant.stock === "" ||
-                    Number(variant.stock) < 0
-                ) {
-                    next[
-                        `variant-${variant.clientId}-stock`
-                    ] = "Stock inválido.";
-                }
-            });
-        }
+            if (
+                variant.stock === "" ||
+                Number(variant.stock) < 0
+            ) {
+                next[
+                    `variant-${variant.clientId}-stock`
+                ] = "Stock inválido.";
+            }
+        });
 
         setErrors(next);
 
@@ -1377,28 +1327,7 @@ function ProductForm({
         const formData =
             new FormData();
 
-        // Para productos simples, crear una variante por defecto
-        let variantsToProcess = variantes;
-
-        if (productType === "simple") {
-            // El producto simple usa una variante interna para persistir stock
-            // e imágenes. Al editar, se conserva su id y SKU para actualizarla
-            // en vez de intentar crear otra con un SKU duplicado.
-            const existingSimpleVariant = variantes[0];
-            variantsToProcess = [
-                {
-                    clientId: existingSimpleVariant?.clientId || crypto.randomUUID(),
-                    id_variante: existingSimpleVariant?.id_variante || null,
-                    color: null,
-                    diseño: datos.diseño_id || null,
-                    talla: null,
-                    sku: existingSimpleVariant?.sku || "",
-                    stock: datos.stock_general || 0,
-                    precio: Number(datos.precio) || 0,
-                    imagenes: datos.imagenes_generales || [],
-                }
-            ];
-        }
+        const variantsToProcess = variantes;
 
         const variantsPayload =
             variantsToProcess.map(
@@ -1551,8 +1480,6 @@ function ProductForm({
             "payload",
             JSON.stringify({
 
-                producto_simple: productType === "simple",
-
                 producto: {
 
                     ...(editing
@@ -1684,9 +1611,6 @@ function ProductForm({
                 if (backendErrors.categoria_id) {
                     next.categoria_id = Array.isArray(backendErrors.categoria_id) ? backendErrors.categoria_id.join(", ") : backendErrors.categoria_id;
                 }
-                if (backendErrors.stock_general) {
-                    next.stock_general = Array.isArray(backendErrors.stock_general) ? backendErrors.stock_general.join(", ") : backendErrors.stock_general;
-                }
                 if (backendErrors.sku) {
                     next.variantes = Array.isArray(backendErrors.sku) ? backendErrors.sku.join(", ") : backendErrors.sku;
                 }
@@ -1703,7 +1627,7 @@ function ProductForm({
 
                 // Scroll al primer campo con error
                 const firstErrorField = Object.keys(next)[0];
-                if (firstErrorField === "nombre" || firstErrorField === "categoria_id" || firstErrorField === "precio" || firstErrorField === "descripcion" || firstErrorField === "slug" || firstErrorField === "stock_general") {
+                if (firstErrorField === "nombre" || firstErrorField === "categoria_id" || firstErrorField === "precio" || firstErrorField === "descripcion" || firstErrorField === "slug") {
                     setTab("datos");
                 } else {
                     setTab("variantes");
@@ -1893,7 +1817,7 @@ function ProductForm({
                     >
 
                         <span className="step-number">
-                            {productType === "simple" ? "2" : "3"}
+                            3
                         </span>
 
                         <div>
@@ -1945,68 +1869,6 @@ function ProductForm({
                                 <p>
                                     Completa los datos generales del producto.
                                 </p>
-
-                            </div>
-
-                        </div>
-
-
-                        {/* Selector de tipo de producto */}
-                        <div className="form-group">
-
-                            <label>
-                                Tipo de producto
-                            </label>
-
-                            <div className="product-type-selector">
-
-                                <button
-                                    type="button"
-                                    className={`product-type-option ${productType === "simple" ? "active" : ""}`}
-                                    onClick={() => setProductType("simple")}
-                                >
-
-                                    <div className="product-type-icon">
-                                        📦
-                                    </div>
-
-                                    <div className="product-type-info">
-
-                                        <strong>
-                                            Producto simple
-                                        </strong>
-
-                                        <small>
-                                            Sin variantes (ej. llavero, kit de belleza)
-                                        </small>
-
-                                    </div>
-
-                                </button>
-
-                                <button
-                                    type="button"
-                                    className={`product-type-option ${productType === "variantes" ? "active" : ""}`}
-                                    onClick={() => setProductType("variantes")}
-                                >
-
-                                    <div className="product-type-icon">
-                                        🎨
-                                    </div>
-
-                                    <div className="product-type-info">
-
-                                        <strong>
-                                            Con variantes
-                                        </strong>
-
-                                        <small>
-                                            Con atributos (ej. color, tamaño, material)
-                                        </small>
-
-                                    </div>
-
-                                </button>
 
                             </div>
 
@@ -2082,67 +1944,6 @@ function ProductForm({
                                 )}
 
                             </div>
-
-
-                            {/* Stock general solo para productos simples */}
-                            {productType === "simple" && (
-
-                                <div className="form-group">
-
-                                    <label>
-                                        Stock
-                                    </label>
-
-                                    <input
-                                        type="number"
-                                        min="0"
-                                        name="stock_general"
-                                        value={datos.stock_general}
-                                        onChange={handleData}
-                                        placeholder="0"
-                                    />
-
-                                </div>
-
-                            )}
-
-
-                            {/* Diseño opcional para productos simples */}
-                            {productType === "simple" && (
-
-                                <div className="form-group">
-
-                                    <label>
-                                        Diseño (opcional)
-                                    </label>
-
-                                    <div className="design-selector-simple">
-                                        {diseños.map((diseño) => (
-                                            <button
-                                                key={diseño.id_diseño}
-                                                type="button"
-                                                className={`design-option-simple ${datos.diseño_id == diseño.id_diseño ? 'selected' : ''}`}
-                                                onClick={() => setDatos(prev => ({ ...prev, diseño_id: diseño.id_diseño }))}
-                                            >
-                                                {diseño.imagen ? (
-                                                    <img
-                                                        src={diseño.imagen}
-                                                        alt={diseño.nombre}
-                                                        className="design-thumbnail-simple"
-                                                    />
-                                                ) : (
-                                                    <span className="design-placeholder-simple">
-                                                        {diseño.nombre.charAt(0)}
-                                                    </span>
-                                                )}
-                                                <span>{diseño.nombre}</span>
-                                            </button>
-                                        ))}
-                                    </div>
-
-                                </div>
-
-                            )}
 
 
                             <div className="form-group">
@@ -2238,11 +2039,9 @@ function ProductForm({
                             <button
                                 type="button"
                                 className="primary-button"
-                                onClick={() =>
-                                    setTab(productType === "simple" ? "imagenes" : "variantes")
-                                }
+                                onClick={() => setTab("variantes")}
                             >
-                                Siguiente: {productType === "simple" ? "Imágenes" : "Variantes"}
+                                Siguiente: Variantes
                                 <ChevronRight size={18} />
                             </button>
 
@@ -2449,7 +2248,27 @@ function ProductForm({
 
                                                 <div className="attribute-list">
 
-                                                    {colores.map((color) => {
+                                                    {/* Buscador de colores */}
+                                                    <div className="attribute-search">
+                                                        <Search size={16} />
+                                                        <input
+                                                            type="text"
+                                                            placeholder="Buscar color..."
+                                                            value={colorSearchQuery}
+                                                            onChange={(e) => setColorSearchQuery(e.target.value)}
+                                                        />
+                                                        {colorSearchQuery && (
+                                                            <button
+                                                                type="button"
+                                                                className="clear-search"
+                                                                onClick={() => setColorSearchQuery("")}
+                                                            >
+                                                                <X size={14} />
+                                                            </button>
+                                                        )}
+                                                    </div>
+
+                                                    {filteredColores.map((color) => {
 
                                                         const isSelected =
                                                             Number(selectedColor) ===
@@ -3471,10 +3290,7 @@ function ProductForm({
                                 </h3>
 
                                 <p>
-                                    {productType === "simple"
-                                        ? "Agrega las fotografías del producto."
-                                        : "Agrega las fotografías correspondientes a cada variante."
-                                    }
+                                    Agrega las fotografías correspondientes a cada variante.
                                 </p>
 
                             </div>
@@ -3482,87 +3298,8 @@ function ProductForm({
                         </div>
 
 
-                        {/* Galería general para productos simples */}
-                        {productType === "simple" ? (
-
-                            <div className="general-images-section">
-
-                                <div className="image-upload-layout">
-
-                                    {datos.imagenes_generales.map((img, index) => (
-
-                                        <div
-                                            className="image-preview-card"
-                                            key={index}
-                                        >
-
-                                            <img
-                                                src={img.imagen}
-                                                alt={`Imagen ${index + 1}`}
-                                            />
-
-                                            {img.principal && (
-                                                <span className="image-badge">
-                                                    Principal
-                                                </span>
-                                            )}
-
-                                            <div className="image-actions">
-
-                                                {!img.principal && (
-                                                    <button
-                                                        type="button"
-                                                        className="image-action-btn"
-                                                        onClick={() => setPrincipalImageGeneral(index)}
-                                                    >
-                                                        <Star size={14} />
-                                                    </button>
-                                                )}
-
-                                                <button
-                                                    type="button"
-                                                    className="image-action-btn delete"
-                                                    onClick={() => removeImageGeneral(index)}
-                                                >
-                                                    <Trash2 size={14} />
-                                                </button>
-
-                                            </div>
-
-                                        </div>
-
-                                    ))}
-
-                                    {datos.imagenes_generales.length < 6 && (
-                                        <label className="image-upload-box">
-
-                                            <input
-                                                type="file"
-                                                accept="image/png,image/jpeg,image/webp"
-                                                onChange={(event) => addImageGeneral(event)}
-                                            />
-
-                                            <ImagePlus size={24} />
-
-                                            <span>
-                                                Subir imagen
-                                            </span>
-
-                                            <small>
-                                                PNG, JPG o WEBP
-                                            </small>
-
-                                        </label>
-                                    )}
-
-                                </div>
-
-                            </div>
-
-                        ) : (
-
-                            /* Galería por color para productos con variantes */
-                            <div className="image-color-list">
+                        {/* Galería por color para productos con variantes */}
+                        <div className="image-color-list">
 
                             {productColors.map(
                                 (colorId) => {
@@ -3827,8 +3564,6 @@ function ProductForm({
 
                         </div>
 
-                        )}
-
                         {/* Fin condicional imágenes por color */}
 
 
@@ -3925,9 +3660,7 @@ function ProductForm({
                             <button
                                 type="button"
                                 className="secondary-button"
-                                onClick={() =>
-                                    setTab(productType === "simple" ? "datos" : "variantes")
-                                }
+                                onClick={() => setTab("variantes")}
                             >
 
                                 <ChevronLeft size={18} />

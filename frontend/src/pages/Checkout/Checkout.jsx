@@ -199,7 +199,19 @@ function Checkout() {
 
         // Formatear referencia con formato BMS-XXXXX
         const formatearReferencia = (ref, id) => {
-            if (ref) return ref;
+            // Si la referencia ya viene formateada (ej: "#55" o "#BMS-00055"), usarla
+            if (ref && typeof ref === 'string') {
+                // Si ya tiene formato BMS, devolverla tal cual
+                if (ref.includes('BMS')) return ref;
+                // Si es solo un número con #, formatearlo
+                if (ref.startsWith('#')) {
+                    const numRef = ref.replace('#', '');
+                    const paddedId = String(numRef).padStart(5, '0');
+                    return `#BMS-${paddedId}`;
+                }
+                return ref;
+            }
+            // Si no hay referencia, usar el ID de compra
             if (id != null) {
                 const paddedId = String(id).padStart(5, '0');
                 return `#BMS-${paddedId}`;
