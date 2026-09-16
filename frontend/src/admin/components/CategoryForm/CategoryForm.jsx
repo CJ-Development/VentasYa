@@ -333,29 +333,36 @@ function CategoryForm({
 
             // Validación de ciclos en el frontend (para edición)
             if (editing && formData.categoria_padre_id) {
-                const selectedParent = categorias.find(
-                    cat => Number(cat.id_categoria) === Number(formData.categoria_padre_id)
-                );
+                const selectedParentId = Number(formData.categoria_padre_id);
+                const currentCategoryId = Number(category.id_categoria);
 
-                if (selectedParent) {
-                    // Verificar si la categoría actual es ancestro de la categoría padre seleccionada
-                    let current = selectedParent;
+                // No permitir seleccionarse a sí mismo como padre
+                if (selectedParentId === currentCategoryId) {
+                    throw new Error("Una categoría no puede ser su propia padre.");
+                }
+
+                // Verificar si la categoría actual es ancestro de la categoría padre seleccionada
+                // Esto crearía un ciclo: A -> B -> C -> A
+                const wouldCreateCycle = (ancestorId, potentialDescendantId) => {
+                    let current = categorias.find(cat => Number(cat.id_categoria) === potentialDescendantId);
                     const visited = new Set();
 
                     while (current) {
-                        const parentId = current.id_categoria_padre ?? current.categoria_padre?.id_categoria ?? current.categoria_padre;
+                        const parent = current.id_categoria_padre ?? current.categoria_padre?.id_categoria ?? current.categoria_padre;
+                        if (!parent) break;
 
-                        if (Number(parentId) === Number(category.id_categoria)) {
-                            throw new Error("La categoría padre seleccionada crearía un ciclo.");
-                        }
+                        if (Number(parent) === ancestorId) return true;
 
-                        if (visited.has(parentId)) {
-                            break;
-                        }
-                        visited.add(parentId);
+                        if (visited.has(parent)) break;
+                        visited.add(parent);
 
-                        current = categorias.find(cat => Number(cat.id_categoria) === Number(parentId));
+                        current = categorias.find(cat => Number(cat.id_categoria) === Number(parent));
                     }
+                    return false;
+                };
+
+                if (wouldCreateCycle(currentCategoryId, selectedParentId)) {
+                    throw new Error("La categoría padre seleccionada crearía un ciclo.");
                 }
             }
 

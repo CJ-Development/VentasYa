@@ -1758,29 +1758,27 @@ function ProductForm({
                     </button>
 
 
-                    {/* Paso de variantes solo para productos con variantes */}
-                    {productType === "variantes" && (
+                    {/* Paso de variantes */}
+                    <>
 
-                        <>
-
-                            <div className="step-line" />
+                        <div className="step-line" />
 
 
-                            <button
-                                type="button"
-                                className={
-                                    tab === "variantes"
-                                        ? "step active"
-                                        : "step"
-                                }
-                                onClick={() =>
-                                    setTab("variantes")
-                                }
-                            >
+                        <button
+                            type="button"
+                            className={
+                                tab === "variantes"
+                                    ? "step active"
+                                    : "step"
+                            }
+                            onClick={() =>
+                                setTab("variantes")
+                            }
+                        >
 
-                                <span className="step-number">
-                                    2
-                                </span>
+                            <span className="step-number">
+                                2
+                            </span>
 
                                 <div>
 
@@ -1799,9 +1797,7 @@ function ProductForm({
 
                             <div className="step-line" />
 
-                        </>
-
-                    )}
+                    </>
 
 
                     <button
@@ -3625,8 +3621,8 @@ function ProductForm({
                         )}
 
 
-                        {/* Mensaje de no colores solo para productos con variantes */}
-                        {productType === "variantes" && productColors.length === 0 && (
+                        {/* Mensaje de no colores */}
+                        {productColors.length === 0 && (
 
                             <div className="images-empty">
 
