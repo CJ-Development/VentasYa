@@ -197,18 +197,35 @@ function Checkout() {
     const generarMensajeWhatsApp = (data) => {
         const { cliente, productos, total, referencia, compra_id } = data;
 
-        // Fallback para referencia si viene undefined del backend
-        const referenciaFinal =
-            referencia ||
-            (compra_id != null ? `#${compra_id}` : "Pendiente");
+        // Formatear referencia con formato BMS-XXXXX
+        const formatearReferencia = (ref, id) => {
+            if (ref) return ref;
+            if (id != null) {
+                const paddedId = String(id).padStart(5, '0');
+                return `#BMS-${paddedId}`;
+            }
+            return "Pendiente";
+        };
+
+        const referenciaFinal = formatearReferencia(referencia, compra_id);
 
         console.log("[Checkout] referenciaFinal:", referenciaFinal);
 
-        let mensaje = "🛒 *Nuevo pedido - Baúl Mágico Shop*\n\n";
-        mensaje += `🔖 *Referencia:* ${referenciaFinal}\n`;
-        mensaje += `👤 *Cliente:* ${cliente.nombre}\n`;
-        mensaje += `📱 *Teléfono:* ${cliente.telefono}\n\n`;
-        mensaje += "📦 *Productos:*\n\n";
+        // Emojis como Unicode para asegurar encoding correcto
+        const EMOJIS = {
+            cart: '\uD83D\uDECD', // 🛒
+            tag: '\uD83D\uDCC3', // 🔖
+            person: '\uD83D\uDC64', // 👤
+            phone: '\uD83D\uDCF1', // 📱
+            box: '\uD83D\uDCE6', // 📦
+            money: '\uD83D\uDCB0', // 💰
+        };
+
+        let mensaje = `${EMOJIS.cart} *Nuevo pedido - Baúl Mágico Shop*\n\n`;
+        mensaje += `${EMOJIS.tag} *Referencia:* ${referenciaFinal}\n`;
+        mensaje += `${EMOJIS.person} *Cliente:* ${cliente.nombre}\n`;
+        mensaje += `${EMOJIS.phone} *Teléfono:* ${cliente.telefono}\n\n`;
+        mensaje += `${EMOJIS.box} *Productos:*\n\n`;
 
         productos.forEach((p) => {
             mensaje += `${p.cantidad}x ${p.nombre}\n`;
@@ -218,7 +235,7 @@ function Checkout() {
             mensaje += `Subtotal: ${formatearPesos(p.subtotal)}\n\n`;
         });
 
-        mensaje += `💰 *Total:* ${formatearPesos(total)}\n\n`;
+        mensaje += `${EMOJIS.money} *Total:* ${formatearPesos(total)}\n\n`;
         mensaje += "Pedido realizado desde Baúl Mágico Shop";
 
         return mensaje;

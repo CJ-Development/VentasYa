@@ -107,6 +107,11 @@
    LOGO
 ========================================================= */
 
+.logo-link {
+    display: block;
+    text-decoration: none;
+}
+
 .logo {
     width: 180px;
 
@@ -123,7 +128,7 @@
         opacity var(--transition-fast);
 }
 
-.logo:hover {
+.logo-link:hover .logo {
     transform: scale(1.05);
 
     opacity: .88;

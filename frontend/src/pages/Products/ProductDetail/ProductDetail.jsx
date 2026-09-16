@@ -18,7 +18,7 @@ import {
 } from "lucide-react";
 
 import api from "../../../services/api";
-import { getProducts } from "../../../services/adminService";
+import { getProducts, getProduct } from "../../../services/adminService";
 import { getOffers } from "../../../services/clientService";
 
 import { useCart } from "../../../hooks/useCart";

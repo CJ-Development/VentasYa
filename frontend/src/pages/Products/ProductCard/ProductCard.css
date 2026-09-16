@@ -38,6 +38,8 @@
         transform var(--transition),
         box-shadow var(--transition),
         border-color var(--transition);
+
+    height: 100%;
 }
 
 
