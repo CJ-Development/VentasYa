@@ -40,6 +40,12 @@ function Checkout() {
 
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState(null);
+    
+    // Estados para validación de campos individuales
+    const [nombreError, setNombreError] = useState("");
+    const [telefonoError, setTelefonoError] = useState("");
+    const [terminosError, setTerminosError] = useState("");
+    const [datosError, setDatosError] = useState("");
 
     // Cargar datos del usuario si está autenticado
     useEffect(() => {
@@ -63,24 +69,73 @@ function Checkout() {
     const handleSubmit = async (e) => {
         e.preventDefault();
 
-        // Validaciones
+        // Validaciones mejoradas
+        const validationErrors = [];
+
+            // Validar nombre
         if (!nombre || nombre.trim().length < 2) {
-            setError("Debes ingresar tu nombre completo");
-            return;
+            validationErrors.push("nombre");
+            setNombreError("El nombre debe tener al menos 2 caracteres");
+        } else {
+            setNombreError("");
         }
 
-        if (!telefono || telefono.trim().length < 7) {
-            setError("Debes ingresar un teléfono válido");
-            return;
+        // Validar teléfono (formato colombiano: +57 3XX XXX XXXX o 3XX XXX XXXX)
+        const telefonoRegex = /^(\+57\s?)?3\d{2}\s?\d{3}\s?\d{4}$/;
+        if (!telefono || !telefonoRegex.test(telefono.trim())) {
+            validationErrors.push("teléfono");
+            setTelefonoError("Formato inválido. Usa: +57 3XX XXX XXXX o 3XX XXX XXXX");
+        } else {
+            setTelefonoError("");
         }
 
+        // Validar términos y condiciones
         if (!terminosAceptados) {
-            setError("Debes aceptar los Términos y Condiciones y la Política de Privacidad para continuar.");
-            return;
+            validationErrors.push("términos y condiciones");
+            setTerminosError("Debes aceptar los Términos y Condiciones");
+        } else {
+            setTerminosError("");
         }
 
+        // Validar política de privacidad
         if (!datosAceptados) {
-            setError("Debes aceptar los Términos y Condiciones y la Política de Privacidad para continuar.");
+            validationErrors.push("política de privacidad");
+            setDatosError("Debes aceptar la Política de Privacidad");
+        } else {
+            setDatosError("");
+        }
+
+        // Validar que el carrito no esté vacío
+        if (!items || items.length === 0) {
+            validationErrors.push("carrito vacío");
+        }
+
+        // Validar que todos los items tengan datos necesarios
+        const invalidItems = items.filter(item => 
+            !item.variante_id || 
+            !item.cantidad || 
+            item.cantidad < 1 ||
+            !item.producto_nombre ||
+            !item.producto_precio
+        );
+
+        if (invalidItems.length > 0) {
+            validationErrors.push("datos del producto");
+        }
+
+        // Mostrar errores específicos
+        if (validationErrors.length > 0) {
+            const errorMessages = {
+                "nombre": "El nombre debe tener al menos 2 caracteres",
+                "teléfono": "El teléfono debe tener formato colombiano (+57 3XX XXX XXXX o 3XX XXX XXXX)",
+                "términos y condiciones": "Debes aceptar los Términos y Condiciones",
+                "política de privacidad": "Debes aceptar la Política de Privacidad",
+                "carrito vacío": "El carrito está vacío. Agrega productos antes de continuar.",
+                "datos del producto": "Algunos productos tienen datos incompletos. Por favor contáctanos."
+            };
+
+            const specificErrors = validationErrors.map(error => errorMessages[error]).join(". ");
+            setError(specificErrors);
             return;
         }
 
@@ -254,9 +309,16 @@ function Checkout() {
                                         id="nombre"
                                         required
                                         value={nombre}
-                                        onChange={(e) => setNombre(e.target.value)}
+                                        onChange={(e) => {
+                                            setNombre(e.target.value);
+                                            setNombreError("");
+                                        }}
                                         placeholder="Tu nombre completo"
+                                        className={nombreError ? "checkout-input-error" : ""}
                                     />
+                                    {nombreError && (
+                                        <small className="checkout-error-text">{nombreError}</small>
+                                    )}
                                 </div>
 
                                 <div className="checkout-form-group">
@@ -266,10 +328,17 @@ function Checkout() {
                                         id="telefono"
                                         required
                                         value={telefono}
-                                        onChange={(e) => setTelefono(e.target.value)}
+                                        onChange={(e) => {
+                                            setTelefono(e.target.value);
+                                            setTelefonoError("");
+                                        }}
                                         placeholder="+57 318 1174546"
+                                        className={telefonoError ? "checkout-input-error" : ""}
                                     />
-                                    <small>Tu pedido será confirmado por WhatsApp a este número</small>
+                                    <small className="checkout-form-hint">Tu pedido será confirmado por WhatsApp a este número</small>
+                                    {telefonoError && (
+                                        <small className="checkout-error-text">{telefonoError}</small>
+                                    )}
                                 </div>
                             </form>
                         </div>
@@ -282,27 +351,39 @@ function Checkout() {
                             </div>
 
                             <div className="checkout-terms">
-                                <label className="checkout-checkbox-label">
+                                <label className={`checkout-checkbox-label ${terminosError ? "error" : ""}`}>
                                     <input
                                         type="checkbox"
                                         checked={terminosAceptados}
-                                        onChange={(e) => setTerminosAceptados(e.target.checked)}
+                                        onChange={(e) => {
+                                            setTerminosAceptados(e.target.checked);
+                                            setTerminosError("");
+                                        }}
                                     />
                                     <span>
                                         He leído y acepto los <a href="/Legal/Autorizacion_Tratamiento_Datos_Baul_Magico.pdf" target="_blank" rel="noopener noreferrer">términos y condiciones</a>
                                     </span>
                                 </label>
+                                {terminosError && (
+                                    <span className="checkout-checkbox-error">{terminosError}</span>
+                                )}
 
-                                <label className="checkout-checkbox-label">
+                                <label className={`checkout-checkbox-label ${datosError ? "error" : ""}`}>
                                     <input
                                         type="checkbox"
                                         checked={datosAceptados}
-                                        onChange={(e) => setDatosAceptados(e.target.checked)}
+                                        onChange={(e) => {
+                                            setDatosAceptados(e.target.checked);
+                                            setDatosError("");
+                                        }}
                                     />
                                     <span>
                                         Autorizo el tratamiento de mis datos personales según la <a href="/Legal/Politica_de_Privacidad_Baul_Magico.pdf" target="_blank" rel="noopener noreferrer">política de privacidad</a>
                                     </span>
                                 </label>
+                                {datosError && (
+                                    <span className="checkout-checkbox-error">{datosError}</span>
+                                )}
                             </div>
                         </div>
 
@@ -310,7 +391,15 @@ function Checkout() {
                             type="submit"
                             className="checkout-submit-button"
                             onClick={handleSubmit}
-                            disabled={isSubmitting}
+                            disabled={
+                                isSubmitting ||
+                                !nombre ||
+                                nombre.trim().length < 2 ||
+                                !telefono ||
+                                !terminosAceptados ||
+                                !datosAceptados ||
+                                items.length === 0
+                            }
                         >
                             {isSubmitting ? (
                                 <>

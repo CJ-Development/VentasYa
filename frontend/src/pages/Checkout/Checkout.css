@@ -397,6 +397,26 @@
     border-color: #0097a7;
 }
 
+.checkout-input-error {
+    border-color: #dc2626 !important;
+    background: #fef2f2;
+}
+
+.checkout-error-text {
+    display: block;
+    margin-top: 4px;
+    color: #dc2626;
+    font-size: 11px;
+    font-weight: 500;
+}
+
+.checkout-form-hint {
+    display: block;
+    margin-top: 4px;
+    color: #6e7271;
+    font-size: 11px;
+}
+
 .checkout-form-group small {
     display: block;
 
@@ -471,6 +491,19 @@
     flex-shrink: 0;
 
     accent-color: #0097a7;
+}
+
+.checkout-checkbox-label.error {
+    border-color: #dc2626 !important;
+    background: #fef2f2;
+}
+
+.checkout-checkbox-error {
+    display: block;
+    margin-top: 4px;
+    color: #dc2626;
+    font-size: 11px;
+    font-weight: 500;
 }
 
 
@@ -809,203 +842,92 @@
 }
 
 /* =========================================================
-   MÓVIL PEQUEÑO (320-430px)
-========================================================= */
+   MÓVIL PEQUEÑO (Consolidado 320-430px)
+============================================================ */
 
 @media (max-width: 430px) {
 
     .checkout-page {
-        padding-left: 10px;
-        padding-right: 10px;
+        padding: clamp(8px, 2vw, 10px) clamp(8px, 2vw, 10px) 50px;
     }
 
     .checkout-header {
-        padding: 16px 0;
+        padding: clamp(14px, 3vw, 16px) 0;
     }
 
     .checkout-header h1 {
-        font-size: 20px;
+        font-size: clamp(17px, 4vw, 20px);
     }
 
     .checkout-grid {
         grid-template-columns: 1fr;
-        gap: 16px;
+        gap: clamp(14px, 3vw, 16px);
     }
 
     .checkout-form-section {
-        padding: 16px;
+        padding: clamp(14px, 3vw, 16px);
     }
 
     .checkout-form-section h2 {
-        font-size: 16px;
+        font-size: clamp(13px, 3vw, 16px);
     }
 
     .checkout-address-card {
-        padding: 14px;
+        padding: clamp(12px, 2.5vw, 14px);
     }
 
     .checkout-address-card h3 {
-        font-size: 13px;
+        font-size: clamp(11px, 2.5vw, 13px);
     }
 
     .checkout-address-details {
-        font-size: 12px;
+        font-size: clamp(10px, 2vw, 12px);
     }
 
     .checkout-new-address-form {
-        padding: 14px;
+        padding: clamp(12px, 2.5vw, 14px);
     }
 
     .checkout-form-group {
-        margin-bottom: 12px;
+        margin-bottom: clamp(10px, 2vw, 12px);
     }
 
     .checkout-form-group label {
-        font-size: 12px;
-        margin-bottom: 6px;
+        font-size: clamp(11px, 2.5vw, 12px);
+        margin-bottom: clamp(4px, 1vw, 6px);
     }
 
     .checkout-form-group input,
     .checkout-form-group select {
-        height: 40px;
-        font-size: 13px;
-        padding: 0 12px;
+        height: clamp(38px, 8vw, 40px);
+        font-size: clamp(11px, 2.5vw, 13px);
+        padding: 0 clamp(10px, 2vw, 12px);
     }
 
     .checkout-submit-button {
-        height: 46px;
-        font-size: 13px;
+        height: clamp(44px, 8vw, 46px);
+        font-size: clamp(11px, 2.5vw, 13px);
     }
 
     .checkout-summary {
-        padding: 16px;
+        padding: clamp(14px, 3vw, 16px);
     }
 
     .checkout-summary h2 {
-        font-size: 16px;
+        font-size: clamp(13px, 3vw, 16px);
     }
 
     .checkout-summary-item {
-        font-size: 12px;
-        padding: 8px 0;
+        font-size: clamp(10px, 2vw, 12px);
+        padding: clamp(6px, 1.5vw, 8px) 0;
     }
 
     .checkout-summary-total {
-        font-size: 15px;
-        padding-top: 12px;
+        font-size: clamp(13px, 3vw, 15px);
+        padding-top: clamp(10px, 2vw, 12px);
     }
 
     .checkout-summary-note {
-        font-size: 11px;
-    }
-}
-
-@media (max-width: 375px) {
-
-    .checkout-page {
-        padding-left: 8px;
-        padding-right: 8px;
-    }
-
-    .checkout-header h1 {
-        font-size: 18px;
-    }
-
-    .checkout-form-section {
-        padding: 14px;
-    }
-
-    .checkout-form-section h2 {
-        font-size: 15px;
-    }
-
-    .checkout-address-card {
-        padding: 12px;
-    }
-
-    .checkout-address-card h3 {
-        font-size: 12px;
-    }
-
-    .checkout-address-details {
-        font-size: 11px;
-    }
-
-    .checkout-new-address-form {
-        padding: 12px;
-    }
-
-    .checkout-form-group input,
-    .checkout-form-group select {
-        height: 38px;
-        font-size: 12px;
-    }
-
-    .checkout-submit-button {
-        height: 44px;
-        font-size: 12px;
-    }
-
-    .checkout-summary {
-        padding: 14px;
-    }
-
-    .checkout-summary-total {
-        font-size: 14px;
-    }
-}
-
-@media (max-width: 320px) {
-
-    .checkout-page {
-        padding-left: 6px;
-        padding-right: 6px;
-    }
-
-    .checkout-header h1 {
-        font-size: 17px;
-    }
-
-    .checkout-form-section {
-        padding: 12px;
-    }
-
-    .checkout-form-section h2 {
-        font-size: 14px;
-    }
-
-    .checkout-address-card {
-        padding: 10px;
-    }
-
-    .checkout-address-card h3 {
-        font-size: 11px;
-    }
-
-    .checkout-address-details {
-        font-size: 10px;
-    }
-
-    .checkout-new-address-form {
-        padding: 10px;
-    }
-
-    .checkout-form-group input,
-    .checkout-form-group select {
-        height: 36px;
-        font-size: 11px;
-    }
-
-    .checkout-submit-button {
-        height: 42px;
-        font-size: 11px;
-    }
-
-    .checkout-summary {
-        padding: 12px;
-    }
-
-    .checkout-summary-total {
-        font-size: 13px;
+        font-size: clamp(9px, 2vw, 11px);
     }
 }

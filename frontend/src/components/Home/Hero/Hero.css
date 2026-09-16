@@ -915,169 +915,74 @@
 
 
 /* =========================================================
-   MÓVIL PEQUEÑO
-========================================================= */
-
-@media (max-width: 400px) {
-
-    .hero-card {
-        min-height: 215px;
-    }
-
-    .hero-card h1 {
-        font-size: 18px;
-    }
-
-    .hero-card-content {
-        padding-left: 15px;
-    }
-
-    .hero-card-image {
-        width: 59%;
-    }
-}
-
-/* =========================================================
-   MÓVIL PEQUEÑO (320-430px)
+   MÓVIL PEQUEÑO (Consolidado 320-430px)
 ========================================================= */
 
 @media (max-width: 430px) {
 
     .hero {
-        padding: 14px 10px 20px;
+        padding: clamp(10px, 2vw, 14px) clamp(6px, 1.5vw, 10px) clamp(16px, 3vw, 20px);
     }
 
     .hero-categories {
-        gap: 10px;
+        gap: clamp(8px, 1.5vw, 10px);
     }
 
     .hero-card {
-        min-height: 220px;
+        min-height: clamp(190px, 40vw, 220px);
         border-radius: var(--radius-md);
     }
 
     .hero-card-content {
-        width: 55%;
-        padding: 18px 0 16px 16px;
+        width: clamp(50%, 45vw, 55%);
+        padding: clamp(14px, 3vw, 18px) 0 clamp(12px, 2.5vw, 16px) clamp(12px, 2.5vw, 16px);
     }
 
     .hero-card h1 {
-        font-size: 19px;
+        font-size: clamp(16px, 4vw, 19px);
     }
 
     .hero-card p {
-        max-width: 130px;
-        font-size: 11px;
+        max-width: clamp(100px, 25vw, 130px);
+        font-size: clamp(9px, 2vw, 11px);
     }
 
     .hero-card-features {
-        gap: 6px;
-        margin-top: 10px;
+        gap: clamp(4px, 1vw, 6px);
+        margin-top: clamp(8px, 2vw, 10px);
     }
 
     .hero-feature {
-        width: 45px;
-        font-size: 9px;
+        width: clamp(40px, 8vw, 45px);
+        font-size: clamp(8px, 2vw, 9px);
     }
 
     .hero-feature-icon {
-        width: 26px;
-        height: 26px;
+        width: clamp(24px, 5vw, 26px);
+        height: clamp(24px, 5vw, 26px);
     }
 
     .hero-card-button {
-        margin-top: 10px;
-        min-height: 30px;
-        padding: 0 12px;
-        font-size: 10px;
+        margin-top: clamp(8px, 2vw, 10px);
+        min-height: clamp(26px, 6vw, 30px);
+        padding: 0 clamp(8px, 2vw, 12px);
+        font-size: clamp(9px, 2vw, 10px);
     }
 
     .hero-card-image {
-        width: 55%;
-    }
-
-    .hero-benefits {
-        padding: 6px 12px;
-        gap: 6px;
-    }
-
-    .hero-benefit {
-        min-height: 48px;
-        padding: 6px 0;
-    }
-
-    .hero-benefit-icon {
-        width: 38px;
-        height: 38px;
-    }
-
-    .hero-benefit-text strong {
-        font-size: 12px;
-    }
-
-    .hero-benefit-text span {
-        font-size: 11px;
-    }
-
-    .hero-highlights {
-        gap: 10px;
-    }
-
-    .hero-highlight {
-        min-height: 50px;
-        padding: 8px 10px;
-    }
-
-    .hero-highlight-icon {
-        width: 28px;
-        height: 28px;
-    }
-
-    .hero-highlight-text strong {
-        font-size: 10px;
-    }
-
-    .hero-highlight-text span {
-        font-size: 9px;
-    }
-}
-
-@media (max-width: 375px) {
-
-    .hero {
-        padding: 12px 8px 18px;
-    }
-
-    .hero-card {
-        min-height: 205px;
-    }
-
-    .hero-card-content {
-        width: 53%;
-        padding: 16px 0 14px 14px;
-    }
-
-    .hero-card h1 {
-        font-size: 17px;
-    }
-
-    .hero-card p {
-        max-width: 115px;
-        font-size: 10px;
-    }
-
-    .hero-card-button {
-        min-height: 28px;
-        padding: 0 10px;
-        font-size: 9px;
+        width: clamp(53%, 48vw, 55%);
     }
 
     .hero-benefits {
         grid-template-columns: 1fr;
-        padding: 8px 10px;
+        padding: clamp(6px, 1.5vw, 8px) clamp(8px, 2vw, 12px);
+        gap: clamp(4px, 1vw, 6px);
     }
 
     .hero-benefit {
+        min-height: clamp(45px, 8vw, 48px);
+        padding: clamp(6px, 1.5vw, 8px) 0;
+        border-right: none;
         border-bottom: 1px solid var(--color-border);
     }
 
@@ -1085,70 +990,39 @@
         border-bottom: none;
     }
 
-    .hero-highlights {
-        grid-template-columns: 1fr;
-    }
-}
-
-@media (max-width: 320px) {
-
-    .hero {
-        padding: 10px 6px 16px;
-    }
-
-    .hero-card {
-        min-height: 190px;
-    }
-
-    .hero-card-content {
-        width: 50%;
-        padding: 14px 0 12px 12px;
-    }
-
-    .hero-card h1 {
-        font-size: 16px;
-    }
-
-    .hero-card p {
-        max-width: 100px;
-        font-size: 9px;
-    }
-
-    .hero-card-features {
-        gap: 4px;
-        margin-top: 8px;
-    }
-
-    .hero-feature {
-        width: 40px;
-        font-size: 8px;
-    }
-
-    .hero-feature-icon {
-        width: 24px;
-        height: 24px;
-    }
-
-    .hero-card-button {
-        min-height: 26px;
-        padding: 0 8px;
-        font-size: 9px;
-    }
-
-    .hero-card-image {
-        width: 53%;
-    }
-
     .hero-benefit-icon {
-        width: 34px;
-        height: 34px;
+        width: clamp(32px, 7vw, 38px);
+        height: clamp(32px, 7vw, 38px);
     }
 
     .hero-benefit-text strong {
-        font-size: 11px;
+        font-size: clamp(11px, 2.5vw, 12px);
     }
 
     .hero-benefit-text span {
-        font-size: 10px;
+        font-size: clamp(10px, 2vw, 11px);
+    }
+
+    .hero-highlights {
+        grid-template-columns: 1fr;
+        gap: clamp(8px, 1.5vw, 10px);
+    }
+
+    .hero-highlight {
+        min-height: clamp(48px, 10vw, 50px);
+        padding: clamp(6px, 1.5vw, 8px) clamp(8px, 2vw, 10px);
+    }
+
+    .hero-highlight-icon {
+        width: clamp(26px, 5vw, 28px);
+        height: clamp(26px, 5vw, 28px);
+    }
+
+    .hero-highlight-text strong {
+        font-size: clamp(9px, 2vw, 10px);
+    }
+
+    .hero-highlight-text span {
+        font-size: clamp(8px, 1.5vw, 9px);
     }
 }

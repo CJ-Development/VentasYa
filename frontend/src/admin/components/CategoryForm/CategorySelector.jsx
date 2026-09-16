@@ -14,23 +14,21 @@ function CategorySelector({
     const [currentPath, setCurrentPath] = useState([]);
     const [viewMode, setViewMode] = useState("tree"); // "tree" or "search"
 
-    // Obtener categoría seleccionada
-    const selectedCategory = useMemo(() => {
-        if (!value) return null;
-        return categories.find(cat => Number(cat.id_categoria) === Number(value));
-    }, [categories, value]);
+    // =====================================================
+    // FUNCIONES AUXILIARES (definidas antes de useMemo)
+    // =====================================================
 
     // Construir ruta completa de una categoría
     const buildPath = (category) => {
         const path = [];
         let current = category;
-        
+
         while (current) {
             path.unshift(current);
             const parentId = current.id_categoria_padre ?? current.categoria_padre?.id_categoria ?? current.categoria_padre;
             current = categories.find(cat => Number(cat.id_categoria) === Number(parentId));
         }
-        
+
         return path;
     };
 
@@ -41,6 +39,50 @@ function CategorySelector({
             return Number(parent) === Number(parentId);
         });
     };
+
+    // Verificar si una categoría es descendiente de otra (prevención de ciclos)
+    const isDescendant = (potentialParent, potentialChild) => {
+        if (!potentialParent || !potentialChild) return false;
+        if (Number(potentialParent.id_categoria) === Number(potentialChild.id_categoria)) return true;
+
+        let current = potentialChild;
+        const visited = new Set();
+
+        while (current) {
+            const parentId = current.id_categoria_padre ?? current.categoria_padre?.id_categoria ?? current.categoria_padre;
+            if (!parentId) break;
+
+            if (Number(parentId) === Number(potentialParent.id_categoria)) return true;
+
+            if (visited.has(parentId)) {
+                // Ciclo detectado en los datos existentes
+                break;
+            }
+            visited.add(parentId);
+
+            current = categories.find(c => Number(c.id_categoria) === Number(parentId));
+        }
+
+        return false;
+    };
+
+    // Calcular nivel de una categoría (1-6)
+    const getLevel = (category) => {
+        if (!category) return 0;
+        const path = buildPath(category);
+        const level = path.length;
+        return Math.min(level, 6); // Máximo 6 niveles
+    };
+
+    // =====================================================
+    // HOOKS useMemo (que dependen de las funciones anteriores)
+    // =====================================================
+
+    // Obtener categoría seleccionada
+    const selectedCategory = useMemo(() => {
+        if (!value) return null;
+        return categories.find(cat => Number(cat.id_categoria) === Number(value));
+    }, [categories, value]);
 
     // Obtener categorías principales (nivel 1)
     const rootCategories = useMemo(() => {
@@ -69,18 +111,18 @@ function CategorySelector({
             const currentParent = currentPath[currentPath.length - 1];
             cats = getChildren(currentParent.id_categoria);
         }
-        
+
         // Filtrar categorías excluidas y sus descendientes
         return cats.filter(cat => {
             // Excluir la categoría que se está editando
             if (excludeId && Number(cat.id_categoria) === Number(excludeId)) return false;
-            
+
             // Excluir descendientes de la categoría que se está editando (prevención de ciclos)
             if (excludeId) {
                 const editingCategory = categories.find(c => Number(c.id_categoria) === Number(excludeId));
                 if (editingCategory && isDescendant(editingCategory, cat)) return false;
             }
-            
+
             return true;
         });
     }, [categories, currentPath, excludeId]);
@@ -88,62 +130,28 @@ function CategorySelector({
     // Búsqueda con rutas completas
     const searchResults = useMemo(() => {
         if (!searchQuery.trim()) return [];
-        
+
         const query = searchQuery.toLowerCase();
-        
+
         return categories.filter(cat => {
             // Excluir la categoría que se está editando
             if (excludeId && Number(cat.id_categoria) === Number(excludeId)) return false;
-            
+
             // Excluir descendientes de la categoría que se está editando (prevención de ciclos)
             if (excludeId) {
                 const editingCategory = categories.find(c => Number(c.id_categoria) === Number(excludeId));
                 if (editingCategory && isDescendant(editingCategory, cat)) return false;
             }
-            
+
             const path = buildPath(cat);
             const pathNames = path.map(c => c.nombre.toLowerCase()).join(" > ");
-            
+
             return pathNames.includes(query);
         }).map(cat => ({
             category: cat,
             path: buildPath(cat)
         }));
     }, [categories, searchQuery, excludeId]);
-
-    // Calcular nivel de una categoría (1-6)
-    const getLevel = (category) => {
-        if (!category) return 0;
-        const path = buildPath(category);
-        const level = path.length;
-        return Math.min(level, 6); // Máximo 6 niveles
-    };
-
-    // Verificar si una categoría es descendiente de otra (prevención de ciclos)
-    const isDescendant = (potentialParent, potentialChild) => {
-        if (!potentialParent || !potentialChild) return false;
-        if (Number(potentialParent.id_categoria) === Number(potentialChild.id_categoria)) return true;
-        
-        let current = potentialChild;
-        const visited = new Set();
-        
-        while (current) {
-            const parentId = current.id_categoria_padre ?? current.categoria_padre?.id_categoria ?? current.categoria_padre;
-            if (!parentId) break;
-            
-            if (Number(parentId) === Number(potentialParent.id_categoria)) return true;
-            
-            if (visited.has(parentId)) {
-                // Ciclo detectado en los datos existentes
-                break;
-            }
-            visited.add(parentId);
-            
-            current = categories.find(c => Number(c.id_categoria) === Number(parentId));
-        }
-        
-        return false;
-    };
 
     // Navegar a una categoría
     const navigateTo = (category) => {

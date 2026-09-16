@@ -168,6 +168,31 @@ function CategoryForm({
 
     /*
     =====================================================
+    FUNCIONES AUXILIARES (definidas antes de useMemo)
+    =====================================================
+    */
+
+    const buildPath = (category) => {
+        const path = [];
+        let current = category;
+
+        while (current) {
+            path.unshift(current);
+            const parentId = current.id_categoria_padre ?? current.categoria_padre?.id_categoria ?? current.categoria_padre;
+            current = categorias.find(cat => Number(cat.id_categoria) === Number(parentId));
+        }
+
+        return path;
+    };
+
+    /*
+    =====================================================
+    HOOKS useMemo (que dependen de las funciones anteriores)
+    =====================================================
+    */
+
+    /*
+    =====================================================
     CATEGORÍA PADRE SELECCIONADA
     =====================================================
     */
@@ -217,26 +242,6 @@ function CategoryForm({
             );
 
         }, [categorias]);
-
-
-    /*
-    =====================================================
-    OBTENER RUTA COMPLETA
-    =====================================================
-    */
-
-    const buildPath = (category) => {
-        const path = [];
-        let current = category;
-        
-        while (current) {
-            path.unshift(current);
-            const parentId = current.id_categoria_padre ?? current.categoria_padre?.id_categoria ?? current.categoria_padre;
-            current = categorias.find(cat => Number(cat.id_categoria) === Number(parentId));
-        }
-        
-        return path;
-    };
 
     /*
     =====================================================

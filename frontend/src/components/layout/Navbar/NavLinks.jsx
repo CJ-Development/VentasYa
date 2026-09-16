@@ -11,6 +11,7 @@ import {
     Shirt,
     ShoppingBag,
     ChevronDown,
+    X,
 } from "lucide-react";
 
 import api from "../../../services/api";
@@ -227,6 +228,11 @@ function NavLinks({ mobileMenuOpen, setMobileMenuOpen }) {
         }
     };
 
+    const closeMegaMenu = () => {
+        setActiveMenu(null);
+        setActiveAnchor(null);
+    };
+
     const mainCategories = useMemo(
         () => categorias.slice(0, 6),
         [categorias]
@@ -238,20 +244,30 @@ function NavLinks({ mobileMenuOpen, setMobileMenuOpen }) {
     );
 
     return (
-        <nav className="navbar-bottom">
+        <>
+            {/* Backdrop para MegaMenu móvil */}
+            {isMobile && activeMenu && (
+                <div 
+                    className="mega-menu-backdrop"
+                    onClick={closeMegaMenu}
+                    aria-hidden="true"
+                />
+            )}
 
-            {/* ==================================================
-                INICIO
-            ================================================== */}
-            <div className="nav-item nav-item-home">
-                <Link
-                    to="/"
-                    className="nav-link"
-                    onClick={handleLinkClick}
-                >
-                    Inicio
-                </Link>
-            </div>
+            <nav className="navbar-bottom">
+
+                {/* ==================================================
+                    INICIO
+                ================================================== */}
+                <div className="nav-item nav-item-home">
+                    <Link
+                        to="/"
+                        className="nav-link"
+                        onClick={handleLinkClick}
+                    >
+                        Inicio
+                    </Link>
+                </div>
 
             {/* ==================================================
                 CATEGORÍAS PRINCIPALES
@@ -327,6 +343,8 @@ function NavLinks({ mobileMenuOpen, setMobileMenuOpen }) {
                                 category={cat}
                                 anchorElement={activeAnchor}
                                 onNavigate={handleLinkClick}
+                                onClose={closeMegaMenu}
+                                isMobile={isMobile}
                             />
                         )}
                     </div>
@@ -378,11 +396,14 @@ function NavLinks({ mobileMenuOpen, setMobileMenuOpen }) {
                             anchorElement={activeAnchor}
                             onNavigate={handleLinkClick}
                             isMore
+                            onClose={closeMegaMenu}
+                            isMobile={isMobile}
                         />
                     )}
                 </div>
             )}
         </nav>
+        </>
     );
 }
 

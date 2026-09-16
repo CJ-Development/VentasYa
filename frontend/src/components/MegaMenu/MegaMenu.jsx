@@ -1,5 +1,5 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
-import { ArrowRight, ChevronRight } from "lucide-react";
+import { ArrowRight, ChevronRight, X } from "lucide-react";
 import { Link } from "react-router-dom";
 
 import "./MegaMenu.css";
@@ -50,6 +50,8 @@ function MegaMenu({
     anchorElement = null,
     onNavigate,
     isMore = false,
+    onClose = null,
+    isMobile = false,
 }) {
     const menuRef = useRef(null);
     const [position, setPosition] = useState({
@@ -164,13 +166,34 @@ function MegaMenu({
             ref={menuRef}
             className={`mega-menu mega-menu--horizontal ${
                 isMore ? "mega-menu--more" : ""
-            }`}
-            style={{
-                left: `${position.left}px`,
-                top: `${position.top}px`,
-            }}
+            } ${isMobile ? "mega-menu--mobile" : ""}`}
+            style={
+                isMobile 
+                    ? {} 
+                    : {
+                        left: `${position.left}px`,
+                        top: `${position.top}px`,
+                      }
+            }
             onMouseDown={(event) => event.stopPropagation()}
         >
+            {/* Header móvil con botón cerrar */}
+            {isMobile && (
+                <div className="mega-menu-mobile-header">
+                    <h3>
+                        {category ? category.nombre : "Más categorías"}
+                    </h3>
+                    <button
+                        type="button"
+                        className="mega-menu-close-button"
+                        onClick={onClose}
+                        aria-label="Cerrar menú"
+                    >
+                        <X size={24} />
+                    </button>
+                </div>
+            )}
+            
             <div className="mega-menu-scroll">
 
                 {columns.map((column) => {

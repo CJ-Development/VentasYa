@@ -707,6 +707,10 @@
     backdrop-filter: blur(5px);
 }
 
+.filters-modal[style*="display: flex"] {
+    display: flex !important;
+}
+
 .filters-modal-inner {
     width: min(360px, 90vw);
     height: 100%;
@@ -818,7 +822,7 @@
     .products-sidebar { display: none; }
     .mobile-filter-button { display: flex; }
     .products-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-    .filters-modal { display: flex; }
+    .filters-modal { display: flex !important; }
 }
 
 @media (max-width: 680px) {
