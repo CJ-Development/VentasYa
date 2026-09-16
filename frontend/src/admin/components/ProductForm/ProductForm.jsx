@@ -1404,12 +1404,16 @@ function ProductForm({
             // e imágenes. Al editar, se conserva su id y SKU para actualizarla
             // en vez de intentar crear otra con un SKU duplicado.
             const existingSimpleVariant = variantes[0];
+            // Usar el primer color disponible, o el primer diseño si no hay colores
+            // para satisfacer validación del backend
+            const defaultColor = colores.length > 0 ? colores[0].id_color : null;
+            const defaultDiseño = !defaultColor && diseños.length > 0 ? diseños[0].id_diseño : null;
             variantsToProcess = [
                 {
                     clientId: existingSimpleVariant?.clientId || crypto.randomUUID(),
                     id_variante: existingSimpleVariant?.id_variante || null,
-                    color: "default", // Atributo dummy para satisfacer validación del backend
-                    diseño: null,
+                    color: defaultColor,
+                    diseño: defaultDiseño,
                     talla: null,
                     sku: existingSimpleVariant?.sku || "",
                     stock: datos.stock_general || 0,

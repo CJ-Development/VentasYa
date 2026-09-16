@@ -151,10 +151,10 @@
 }
 
 .table-search {
-    flex: 1 1 280px;
+    flex: 1 1 200px;
 
-    max-width: 360px;
-    min-width: 190px;
+    max-width: 400px;
+    min-width: 180px;
 
     height: 42px;
 
@@ -836,7 +836,7 @@ td {
 
     .table-search {
         width: 100%;
-        max-width: none;
+        max-width: 500px;
     }
 
     .table-filters {
